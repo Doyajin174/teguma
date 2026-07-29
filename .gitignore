@@ -15,6 +15,9 @@ Thumbs.db
 node_modules/
 dist/
 
+# Build artifacts
+*.tsbuildinfo
+
 # Python
 __pycache__/
 .venv/
