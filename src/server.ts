@@ -14,6 +14,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { PenpotClient } from "./penpot/client.js";
+import { createLogger } from "./logger.js";
 import { getDesignContextSchema, getDesignContext } from "./tools/get-design-context.js";
 import { getTokensSchema, getTokens } from "./tools/get-tokens.js";
 import { getComponentsSchema, getComponents } from "./tools/get-components.js";
@@ -238,8 +239,20 @@ export function createServer(config: ServerConfig): McpServer {
 }
 
 export async function startServer(config: ServerConfig): Promise<void> {
+  const logger = createLogger("server");
   const server = createServer(config);
   const transport = new StdioServerTransport();
+
+  // Graceful shutdown
+  const shutdown = async (signal: string) => {
+    logger.info("shutting down", { signal });
+    await server.close();
+    process.exit(0);
+  };
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+
   await server.connect(transport);
-  console.error(`teguma MCP server running (Penpot: ${config.penpotBaseUrl})`);
+  logger.info("teguma MCP server running", { penpot: config.penpotBaseUrl });
 }

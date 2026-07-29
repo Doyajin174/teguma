@@ -1,0 +1,56 @@
+# teguma + Penpot local development stack
+# Usage: docker compose up -d
+# Then: PENPOT_URL=http://localhost:9001 PENPOT_TOKEN=<key> npx tsx src/index.ts
+
+services:
+  penpot-frontend:
+    image: "penpotapp/frontend:latest"
+    ports:
+      - "9001:8080"
+    volumes:
+      - penpot_data:/opt/data/assets
+    depends_on:
+      - penpot-backend
+      - penpot-exporter
+    environment:
+      - PENPOT_FLAGS=enable-registration enable-login-with-password
+
+  penpot-backend:
+    image: "penpotapp/backend:latest"
+    volumes:
+      - penpot_data:/opt/data/assets
+    depends_on:
+      - penpot-postgres
+      - penpot-redis
+    environment:
+      - PENPOT_FLAGS=enable-registration enable-login-with-password disable-email-verification
+      - PENPOT_SECRET_KEY=teguma-dev-secret-key-change-in-production
+      - PENPOT_PUBLIC_URI=http://localhost:9001
+      - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+      - PENPOT_DATABASE_USERNAME=penpot
+      - PENPOT_DATABASE_PASSWORD=penpot
+      - PENPOT_REDIS_URI=redis://penpot-redis/0
+      - PENPOT_ASSETS_STORAGE_BACKEND=assets-fs
+      - PENPOT_STORAGE_ASSETS_FS_DIRECTORY=/opt/data/assets
+
+  penpot-exporter:
+    image: "penpotapp/exporter:latest"
+    environment:
+      - PENPOT_PUBLIC_URI=http://penpot-frontend
+
+  penpot-postgres:
+    image: "postgres:15"
+    environment:
+      - POSTGRES_INITDB_ARGS=--data-checksums
+      - POSTGRES_DB=penpot
+      - POSTGRES_USER=penpot
+      - POSTGRES_PASSWORD=penpot
+    volumes:
+      - penpot_pgdata:/var/lib/postgresql/data
+
+  penpot-redis:
+    image: "redis:7"
+
+volumes:
+  penpot_data:
+  penpot_pgdata:
