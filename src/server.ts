@@ -20,6 +20,7 @@ import { getComponentsSchema, getComponents } from "./tools/get-components.js";
 import { createElementSchema, createElement } from "./tools/create-element.js";
 import { getConstraintsSchema, getConstraints } from "./tools/get-constraints.js";
 import { getPageLayoutSchema, getPageLayout } from "./tools/get-page-layout.js";
+import { importFigmaSchema, importFigma } from "./tools/import-figma.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
@@ -155,6 +156,24 @@ export function createServer(config: ServerConfig): McpServer {
     async (args) => {
       try {
         const result = await getPageLayout(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: import_figma ---
+  server.tool(
+    "import_figma",
+    "Import a Figma file's design system into Penpot. Converts colors, typography, components, and page structure. Use dryRun=true first to preview the conversion before writing.",
+    importFigmaSchema,
+    async (args) => {
+      try {
+        const result = await importFigma(client, args);
         return { content: [{ type: "text" as const, text: result }] };
       } catch (err) {
         return {
