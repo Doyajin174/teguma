@@ -16,6 +16,13 @@ export interface PenpotClientConfig {
   sessionCookie?: string;
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
 export class PenpotClient {
   private readonly baseUrl: string;
   private readonly headers: Record<string, string>;
@@ -37,18 +44,43 @@ export class PenpotClient {
    */
   private async rpc<T>(method: string, params: Record<string, unknown> = {}): Promise<T> {
     const url = `${this.baseUrl}/api/rpc/command/${method}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(params),
-    });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new PenpotApiError(res.status, method, body);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: this.headers,
+          body: JSON.stringify(params),
+          signal: AbortSignal.timeout(30_000),
+        });
+
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          // Don't retry client errors (4xx) except 429
+          if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+            throw new PenpotApiError(res.status, method, body);
+          }
+          // Retry server errors and rate limits
+          if (attempt < MAX_RETRIES) {
+            await delay(RETRY_DELAY_MS * attempt);
+            continue;
+          }
+          throw new PenpotApiError(res.status, method, body);
+        }
+
+        return (await res.json()) as T;
+      } catch (err) {
+        if (err instanceof PenpotApiError) throw err;
+        // Network errors — retry
+        if (attempt < MAX_RETRIES) {
+          await delay(RETRY_DELAY_MS * attempt);
+          continue;
+        }
+        throw new PenpotApiError(0, method, `Network error after ${MAX_RETRIES} attempts: ${err}`);
+      }
     }
 
-    return (await res.json()) as T;
+    throw new PenpotApiError(0, method, "Unreachable");
   }
 
   /** List all files accessible to the authenticated user */
@@ -101,6 +133,17 @@ export class PenpotClient {
     const file = await this.rpc<any>("get-file", { id: fileId });
     const typographies = file?.data?.typographies ?? {};
     return Object.values(typographies).map((t: any) => this.normalizeTypography(t));
+  }
+
+  /**
+   * Commit atomic changes to a file (create/update/delete shapes).
+   * Uses Penpot's internal change-commit RPC endpoint.
+   */
+  async commitChanges(fileId: string, changes: Array<Record<string, unknown>>): Promise<void> {
+    await this.rpc("commit-changes", {
+      "file-id": fileId,
+      changes,
+    });
   }
 
   // --- Normalizers (Penpot internal format → teguma types) ---

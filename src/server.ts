@@ -17,6 +17,8 @@ import { PenpotClient } from "./penpot/client.js";
 import { getDesignContextSchema, getDesignContext } from "./tools/get-design-context.js";
 import { getTokensSchema, getTokens } from "./tools/get-tokens.js";
 import { getComponentsSchema, getComponents } from "./tools/get-components.js";
+import { createElementSchema, createElement } from "./tools/create-element.js";
+import { getConstraintsSchema, getConstraints } from "./tools/get-constraints.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
@@ -99,6 +101,42 @@ export function createServer(config: ServerConfig): McpServer {
         return {
           content: [{ type: "text" as const, text: JSON.stringify(files, null, 2) }],
         };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: create_element ---
+  server.tool(
+    "create_element",
+    "Create a shape element (rectangle, ellipse, text, board, svg) on a Penpot page. Use get_constraints FIRST to understand layout boundaries before creating elements.",
+    createElementSchema,
+    async (args) => {
+      try {
+        const result = await createElement(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: get_constraints ---
+  server.tool(
+    "get_constraints",
+    "Get layout constraints and design guardrails for a Penpot file. Returns spacing scale, color tokens, typography scale, and MUST/MUST NOT rules. Call this BEFORE generating any UI to avoid layout overflow and brand inconsistency.",
+    getConstraintsSchema,
+    async (args) => {
+      try {
+        const result = await getConstraints(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
       } catch (err) {
         return {
           content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
