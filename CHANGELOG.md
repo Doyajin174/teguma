@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-07-30
+
+### Added
+- `create_element`: Penpot 페이지에 도형/텍스트/보드 생성 (M2)
+- `get_constraints`: 레이아웃 가드레일 MUST/MUST NOT 규칙 (M2)
+- `get_page_layout`: 페이지 구조 트리 + 자동 힌트 (M2)
+- `import_figma`: Figma REST API → Penpot 변환 (M3)
+- FigmaClient: Figma REST API v1 클라이언트
+- convertFigmaToPenpot: 구조 변환기 (Auto Layout→Flex, RGBA→hex, 노드 매핑)
+- PenpotClient: 재시도 로직 (3회, 지수 백오프), 30s 타임아웃
+- PenpotClient.commitChanges: 원자적 변경 커밋
+- CLI: --help, --version, 도구 목록
+- Dockerfile: 멀티스테이지 빌드
+- CI: GitHub Actions (test + release on tag)
+- 테스트 34개 (compressor 10 + tools 11 + converter 13)
+- 비교 벤치마크 문서 (vs Figma+Claude Design)
+- M3 Figma 파일 포맷 리서치
+
 ## [0.1.0] - 2026-07-30
 
 ### Added
