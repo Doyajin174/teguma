@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FigmaOSSProject",
+  "description": "Figma 관련 오픈소스 프로젝트 카탈로그 엔트리",
+  "type": "object",
+  "required": ["id", "name", "url", "category", "stars"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "고유 식별자 (github owner/repo)"
+    },
+    "name": {
+      "type": "string",
+      "description": "프로젝트 표시 이름"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "design-platform",
+        "whiteboard-canvas",
+        "figma-to-code",
+        "ai-figma-integration",
+        "figma-plugin-sdk",
+        "icons-assets",
+        "design-system-tokens",
+        "figma-clone",
+        "other"
+      ]
+    },
+    "stars": {
+      "type": "integer"
+    },
+    "language": {
+      "type": "string"
+    },
+    "license": {
+      "type": ["string", "null"]
+    },
+    "description": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "maintenance", "archived", "unknown"],
+      "description": "프로젝트 활성 상태"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "조사자 메모"
+    }
+  }
+}
