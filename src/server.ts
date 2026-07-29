@@ -23,6 +23,7 @@ import { getPageLayoutSchema, getPageLayout } from "./tools/get-page-layout.js";
 import { importFigmaSchema, importFigma } from "./tools/import-figma.js";
 import { updateElementSchema, updateElement } from "./tools/update-element.js";
 import { deleteElementSchema, deleteElement } from "./tools/delete-element.js";
+import { checkConnection } from "./tools/check-connection.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
@@ -219,6 +220,17 @@ export function createServer(config: ServerConfig): McpServer {
           isError: true,
         };
       }
+    },
+  );
+
+  // --- Tool: check_connection ---
+  server.tool(
+    "check_connection",
+    "Verify Penpot connectivity and authentication. Run this first if other tools fail. Returns latency, accessible files, and troubleshooting suggestions.",
+    {},
+    async () => {
+      const result = await checkConnection(client);
+      return { content: [{ type: "text" as const, text: result }] };
     },
   );
 
