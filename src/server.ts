@@ -21,6 +21,8 @@ import { createElementSchema, createElement } from "./tools/create-element.js";
 import { getConstraintsSchema, getConstraints } from "./tools/get-constraints.js";
 import { getPageLayoutSchema, getPageLayout } from "./tools/get-page-layout.js";
 import { importFigmaSchema, importFigma } from "./tools/import-figma.js";
+import { updateElementSchema, updateElement } from "./tools/update-element.js";
+import { deleteElementSchema, deleteElement } from "./tools/delete-element.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
@@ -174,6 +176,42 @@ export function createServer(config: ServerConfig): McpServer {
     async (args) => {
       try {
         const result = await importFigma(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: update_element ---
+  server.tool(
+    "update_element",
+    "Update an existing shape on a Penpot page. Can modify name, position, size, fill color, corner radius, and visibility.",
+    updateElementSchema,
+    async (args) => {
+      try {
+        const result = await updateElement(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: delete_element ---
+  server.tool(
+    "delete_element",
+    "Delete a shape from a Penpot page. Use with caution — this is irreversible.",
+    deleteElementSchema,
+    async (args) => {
+      try {
+        const result = await deleteElement(client, args);
         return { content: [{ type: "text" as const, text: result }] };
       } catch (err) {
         return {
