@@ -19,6 +19,7 @@ import { getTokensSchema, getTokens } from "./tools/get-tokens.js";
 import { getComponentsSchema, getComponents } from "./tools/get-components.js";
 import { createElementSchema, createElement } from "./tools/create-element.js";
 import { getConstraintsSchema, getConstraints } from "./tools/get-constraints.js";
+import { getPageLayoutSchema, getPageLayout } from "./tools/get-page-layout.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
@@ -136,6 +137,24 @@ export function createServer(config: ServerConfig): McpServer {
     async (args) => {
       try {
         const result = await getConstraints(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: get_page_layout ---
+  server.tool(
+    "get_page_layout",
+    "Get the layout structure of a Penpot page as a compact tree. Shows frame hierarchy, layout types (flex/grid), gaps, and sizing. Use to understand spatial structure before creating or modifying elements.",
+    getPageLayoutSchema,
+    async (args) => {
+      try {
+        const result = await getPageLayout(client, args);
         return { content: [{ type: "text" as const, text: result }] };
       } catch (err) {
         return {
