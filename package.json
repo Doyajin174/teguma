@@ -1,11 +1,23 @@
 {
   "name": "teguma",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "AI-native design bridge — Penpot MCP + brand context engine",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "teguma": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Doyajin174/teguma.git"
+  },
+  "homepage": "https://github.com/Doyajin174/teguma",
+  "bugs": {
+    "url": "https://github.com/Doyajin174/teguma/issues"
   },
   "scripts": {
     "build": "tsc",
