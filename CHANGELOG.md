@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - 생성형 배경 원본 3종 스톡 라이브러리와 provenance manifest 검증
 - AI 특유의 시각 단서를 줄인 다큐멘터리형 회사 홍보 시안 v2
 - IBM Plex Sans KR 기반 절제된 편집 렌더러와 v1/v2 비교판
+- 네이버 검색 104×104px 실노출에 맞춘 회사 홍보 썸네일 v3
+- 1:1·104px·홈피드 중앙 크롭을 동시에 검증하는 노출 미리보기와 QA
+
+### Fixed
+- 생성 원본의 내장 C2PA claim·signature를 `embedded-unverified`로 정확히 기록하고 검증
 
 ## [0.2.0] - 2026-07-30
 

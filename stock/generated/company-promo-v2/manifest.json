@@ -4,8 +4,8 @@
   "title": "회사 홍보 에디토리얼 v2 생성 배경 원본",
   "provenance": {
     "recordType": "repository-sidecar",
-    "c2paStatus": "unsigned",
-    "c2paNote": "Repository evidence only; no certificate-backed Content Credential is attached.",
+    "c2paStatus": "embedded-unverified",
+    "c2paNote": "An embedded C2PA claim and signature payload is present; this repository preserves it but does not independently validate its certificate chain.",
     "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
     "sourceSessionId": "019fae74-d5cf-7051-be5e-08758ef8b49c",
     "generator": {

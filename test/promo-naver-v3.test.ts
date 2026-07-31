@@ -13,34 +13,36 @@ import {
   resolveAssetRealPath,
   validateCampaign,
   validateSvgStyle,
-} from '../experiments/company-promo-editorial-v2/render.mjs'
+} from '../experiments/company-promo-naver-v3/render.mjs'
 
 const OUTPUT_DIRECTORY = fileURLToPath(
-  new URL('../experiments/company-promo-editorial-v2/output/', import.meta.url),
+  new URL('../experiments/company-promo-naver-v3/output/', import.meta.url),
 )
 
-describe('human editorial company promotion v2', () => {
-  it('keeps copy and logos inside the safe area and away from the subject', async () => {
+describe('Naver Blog company promotion thumbnail v3', () => {
+  it('keeps one short hook readable in search and home-feed crops', async () => {
     const spec = await loadSpec()
 
     for (const campaign of spec.campaigns) {
-      const checks = validateCampaign(campaign, spec.canvas, spec.visualPolicy)
+      const checks = validateCampaign(campaign, spec)
       expect(checks, campaign.id).toSatisfy(
         (items: Array<{ pass: boolean }>) => items.every((item) => item.pass),
       )
     }
+
+    expect(spec.visualPolicy.fontSize * 104 / spec.canvas.width).toBeGreaterThanOrEqual(11.5)
   })
 
-  it('builds exact campaign copy without the banned effect grammar', async () => {
+  it('builds exactly one hook without effect-led visual grammar', async () => {
     const spec = await loadSpec()
 
     for (const campaign of spec.campaigns) {
-      const svg = await buildSvg(campaign, spec.canvas)
+      const svg = await buildSvg(campaign, spec)
       const styleChecks = validateSvgStyle(svg)
 
-      expect(svg).toContain(campaign.headline[0])
-      expect(svg).toContain(campaign.headline[1])
-      expect(svg).toContain(campaign.body[0])
+      expect(svg.match(/<text\b/g)).toHaveLength(1)
+      expect(svg).toContain(campaign.hook)
+      expect(svg).not.toContain(campaign.externalTitle[0])
       expect(svg).not.toMatch(/(?:="(?:undefined|null)"|>(?:undefined|null)<)/)
       expect(styleChecks, campaign.id).toSatisfy(
         (items: Array<{ pass: boolean }>) => items.every((item) => item.pass),
@@ -48,37 +50,29 @@ describe('human editorial company promotion v2', () => {
     }
   })
 
-  it('declares a deliberately empty visual-effects policy', async () => {
-    const spec = await loadSpec()
-
-    expect(spec.visualPolicy).toEqual({
-      fontFamilies: ['IBM Plex Sans KR'],
-      usesGradient: false,
-      usesFilter: false,
-      usesTextStroke: false,
-      usesRoundedPills: false,
-      effects: [],
-    })
-  })
-
-  it('uses readable contrast for all opaque copy surfaces', async () => {
+  it('uses opaque surfaces with accessible hook and accent contrast', async () => {
     const spec = await loadSpec()
 
     for (const campaign of spec.campaigns) {
-      expect(contrastRatio(campaign.palette.ink, campaign.palette.surface), campaign.id)
+      expect(contrastRatio(campaign.palette.text, campaign.palette.overlay), campaign.id)
         .toBeGreaterThanOrEqual(4.5)
-      expect(contrastRatio(campaign.palette.muted, campaign.palette.surface), campaign.id)
-        .toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(campaign.palette.accent, campaign.palette.overlay), campaign.id)
+        .toBeGreaterThanOrEqual(3)
     }
   })
 
-  it('renders all campaign and comparison PNGs at their declared sizes', async () => {
+  it('renders campaigns, exact 104px thumbnails, and exposure previews', async () => {
     const expected = [
       ['sevasa.png', 1080, 1080],
       ['supershorts.png', 1080, 1080],
       ['roadmap.png', 1080, 1080],
+      ['sevasa-104.png', 104, 104],
+      ['supershorts-104.png', 104, 104],
+      ['roadmap-104.png', 104, 104],
       ['contact-sheet.png', 1780, 730],
-      ['comparison-v1-v2.png', 1780, 1320],
+      ['search-preview-104.png', 430, 780],
+      ['homefeed-preview.png', 1780, 700],
+      ['comparison-v2-v3-104.png', 1780, 690],
     ] as const
 
     for (const [file, width, height] of expected) {
@@ -90,10 +84,10 @@ describe('human editorial company promotion v2', () => {
   it('rejects lexical and symlink repository escapes and duplicate campaign ids', async () => {
     expect(() => resolveAssetPath('../../../etc/passwd')).toThrow(/escapes repository/)
 
-    const outsideDirectory = await mkdtemp(path.join(tmpdir(), 'teguma-v2-'))
+    const outsideDirectory = await mkdtemp(path.join(tmpdir(), 'teguma-v3-'))
     const outsideFile = path.join(outsideDirectory, 'outside.txt')
     const linkPath = fileURLToPath(
-      new URL('../experiments/company-promo-editorial-v2/output/.outside-link', import.meta.url),
+      new URL('../experiments/company-promo-naver-v3/output/.outside-link', import.meta.url),
     )
     await writeFile(outsideFile, 'outside repository')
     await rm(linkPath, { force: true })

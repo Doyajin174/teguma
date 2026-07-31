@@ -1,0 +1,432 @@
+{
+  "schemaVersion": 1,
+  "direction": "naver-blog-thumbnail-v3",
+  "renderer": "@resvg/resvg-js",
+  "sourceRoot": "experiments/company-promo-naver-v3",
+  "visualPolicy": {
+    "fontFamily": "IBM Plex Sans KR",
+    "fontSize": 120,
+    "maxHookCharacters": 12,
+    "maxOverlayRatio": 0.18,
+    "usesGradient": false,
+    "usesFilter": false,
+    "usesTextStroke": false,
+    "usesRoundedPills": false
+  },
+  "displayTests": {
+    "search": {
+      "width": 104,
+      "height": 104
+    },
+    "homefeed": {
+      "width": 1080,
+      "height": 608,
+      "cropTop": 236,
+      "cropBottom": 844
+    }
+  },
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "output": "output/sevasa.png",
+      "searchOutput": "output/sevasa-104.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "overlay-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "overlay-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "hook-is-one-line",
+          "pass": true,
+          "value": 9
+        },
+        {
+          "name": "search-font-is-readable",
+          "pass": true,
+          "value": 11.56
+        },
+        {
+          "name": "overlay-area-is-bounded",
+          "pass": true,
+          "value": 0.1569
+        },
+        {
+          "name": "overlay-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "focus-stays-in-central-eighty-percent",
+          "pass": true
+        },
+        {
+          "name": "focus-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "subject-coverage-is-close",
+          "pass": true,
+          "value": 0.72
+        },
+        {
+          "name": "hook-text-contrast",
+          "pass": true,
+          "value": 17.79
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 5.57
+        },
+        {
+          "name": "effects-policy-is-off",
+          "pass": true
+        },
+        {
+          "name": "svg-has-one-primary-image",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-one-text-node",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-approved-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        },
+        {
+          "name": "search-thumbnail-dimensions",
+          "pass": true,
+          "value": {
+            "width": 104,
+            "height": 104
+          }
+        }
+      ]
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "output": "output/supershorts.png",
+      "searchOutput": "output/supershorts-104.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "overlay-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "overlay-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "hook-is-one-line",
+          "pass": true,
+          "value": 8
+        },
+        {
+          "name": "search-font-is-readable",
+          "pass": true,
+          "value": 11.56
+        },
+        {
+          "name": "overlay-area-is-bounded",
+          "pass": true,
+          "value": 0.1569
+        },
+        {
+          "name": "overlay-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "focus-stays-in-central-eighty-percent",
+          "pass": true
+        },
+        {
+          "name": "focus-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "subject-coverage-is-close",
+          "pass": true,
+          "value": 0.7
+        },
+        {
+          "name": "hook-text-contrast",
+          "pass": true,
+          "value": 17.74
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 5.43
+        },
+        {
+          "name": "effects-policy-is-off",
+          "pass": true
+        },
+        {
+          "name": "svg-has-one-primary-image",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-one-text-node",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-approved-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        },
+        {
+          "name": "search-thumbnail-dimensions",
+          "pass": true,
+          "value": {
+            "width": 104,
+            "height": 104
+          }
+        }
+      ]
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "output": "output/roadmap.png",
+      "searchOutput": "output/roadmap-104.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "overlay-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "overlay-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "hook-is-one-line",
+          "pass": true,
+          "value": 9
+        },
+        {
+          "name": "search-font-is-readable",
+          "pass": true,
+          "value": 11.56
+        },
+        {
+          "name": "overlay-area-is-bounded",
+          "pass": true,
+          "value": 0.1569
+        },
+        {
+          "name": "overlay-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "focus-stays-in-central-eighty-percent",
+          "pass": true
+        },
+        {
+          "name": "focus-survives-homefeed-crop",
+          "pass": true
+        },
+        {
+          "name": "subject-coverage-is-close",
+          "pass": true,
+          "value": 0.68
+        },
+        {
+          "name": "hook-text-contrast",
+          "pass": true,
+          "value": 17.61
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 9.01
+        },
+        {
+          "name": "effects-policy-is-off",
+          "pass": true
+        },
+        {
+          "name": "svg-has-one-primary-image",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-one-text-node",
+          "pass": true,
+          "value": 1
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-approved-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        },
+        {
+          "name": "search-thumbnail-dimensions",
+          "pass": true,
+          "value": {
+            "width": 104,
+            "height": 104
+          }
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "contact-sheet",
+      "output": "output/contact-sheet.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1780,
+            "height": 730
+          }
+        }
+      ]
+    },
+    {
+      "name": "search-preview-104",
+      "output": "output/search-preview-104.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 430,
+            "height": 780
+          }
+        }
+      ]
+    },
+    {
+      "name": "homefeed-preview",
+      "output": "output/homefeed-preview.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1780,
+            "height": 700
+          }
+        }
+      ]
+    },
+    {
+      "name": "comparison-v2-v3-104",
+      "output": "output/comparison-v2-v3-104.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1780,
+            "height": 690
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

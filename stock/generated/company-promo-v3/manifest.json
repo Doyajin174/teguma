@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "company-promo-naver-v3-2026-07",
+  "title": "네이버 실노출용 회사 홍보 썸네일 v3 생성 배경 원본",
+  "provenance": {
+    "recordType": "repository-sidecar",
+    "c2paStatus": "embedded-unverified",
+    "c2paNote": "An embedded C2PA claim and signature payload is present; this repository preserves it but does not independently validate its certificate chain.",
+    "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+    "sourceSessionId": "019fae74-d5cf-7051-be5e-08758ef8b49c",
+    "generator": {
+      "name": "OpenAI image generation",
+      "surface": "Codex image generation tool",
+      "model": null
+    }
+  },
+  "assets": [
+    {
+      "id": "sevasa-charging-close",
+      "file": "originals/sevasa-charging-close.png",
+      "sourceArtifactId": "exec-ab1ebe2c-17dc-4906-bcfa-39e94ec8ee34",
+      "createdAt": "2026-07-31T17:15:21+09:00",
+      "mimeType": "image/png",
+      "bytes": 2192733,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "719d228c55f50cf974dd0a93eec38a036dcc850eba96f05c7cc2830ab44d5dab",
+      "title": "SEVASA 충전 연결 클로즈업",
+      "description": "일반 건물 주차장에서 충전기, 케이블과 차량 충전 포트가 한 관계로 읽히는 근접 현장 이미지.",
+      "keywords": ["EV charging", "connector", "parking garage", "energy operations", "documentary", "thumbnail"],
+      "promptSource": "../../../experiments/company-promo-naver-v3/PROMPTS.md#sevasa",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: photorealistic-natural",
+          "Asset type: square primary image for a Naver Blog search thumbnail that will be displayed as small as 104 by 104 pixels; typography will be added later",
+          "Primary request: an immediate, unmistakable close documentary photograph of an electric car actively charging in an ordinary Korean office-building parking garage",
+          "Scene/backdrop: practical daytime parking garage with worn concrete, visible conduit, painted floor and neutral fluorescent fixtures",
+          "Subject: one unbranded wall charger, its heavy cable, connector and the open charging port of one unbranded compact EV; connector, cable and charging port must be physically correct and together occupy roughly the central and right 70 percent of the square",
+          "Style/medium: candid corporate field photography, natural and matter-of-fact, not staged, not stock-like, not CGI",
+          "Composition/framing: 1:1 square, eye-level 50mm close framing; one obvious focal relationship readable at tiny thumbnail size; keep all essential objects inside the central 80 percent so both square and landscape center crops survive",
+          "Lighting/mood: believable soft daylight mixed with neutral garage lighting, one coherent light direction, restrained contrast, neutral white balance",
+          "Materials/textures: concrete pores, minor floor scuffs, cable weight, contact shadows, ordinary automotive paint",
+          "Constraints: image only; no text, letters, numbers, logos, brand marks, people, hands, license-plate text, UI, infographic, glow, energy trails, holograms, watermark, split panels, or empty copy area",
+          "Avoid: cinematic color grade, cyan wash, luxury car ad, wide empty wall, glossy 3D render, shallow bokeh, perfect showroom, dramatic fog"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-naver-v3/assets/backgrounds/sevasa.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-naver-v3/output/sevasa.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, people, or license-plate text were intentionally requested; visual review is still required."
+      }
+    },
+    {
+      "id": "supershorts-phone-workflow",
+      "file": "originals/supershorts-phone-workflow.png",
+      "sourceArtifactId": "exec-793ed783-5063-4812-914a-2a018628d357",
+      "createdAt": "2026-07-31T17:16:41+09:00",
+      "mimeType": "image/png",
+      "bytes": 2270050,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e5bc65fa4582c53cc0e133c334934f714784cdc38ff4c2b7ea9576d6ab2c5f55",
+      "title": "슈퍼쇼츠 휴대전화 중심 제작 흐름",
+      "description": "휴대전화의 세로 영상과 뒤쪽 노트북의 블로그 글 관계가 작은 크기에서도 구분되는 실제 작업대 이미지.",
+      "keywords": ["short video", "smartphone", "blog workflow", "creator desk", "documentary", "thumbnail"],
+      "promptSource": "../../../experiments/company-promo-naver-v3/PROMPTS.md#슈퍼쇼츠",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: photorealistic-natural",
+          "Asset type: square primary image for a Naver Blog search thumbnail that will be displayed as small as 104 by 104 pixels; typography will be added later",
+          "Primary request: a close, instantly understandable creator workflow photograph showing a blog article becoming a vertical short video using ordinary real devices",
+          "Scene/backdrop: modest contemporary Korean home-office desk in soft daytime light, with one open laptop and one smartphone upright on a simple stand",
+          "Subject: the smartphone is the strongest single focal object and occupies the central-right half; its screen shows one vivid but natural vertical video frame with a simple play triangle and no words; the laptop behind it shows only broad article image and paragraph blocks with no readable text",
+          "Style/medium: candid editorial workplace photography, honest and lightly imperfect, not a glossy product render",
+          "Composition/framing: 1:1 square, seated eye-level 45mm close framing; phone, laptop relationship fills about 70 percent of frame; keep both devices inside central 80 percent for square and landscape center crops; only a notebook edge and one cable as supporting detail",
+          "Lighting/mood: soft window daylight, neutral white balance, normal indoor contrast, no colored studio lights",
+          "Materials/textures: fingerprints on phone glass, small desk scratches, realistic cable, ordinary affordable equipment",
+          "Constraints: image only; no readable text, letters, numbers, logos, brand marks, people, hands, floating screens, detached cards, holograms, neon, impossible UI, watermark, split-screen collage, or empty copy area",
+          "Avoid: blue-purple wash, influencer fantasy studio, polished 3D render, levitating objects, multiple phones, excessive props, shallow bokeh, cinematic glow"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-naver-v3/assets/backgrounds/supershorts.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-naver-v3/output/supershorts.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, people, or impossible interface elements were intentionally requested; visual review is still required."
+      }
+    },
+    {
+      "id": "roadmap-empty-bay",
+      "file": "originals/roadmap-empty-bay.png",
+      "sourceArtifactId": "exec-486d3a6c-ad3a-4ac4-b974-8704716f6963",
+      "createdAt": "2026-07-31T17:18:03+09:00",
+      "mimeType": "image/png",
+      "bytes": 2267385,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "00f14892115027cb04e8647dbb77dfd3167375c813734d3c14e6c67958e9bda8",
+      "title": "로드맵 빈 주차면과 현장 센서",
+      "description": "빈 주차면, 실제 고정된 센서와 인접 차량이 하나의 현장 이야기로 읽히는 스마트 주차 이미지.",
+      "keywords": ["smart parking", "empty bay", "parking sensor", "infrastructure", "documentary", "thumbnail"],
+      "promptSource": "../../../experiments/company-promo-naver-v3/PROMPTS.md#주식회사-로드맵",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: photorealistic-natural",
+          "Asset type: square primary image for a Naver Blog search thumbnail that will be displayed as small as 104 by 104 pixels; typography will be added later",
+          "Primary request: an instantly readable field photograph of a real smart-parking installation identifying one available parking space",
+          "Scene/backdrop: ordinary above-ground municipal or office parking structure in Anyang on an overcast afternoon, weathered concrete and slightly worn white parking lines",
+          "Subject: one clearly empty parking bay dominates the central-right area, with a small physically mounted parking sensor and bracket visible above it and one unbranded car entering the adjacent lane; the empty bay, sensor and car geometry must be coherent",
+          "Style/medium: documentary infrastructure photography, objective site-report image, real working environment, no CGI or composited technology effects",
+          "Composition/framing: 1:1 square, natural eye-level 35mm framing close enough that the empty bay reads at 104 pixels; essential sensor, empty bay and car stay inside central 80 percent for square and landscape center crops; one focal story only",
+          "Lighting/mood: diffuse overcast daylight mixed with practical garage fixtures, neutral gray color, restrained contrast",
+          "Materials/textures: patched concrete, faded paint, minor tire marks, realistic sensor wiring and bracket, ordinary vehicle finish",
+          "Constraints: image only; no readable text, letters, numbers, logos, brand marks, people, license-plate text, scan rings, point clouds, holograms, grids, UI overlays, cyan trails, watermark, split panels, or empty copy area",
+          "Avoid: futuristic smart city art, cyberpunk, blue hour, aerial hero angle, glossy render, pristine architecture, dramatic volumetric light"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-naver-v3/assets/backgrounds/roadmap.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-naver-v3/output/roadmap.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, people, or license-plate text were intentionally requested; visual review is still required."
+      }
+    }
+  ]
+}

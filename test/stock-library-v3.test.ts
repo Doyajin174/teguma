@@ -6,14 +6,14 @@ import {
 } from '../scripts/verify-stock.mjs'
 
 const MANIFEST = fileURLToPath(
-  new URL('../stock/generated/company-promo-v2/manifest.json', import.meta.url),
+  new URL('../stock/generated/company-promo-v3/manifest.json', import.meta.url),
 )
 
-describe('human editorial v2 generated stock library', () => {
+describe('Naver thumbnail v3 generated stock library', () => {
   it('preserves all three generated originals and their derivatives', async () => {
     const report = await verifyStockCollection(MANIFEST)
 
-    expect(report.collectionId).toBe('company-promo-editorial-v2-2026-07')
+    expect(report.collectionId).toBe('company-promo-naver-v3-2026-07')
     expect(report.passed).toBe(true)
     expect(report.assets).toHaveLength(3)
     expect(report.assets.every((asset) => asset.checks.every((check) => check.pass))).toBe(true)

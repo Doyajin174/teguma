@@ -4,6 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Resvg } from '@resvg/resvg-js'
 import { PNG } from 'pngjs'
 import { z } from 'zod'
+import {
+  resolveContainedAssetPath,
+  resolveContainedAssetRealPath,
+} from '../../scripts/resolve-asset.mjs'
 
 const TESTBED_DIR = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(TESTBED_DIR, '../..')
@@ -94,18 +98,15 @@ function mimeType(filePath) {
 }
 
 export function resolveAssetPath(relativePath) {
-  const absolutePath = path.resolve(TESTBED_DIR, relativePath)
-  if (
-    absolutePath !== REPO_ROOT
-    && !absolutePath.startsWith(`${REPO_ROOT}${path.sep}`)
-  ) {
-    throw new Error(`Asset path escapes repository: ${relativePath}`)
-  }
-  return absolutePath
+  return resolveContainedAssetPath(TESTBED_DIR, REPO_ROOT, relativePath, 'repository')
+}
+
+export async function resolveAssetRealPath(relativePath) {
+  return resolveContainedAssetRealPath(TESTBED_DIR, REPO_ROOT, relativePath, 'repository')
 }
 
 async function dataUri(relativePath) {
-  const absolutePath = resolveAssetPath(relativePath)
+  const absolutePath = await resolveAssetRealPath(relativePath)
   const data = await readFile(absolutePath)
   return `data:${mimeType(absolutePath)};base64,${data.toString('base64')}`
 }
@@ -225,7 +226,7 @@ export function parseSpec(value) {
 }
 
 export async function loadSpec() {
-  const value = JSON.parse(await readFile(path.join(TESTBED_DIR, 'campaigns.json'), 'utf8'))
+  const value = JSON.parse(await readFile(await resolveAssetRealPath('campaigns.json'), 'utf8'))
   return parseSpec(value)
 }
 
@@ -399,7 +400,7 @@ async function buildComparisonSheet(campaigns) {
     const source = version === 'v1'
       ? `../company-promo-testbed/output/${campaign.id}.png`
       : `output/${campaign.id}.png`
-    const png = await readFile(resolveAssetPath(source))
+    const png = await readFile(await resolveAssetRealPath(source))
     const href = `data:image/png;base64,${png.toString('base64')}`
     const x = 40 + (index * 580)
     return `<image href="${href}" x="${x}" y="${y}" width="520" height="520"/>`

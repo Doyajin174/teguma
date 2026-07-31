@@ -23,10 +23,10 @@ npm run stock:verify
 - 디지털 소스 유형: `trainedAlgorithmicMedia`
 - 생성 도구: OpenAI image generation through Codex
 - 기록 방식: 저장소 내부 sidecar manifest
-- C2PA 상태: **unsigned** — 인증서로 서명된 Content Credential이 아님
+- C2PA 상태: **embedded-unverified** — 원본에 claim·signature payload가 있으나 이 저장소에서는 인증서 체인을 독립 검증하지 않음
 - 프롬프트와 생성 결과 ID: `manifest.json`에 원문 보관
 
-픽셀 원본에는 후처리를 하지 않는다. 리사이즈나 압축이 필요하면 새 파생물을 만들고 manifest에 관계를 추가한다.
+저장소 sidecar는 내장 C2PA 데이터를 대체하지 않고 원본 바이트·해시·프롬프트·파생 관계를 보완한다. 픽셀 원본에는 후처리를 하지 않는다. 리사이즈나 압축이 필요하면 새 파생물을 만들고 manifest에 관계를 추가한다.
 
 ## 사용 주의
 

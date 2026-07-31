@@ -1,0 +1,84 @@
+{
+  "version": "v3",
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "safeMargin": 48
+  },
+  "displayTests": {
+    "search": { "width": 104, "height": 104 },
+    "homefeed": { "width": 1080, "height": 608, "cropTop": 236, "cropBottom": 844 }
+  },
+  "visualPolicy": {
+    "fontFamily": "IBM Plex Sans KR",
+    "fontSize": 120,
+    "maxHookCharacters": 12,
+    "maxOverlayRatio": 0.18,
+    "usesGradient": false,
+    "usesFilter": false,
+    "usesTextStroke": false,
+    "usesRoundedPills": false
+  },
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "background": "assets/backgrounds/sevasa.jpg",
+      "sourceUrl": "https://www.sevasa.co.kr/",
+      "hook": "충전비 줄이는 법",
+      "externalTitle": ["전기차 충전비, 시간대에 따라", "얼마나 달라질까?"],
+      "previewExcerpt": "충전기와 차량이 실제로 연결되는 현장에서 에너지 운영 방식을 살펴봅니다.",
+      "author": "SEVASA 에너지 노트",
+      "palette": {
+        "overlay": "#11191D",
+        "text": "#FFFFFF",
+        "accent": "#00A653"
+      },
+      "layout": {
+        "overlay": { "x": 48, "y": 650, "width": 984, "height": 186 },
+        "focusPoint": { "x": 792, "y": 494 },
+        "subjectCoverage": 0.72
+      }
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "background": "assets/backgrounds/supershorts.jpg",
+      "sourceUrl": "https://www.supershorts.co.kr/",
+      "hook": "블로그가 쇼츠로",
+      "externalTitle": ["블로그 글 하나로 쇼츠 초안", "만드는 과정을 공개합니다"],
+      "previewExcerpt": "링크를 넣은 뒤 영상 초안이 만들어지고 직접 마무리하는 흐름을 정리했습니다.",
+      "author": "슈퍼쇼츠 제작 노트",
+      "palette": {
+        "overlay": "#111827",
+        "text": "#FFFFFF",
+        "accent": "#388DFF"
+      },
+      "layout": {
+        "overlay": { "x": 48, "y": 650, "width": 984, "height": 186 },
+        "focusPoint": { "x": 700, "y": 430 },
+        "subjectCoverage": 0.70
+      }
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "background": "assets/backgrounds/roadmap.jpg",
+      "sourceUrl": "https://roadmap.ne.kr/",
+      "hook": "빈자리 바로 찾기",
+      "externalTitle": ["주차장 빈자리는 어떻게", "실시간으로 찾을까?"],
+      "previewExcerpt": "현장 센서가 주차면 상태를 읽고 운영 정보로 연결하는 과정을 소개합니다.",
+      "author": "로드맵 현장 기록",
+      "palette": {
+        "overlay": "#121A1E",
+        "text": "#FFFFFF",
+        "accent": "#56C9D8"
+      },
+      "layout": {
+        "overlay": { "x": 48, "y": 650, "width": 984, "height": 186 },
+        "focusPoint": { "x": 678, "y": 468 },
+        "subjectCoverage": 0.68
+      }
+    }
+  ]
+}
