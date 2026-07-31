@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - SVG → PNG 결정론적 렌더러와 레이아웃·대비 자동 QA
 - 자동 그래픽 디자인 프로젝트·논문 조사 문서
 - 생성형 배경 원본 3종 스톡 라이브러리와 provenance manifest 검증
+- AI 특유의 시각 단서를 줄인 다큐멘터리형 회사 홍보 시안 v2
+- IBM Plex Sans KR 기반 절제된 편집 렌더러와 v1/v2 비교판
 
 ## [0.2.0] - 2026-07-30
 
