@@ -103,6 +103,10 @@ npm test           # Vitest
 
 - [회사 홍보 썸네일 테스트베드](experiments/company-promo-testbed/README.md) — SEVASA, 슈퍼쇼츠, 주식회사 로드맵 1080×1080 시안과 재현 가능한 SVG 렌더러
 
+## 스톡 자산
+
+- [생성형 회사 홍보 배경 원본](stock/generated/company-promo/README.md) — 원본 PNG, 프롬프트, SHA-256, 파생 자산 관계
+
 ## 라이선스
 
 MIT
@@ -116,6 +120,7 @@ MIT
 | `docs/releases/` | 버전별 업데이트 리포트 |
 | `data/` | 수집 데이터 (JSON/YAML) |
 | `scripts/` | 자동화 스크립트 |
+| `stock/` | 출처와 생성 이력이 검증되는 재사용 자산 |
 
 ## 라이선스
 

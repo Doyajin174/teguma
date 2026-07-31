@@ -51,6 +51,8 @@ output/                재현 가능한 산출물
 - `Black Han Sans`, `Do Hyeon`: [Google Fonts 저장소](https://github.com/google/fonts), SIL Open Font License 1.1
 - 배경 3종: OpenAI 내장 이미지 생성 도구로 이 테스트를 위해 새로 생성
 
+생성 직후 원본 PNG와 생성 이력은 [스톡 라이브러리](../../stock/generated/company-promo/README.md)에 별도로 보관한다. 이 폴더의 JPEG는 렌더 속도와 저장 용량을 위해 압축한 파생 픽스처다.
+
 브랜드 마크의 권리는 각 소유자에게 있으며 이 저장소에서는 기능 검증용 픽스처로만 사용한다.
 
 `output/*.svg`는 배경을 data URI로 포함해 파일이 커지므로 Git에는 넣지 않는다. 렌더 명령을 실행하면 PNG와 함께 다시 생성된다.
