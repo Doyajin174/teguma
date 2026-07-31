@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- 회사 홍보용 정사각형 썸네일 3종 테스트베드
+- SVG → PNG 결정론적 렌더러와 레이아웃·대비 자동 QA
+- 자동 그래픽 디자인 프로젝트·논문 조사 문서
+
 ## [0.2.0] - 2026-07-30
 
 ### Added

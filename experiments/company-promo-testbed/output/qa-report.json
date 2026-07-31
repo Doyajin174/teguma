@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "renderer": "@resvg/resvg-js",
+  "sourceRoot": "experiments/company-promo-testbed",
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "output": "output/sevasa.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "primary-contrast",
+          "pass": true,
+          "value": 18.15
+        },
+        {
+          "name": "accent-large-text-contrast",
+          "pass": true,
+          "value": 13.09
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "output": "output/supershorts.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "primary-contrast",
+          "pass": true,
+          "value": 16.85
+        },
+        {
+          "name": "accent-large-text-contrast",
+          "pass": true,
+          "value": 3.27
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "output": "output/roadmap.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "primary-contrast",
+          "pass": true,
+          "value": 18.64
+        },
+        {
+          "name": "accent-large-text-contrast",
+          "pass": true,
+          "value": 13.44
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    }
+  ]
+}
