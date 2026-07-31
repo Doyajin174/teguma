@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "company-promo-backgrounds-2026-07",
+  "title": "회사 홍보용 생성 배경 원본",
+  "provenance": {
+    "recordType": "repository-sidecar",
+    "c2paStatus": "unsigned",
+    "c2paNote": "Repository evidence only; no certificate-backed Content Credential is attached.",
+    "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+    "sourceSessionId": "019fae74-d5cf-7051-be5e-08758ef8b49c",
+    "generator": {
+      "name": "OpenAI image generation",
+      "surface": "Codex image generation tool",
+      "model": null
+    }
+  },
+  "assets": [
+    {
+      "id": "sevasa-ev-energy",
+      "file": "originals/sevasa-ev-energy.png",
+      "sourceArtifactId": "exec-2dbfdd35-e809-45f7-954d-605055308d20",
+      "createdAt": "2026-07-31T15:03:25+09:00",
+      "mimeType": "image/png",
+      "bytes": 1746359,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "913cfe5acabe63563190e14651b27d3c749fb01c097e579ef8b71abfb9f17589",
+      "title": "EV 충전과 지능형 에너지 관제",
+      "description": "현대적인 실내 EV 충전 공간과 지능형 빌딩 에너지 흐름을 표현한 좌측 카피 여백형 배경.",
+      "keywords": ["EV", "charging", "energy management", "B2B", "technology", "negative space"],
+      "promptSource": "../../../experiments/company-promo-testbed/PROMPTS.md#sevasa",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: ads-marketing",
+          "Asset type: square company promotion background for a Korean B2B energy technology company",
+          "Primary request: an original premium campaign photograph showing a modern indoor EV charging area integrated with intelligent building energy management",
+          "Scene/backdrop: contemporary Korean commercial building parking facility, clean concrete architecture, one elegant electric vehicle connected to a compact wall charger",
+          "Subject: the EV and charger occupy the right half; subtle luminous energy-flow lines and a restrained data-grid glow suggest AI power prediction and control",
+          "Style/medium: photorealistic commercial technology photography with understated editorial polish, credible real-world infrastructure",
+          "Composition/framing: square 1:1, eye-level wide view, strong usable negative space on the left and upper-left for later headline placement, uncluttered foreground",
+          "Lighting/mood: deep navy ambient light with crisp cool cyan highlights, trustworthy, sustainable, technically sophisticated",
+          "Color palette: midnight navy, electric cyan, cool white, a very small warm amber accent",
+          "Constraints: background image only; no text, no letters, no numbers, no logos, no brand marks, no watermark; do not place important objects in the left 42 percent; charger label blank; realistic cable and parking geometry",
+          "Avoid: sci-fi spaceship aesthetic, neon overload, distorted car, illegible signage, fake UI panels, people"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-testbed/assets/backgrounds/sevasa.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-testbed/output/sevasa.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, or people were intentionally requested; visual review is still required."
+      }
+    },
+    {
+      "id": "supershorts-creator-studio",
+      "file": "originals/supershorts-creator-studio.png",
+      "sourceArtifactId": "exec-acabb710-7f5b-42e6-ac78-e3e2db7b79cc",
+      "createdAt": "2026-07-31T15:05:04+09:00",
+      "mimeType": "image/png",
+      "bytes": 1641641,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5a63e635d1108a2508980579602f402f4b7c68625470e8f9f309f04c016702e9",
+      "title": "AI 쇼츠 제작 크리에이터 스튜디오",
+      "description": "스마트폰과 추상적인 영상 프레임으로 블로그에서 쇼츠로 변환되는 흐름을 표현한 좌측 카피 여백형 배경.",
+      "keywords": ["short video", "creator", "smartphone", "AI", "editing", "negative space"],
+      "promptSource": "../../../experiments/company-promo-testbed/PROMPTS.md#슈퍼쇼츠",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: ads-marketing",
+          "Asset type: square promotional background for a Korean AI short-form video creation service",
+          "Primary request: an original energetic but premium campaign scene showing a modern creator desk and a large upright smartphone presenting a vivid vertical video editing experience",
+          "Scene/backdrop: clean contemporary studio desk at dusk, subtle camera gear and notebook shapes in soft focus, floating rectangular video frames and timeline fragments suggesting one-click transformation from blog content into short video",
+          "Subject: smartphone and dynamic video-frame stack occupy the right half; phone display contains only abstract image blocks, playhead shapes and a clear play triangle, never readable text",
+          "Style/medium: polished commercial 3D-photographic hybrid, believable materials, youthful Korean tech-product advertising, not a UI screenshot",
+          "Composition/framing: square 1:1, three-quarter close view, generous clean negative space on the left 44 percent for later headline placement, strong diagonal motion toward the phone",
+          "Lighting/mood: bright, fast, optimistic, creator-friendly",
+          "Color palette: SuperShorts-inspired electric blue #388DFF, violet, soft pink highlight, deep indigo, clean white",
+          "Materials/textures: glossy glass phone, soft matte desk, subtle paper texture",
+          "Constraints: background image only; no text, no letters, no numbers, no logos, no watermark; no social media brand icons; leave left side visually quiet; one phone only; realistic hand-free product scene",
+          "Avoid: clutter, cyberpunk darkness, fake unreadable interface text, excessive neon, distorted phone, generic corporate people"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-testbed/assets/backgrounds/supershorts.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-testbed/output/supershorts.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, or people were intentionally requested; visual review is still required."
+      }
+    },
+    {
+      "id": "roadmap-smart-parking",
+      "file": "originals/roadmap-smart-parking.png",
+      "sourceArtifactId": "exec-d860c587-1cc7-43e9-ba6f-a0c5f0ddfe00",
+      "createdAt": "2026-07-31T15:06:52+09:00",
+      "mimeType": "image/png",
+      "bytes": 2085775,
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f66692ff78364d1d76af09fd6c461c297ba59ebd4a30fbe3d322f583395e5e04",
+      "title": "AI·LiDAR 스마트 주차",
+      "description": "도심 주차장에서 LiDAR 스캔과 빈 주차면 탐지를 표현한 좌측 카피 여백형 모빌리티 배경.",
+      "keywords": ["smart parking", "LiDAR", "mobility", "smart city", "AI", "negative space"],
+      "promptSource": "../../../experiments/company-promo-testbed/PROMPTS.md#주식회사-로드맵",
+      "prompt": {
+        "language": "en",
+        "text": [
+          "Use case: ads-marketing",
+          "Asset type: square promotional background for a Korean smart-parking and mobility technology company",
+          "Primary request: an original premium campaign image of an intelligent urban parking system using AI and LiDAR to find and guide vehicles into available spaces",
+          "Scene/backdrop: modern multi-level city parking facility at blue hour, clear parking geometry, subtle view toward a Korean urban skyline",
+          "Subject: a single modern car moving into a parking bay on the lower-right; elegant cyan LiDAR scan arcs, precise point-cloud traces and one highlighted empty parking space communicate sensing and optimization",
+          "Style/medium: photorealistic architectural mobility advertising, clean engineering visualization integrated naturally into the photograph",
+          "Composition/framing: square 1:1, elevated three-quarter perspective, dark structured environment, generous quiet negative space across upper-left and center-left for later typography",
+          "Lighting/mood: confident, precise, urban, future-ready but believable",
+          "Color palette: Roadmap-inspired deep navy #0A1A26, bright cyan #79EBFF, white, restrained teal",
+          "Materials/textures: concrete, painted lane markings, glass, realistic automotive reflections",
+          "Constraints: background image only; no text, no letters, no numbers, no logos, no watermark; no visible license plate text; no people; keep left 42 percent low-detail; exactly one highlighted empty parking bay",
+          "Avoid: futuristic flying cars, cyberpunk clutter, excessive holograms, distorted parking lines, fake signs, unreadable UI text"
+        ]
+      },
+      "action": {
+        "name": "c2pa.created",
+        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+        "softwareAgent": "OpenAI image generation through Codex"
+      },
+      "derivatives": [
+        {
+          "file": "../../../experiments/company-promo-testbed/assets/backgrounds/roadmap.jpg",
+          "relation": "compressed-render-fixture"
+        },
+        {
+          "file": "../../../experiments/company-promo-testbed/output/roadmap.png",
+          "relation": "composed-campaign-thumbnail"
+        }
+      ],
+      "rights": {
+        "ownershipClaim": "not-asserted",
+        "usageTerms": "Teguma project stock; review applicable OpenAI terms, law, and campaign approvals before external publication.",
+        "thirdPartyReview": "No logos, readable text, trademarks, or people were intentionally requested; visual review is still required."
+      }
+    }
+  ]
+}

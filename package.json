@@ -25,6 +25,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "testbed:promo": "node experiments/company-promo-testbed/render.mjs",
+    "stock:verify": "node scripts/verify-stock.mjs",
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm test"
