@@ -103,11 +103,13 @@ npm test           # Vitest
 
 - [회사 홍보 썸네일 테스트베드](experiments/company-promo-testbed/README.md) — SEVASA, 슈퍼쇼츠, 주식회사 로드맵 1080×1080 시안과 재현 가능한 SVG 렌더러
 - [회사 홍보 에디토리얼 v2](experiments/company-promo-editorial-v2/README.md) — 자연광·현장 맥락·중립 타이포로 AI 특유의 시각 단서를 줄인 시안과 v1/v2 비교
+- [네이버 실노출 썸네일 v3](experiments/company-promo-naver-v3/README.md) — 104×104px 검색 결과와 홈피드 크롭에 맞춘 한 피사체·한 문구 대표 이미지
 
 ## 스톡 자산
 
 - [생성형 회사 홍보 배경 원본](stock/generated/company-promo/README.md) — 원본 PNG, 프롬프트, SHA-256, 파생 자산 관계
 - [회사 홍보 v2 배경 원본](stock/generated/company-promo-v2/README.md) — 다큐멘터리형 원본 PNG와 AI provenance
+- [회사 홍보 v3 배경 원본](stock/generated/company-promo-v3/README.md) — 네이버 대표 이미지용 클로즈업 원본과 AI provenance
 
 ## 라이선스
 

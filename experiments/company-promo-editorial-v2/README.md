@@ -34,3 +34,5 @@ npm run stock:verify:v2
 ## 폰트
 
 [IBM Plex Sans KR](https://github.com/IBM/plex)의 공식 TTF를 사용한다. OFL 1.1 전문을 `assets/fonts/OFL.txt`에 함께 보관하며, 외부 공개 전에는 로고·문구·이미지에 대한 별도 캠페인 승인이 필요하다.
+
+네이버 검색 결과처럼 104×104px로 축소되는 대표 이미지는 [네이버 실노출 썸네일 v3](../company-promo-naver-v3/README.md)에서 별도로 다룬다.

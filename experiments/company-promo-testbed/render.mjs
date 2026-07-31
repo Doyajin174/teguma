@@ -4,6 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Resvg } from '@resvg/resvg-js'
 import { PNG } from 'pngjs'
 import { z } from 'zod'
+import {
+  resolveContainedAssetPath,
+  resolveContainedAssetRealPath,
+} from '../../scripts/resolve-asset.mjs'
 
 const TESTBED_DIR = path.dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = path.resolve(TESTBED_DIR, '../..')
@@ -82,16 +86,25 @@ function mimeType(filePath) {
 }
 
 export function resolveAssetPath(relativePath) {
-  const absolutePath = path.resolve(TESTBED_DIR, relativePath)
-  const allowedPrefix = `${path.resolve(TESTBED_DIR)}${path.sep}`
-  if (!absolutePath.startsWith(allowedPrefix)) {
-    throw new Error(`Asset path escapes testbed directory: ${relativePath}`)
-  }
-  return absolutePath
+  return resolveContainedAssetPath(
+    TESTBED_DIR,
+    TESTBED_DIR,
+    relativePath,
+    'testbed directory',
+  )
+}
+
+export async function resolveAssetRealPath(relativePath) {
+  return resolveContainedAssetRealPath(
+    TESTBED_DIR,
+    TESTBED_DIR,
+    relativePath,
+    'testbed directory',
+  )
 }
 
 async function dataUri(relativePath) {
-  const absolutePath = resolveAssetPath(relativePath)
+  const absolutePath = await resolveAssetRealPath(relativePath)
   const data = await readFile(absolutePath)
   return `data:${mimeType(absolutePath)};base64,${data.toString('base64')}`
 }
@@ -192,7 +205,7 @@ export function parseSpec(value) {
 }
 
 export async function loadSpec() {
-  const value = JSON.parse(await readFile(path.join(TESTBED_DIR, 'campaigns.json'), 'utf8'))
+  const value = JSON.parse(await readFile(await resolveAssetRealPath('campaigns.json'), 'utf8'))
   return parseSpec(value)
 }
 

@@ -13,6 +13,7 @@ export const DEFAULT_MANIFEST = path.join(
 )
 const TRAINED_ALGORITHMIC_MEDIA =
   'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia'
+const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 
 const RelativePathSchema = z.string().min(1).refine(
   (value) => !path.isAbsolute(value),
@@ -64,7 +65,7 @@ const ManifestSchema = z.object({
   title: z.string().min(1),
   provenance: z.object({
     recordType: z.literal('repository-sidecar'),
-    c2paStatus: z.literal('unsigned'),
+    c2paStatus: z.enum(['unsigned', 'embedded-unverified']),
     c2paNote: z.string().min(1),
     digitalSourceType: z.literal(TRAINED_ALGORITHMIC_MEDIA),
     sourceSessionId: z.string().uuid(),
@@ -137,6 +138,34 @@ function check(name, pass, value) {
   return { name, pass, ...(value === undefined ? {} : { value }) }
 }
 
+function hasPngChunk(data, expectedType) {
+  if (data.length < PNG_SIGNATURE.length || !data.subarray(0, 8).equals(PNG_SIGNATURE)) {
+    return false
+  }
+
+  let offset = PNG_SIGNATURE.length
+  while (offset + 12 <= data.length) {
+    const length = data.readUInt32BE(offset)
+    const end = offset + 12 + length
+    if (end > data.length) return false
+
+    const type = data.toString('ascii', offset + 4, offset + 8)
+    if (type === expectedType) return true
+    offset = end
+  }
+  return false
+}
+
+export function inspectEmbeddedC2pa(data) {
+  const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data)
+  const result = {
+    caBxChunk: hasPngChunk(buffer, 'caBX'),
+    claim: buffer.includes(Buffer.from('c2pa.claim')),
+    signature: buffer.includes(Buffer.from('c2pa.signature')),
+  }
+  return { ...result, embedded: Object.values(result).every(Boolean) }
+}
+
 export async function verifyStockCollection(manifestPath = DEFAULT_MANIFEST) {
   const manifest = await loadStockManifest(manifestPath)
   const collectionDirectory = path.dirname(path.resolve(manifestPath))
@@ -151,6 +180,8 @@ export async function verifyStockCollection(manifestPath = DEFAULT_MANIFEST) {
     const data = await readFile(originalPath)
     const digest = createHash('sha256').update(data).digest('hex')
     const png = PNG.sync.read(data)
+    const embeddedC2pa = inspectEmbeddedC2pa(data)
+    const expectsEmbeddedC2pa = manifest.provenance.c2paStatus === 'embedded-unverified'
     const checks = [
       check('mime-type', asset.mimeType === 'image/png', asset.mimeType),
       check('byte-length', data.length === asset.bytes, data.length),
@@ -164,6 +195,11 @@ export async function verifyStockCollection(manifestPath = DEFAULT_MANIFEST) {
         'trained-algorithmic-media',
         asset.action.digitalSourceType === manifest.provenance.digitalSourceType,
         asset.action.digitalSourceType,
+      ),
+      check(
+        'c2pa-embedding-matches-status',
+        expectsEmbeddedC2pa ? embeddedC2pa.embedded : !embeddedC2pa.caBxChunk,
+        embeddedC2pa,
       ),
     ]
 

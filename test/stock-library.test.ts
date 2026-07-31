@@ -18,10 +18,10 @@ describe('generated stock library', () => {
     expect(report.assets.every((asset) => asset.checks.every((check) => check.pass))).toBe(true)
   })
 
-  it('records AI provenance without claiming a signed Content Credential', async () => {
+  it('records the embedded credential without claiming independent validation', async () => {
     const manifest = await loadStockManifest()
 
-    expect(manifest.provenance.c2paStatus).toBe('unsigned')
+    expect(manifest.provenance.c2paStatus).toBe('embedded-unverified')
     expect(manifest.provenance.digitalSourceType).toContain('trainedAlgorithmicMedia')
     expect(manifest.assets.every((asset) => asset.action.name === 'c2pa.created')).toBe(true)
     expect(manifest.assets.every((asset) => asset.rights.ownershipClaim === 'not-asserted')).toBe(true)

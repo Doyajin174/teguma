@@ -15,7 +15,7 @@
 - 어떤 도구와 프롬프트로 생성했는가?
 - 원본 파일이 변경되지 않았는가?
 - 어떤 파생 이미지에 사용됐는가?
-- AI 생성물이며 아직 서명된 Content Credential이 아니라는 사실이 드러나는가?
+- AI 생성물이며 내장 C2PA payload와 저장소의 검증 수준이 정확히 드러나는가?
 
 ## 조사와 결정
 
@@ -23,7 +23,7 @@
 - [C2PA actions 가이드](https://opensource.contentauthenticity.org/docs/manifest/writing/assertions-actions/)는 생성형 AI 결과를 `c2pa.created`와 `trainedAlgorithmicMedia`로 표현한다.
 - [IPTC Photo Metadata](https://iptc.org/standards/photo-metadata/photo-metadata/)는 설명, 출처, 권리, 관리 정보를 파일 내부 또는 sidecar에 유지할 수 있다고 정의한다.
 
-현재는 신뢰 체인용 인증서와 서명 인프라가 없으므로 정식 C2PA manifest를 주장하지 않는다. 대신 필드 의미를 호환 가능하게 유지하는 저장소 내부 JSON sidecar를 사용한다.
+생성 직후 PNG에는 생성 도구가 넣은 C2PA claim·signature payload가 있다. 저장소는 그 payload와 원본 바이트를 보존하지만 인증서 체인을 독립 검증하지 않으므로 `embedded-unverified`로 표시한다. 저장소 내부 JSON sidecar는 C2PA manifest를 대체하지 않고 프롬프트·해시·파생 관계를 보완한다.
 
 ## 디렉터리 계약
 
@@ -78,7 +78,7 @@ stock/generated/company-promo/
 - 프롬프트에서 로고, 상표, 읽을 수 있는 글자, 사람을 의도적으로 제외했다.
 - AI 생성물의 저작권 성립 여부는 관할과 인간 기여도에 따라 달라질 수 있으므로 소유권을 단정하지 않는다.
 - 외부 광고 게시 전에는 적용되는 OpenAI 이용조건, 현지 법, 브랜드 승인과 우연한 유사성을 다시 검토한다.
-- 현재 JSON은 검증 가능한 저장소 기록이지만 암호학적으로 서명된 C2PA Content Credential은 아니다.
+- 현재 JSON은 검증 가능한 저장소 sidecar이며, 원본의 내장 C2PA claim·signature 존재를 확인한다. 인증서 체인의 암호학적 유효성은 별도 C2PA 검증 도구의 책임이다.
 
 ## 완료 기준
 
