@@ -1,0 +1,90 @@
+{
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "safeMargin": 56
+  },
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "template": "split-tech",
+      "background": "assets/backgrounds/sevasa.jpg",
+      "logo": "assets/logos/sevasa.png",
+      "sourceUrl": "https://www.sevasa.co.kr/",
+      "eyebrow": "안양 에너지테크",
+      "headline": [
+        "충전은 자유롭게",
+        "전력은 똑똑하게"
+      ],
+      "subtitle": "AI 예측으로 에너지와 EV 충전을 한 번에",
+      "tags": ["AI 예측", "EV 충전", "에너지 관제"],
+      "footer": "Better Energy, Bigger Possibilities.",
+      "palette": {
+        "primary": "#FFFFFF",
+        "accent": "#79EBFF",
+        "signal": "#FBBA00",
+        "ink": "#061725"
+      },
+      "layout": {
+        "textBounds": { "x": 56, "y": 164, "width": 548, "height": 860 },
+        "subjectBounds": { "x": 642, "y": 172, "width": 438, "height": 852 },
+        "logoBounds": { "x": 64, "y": 58, "width": 250, "height": 64 }
+      }
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "template": "creator-pop",
+      "background": "assets/backgrounds/supershorts.jpg",
+      "logo": "assets/logos/supershorts.png",
+      "sourceUrl": "https://www.supershorts.co.kr/",
+      "eyebrow": "AI 자동 쇼츠 제작",
+      "headline": [
+        "블로그 링크 하나로",
+        "쇼츠 1분 완성"
+      ],
+      "subtitle": "대본 / 자막 / 목소리까지 자동",
+      "tags": ["URL 붙여넣기", "평균 1분", "바로 편집"],
+      "footer": "무료로 시작하기",
+      "palette": {
+        "primary": "#101B3D",
+        "accent": "#388DFF",
+        "signal": "#A78BFA",
+        "ink": "#FFFFFF"
+      },
+      "layout": {
+        "textBounds": { "x": 56, "y": 190, "width": 570, "height": 834 },
+        "subjectBounds": { "x": 662, "y": 170, "width": 418, "height": 842 },
+        "logoBounds": { "x": 64, "y": 58, "width": 294, "height": 80 }
+      }
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "template": "urban-grid",
+      "background": "assets/backgrounds/roadmap.jpg",
+      "logo": "assets/logos/roadmap.svg",
+      "sourceUrl": "https://roadmap.ne.kr/",
+      "eyebrow": "AI × LiDAR SMART PARKING",
+      "headline": [
+        "도심 속 숨겨진 공간을",
+        "깨우다"
+      ],
+      "subtitle": "도시의 흐름까지 최적화하는 스마트 주차",
+      "tags": ["실시간 감지", "주차 유도", "도시 최적화"],
+      "footer": "주식회사 로드맵 / 안양",
+      "palette": {
+        "primary": "#FFFFFF",
+        "accent": "#79EBFF",
+        "signal": "#00AEEF",
+        "ink": "#07141D"
+      },
+      "layout": {
+        "textBounds": { "x": 56, "y": 180, "width": 600, "height": 844 },
+        "subjectBounds": { "x": 682, "y": 582, "width": 398, "height": 442 },
+        "logoBounds": { "x": 64, "y": 58, "width": 286, "height": 66 }
+      }
+    }
+  ]
+}

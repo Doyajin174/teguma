@@ -96,7 +96,12 @@ npm test           # Vitest
 
 - [Figma 오픈소스 랜드스케이프](docs/research/001-figma-opensource-landscape.md)
 - [Claude Design + Figma 페인포인트](docs/research/002-claude-design-figma-painpoints.md)
+- [자동 홍보 크리에이티브 조사](docs/research/006-automated-promo-creative-systems.md)
 - [프로덕트 명세](docs/specs/001-product-architecture.md)
+
+## 실험
+
+- [회사 홍보 썸네일 테스트베드](experiments/company-promo-testbed/README.md) — SEVASA, 슈퍼쇼츠, 주식회사 로드맵 1080×1080 시안과 재현 가능한 SVG 렌더러
 
 ## 라이선스
 

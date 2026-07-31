@@ -24,6 +24,7 @@
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "testbed:promo": "node experiments/company-promo-testbed/render.mjs",
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm test"
@@ -35,7 +36,9 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.0.0",
+    "pngjs": "^7.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
