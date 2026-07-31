@@ -1,0 +1,108 @@
+{
+  "version": "v2",
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "safeMargin": 48
+  },
+  "visualPolicy": {
+    "fontFamilies": ["IBM Plex Sans KR"],
+    "usesGradient": false,
+    "usesFilter": false,
+    "usesTextStroke": false,
+    "usesRoundedPills": false,
+    "effects": []
+  },
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "template": "field-split",
+      "background": "assets/backgrounds/sevasa.jpg",
+      "logo": "../company-promo-testbed/assets/logos/sevasa.png",
+      "sourceUrl": "https://www.sevasa.co.kr/",
+      "eyebrow": "FIELD NOTE 01 / ANYANG",
+      "headline": [
+        "충전은 자유롭게",
+        "전력은 똑똑하게"
+      ],
+      "body": [
+        "AI 예측으로 에너지와 EV 충전을",
+        "하나의 운영 흐름으로 연결합니다."
+      ],
+      "details": ["AI 수요 예측", "EV 충전 운영", "통합 에너지 관제"],
+      "footer": "Better Energy, Bigger Possibilities.",
+      "palette": {
+        "surface": "#F2F0E9",
+        "ink": "#151A1D",
+        "muted": "#4D575C",
+        "accent": "#007A3D"
+      },
+      "layout": {
+        "textBounds": { "x": 56, "y": 156, "width": 352, "height": 824 },
+        "subjectBounds": { "x": 528, "y": 168, "width": 552, "height": 864 },
+        "logoBounds": { "x": 56, "y": 56, "width": 220, "height": 58 }
+      }
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "template": "workspace-note",
+      "background": "assets/backgrounds/supershorts.jpg",
+      "logo": "../company-promo-testbed/assets/logos/supershorts.png",
+      "sourceUrl": "https://www.supershorts.co.kr/",
+      "eyebrow": "WORKFLOW NOTE / 01",
+      "headline": [
+        "블로그 링크 하나로",
+        "쇼츠 1분 완성"
+      ],
+      "body": [
+        "대본부터 자막과 목소리까지",
+        "초안은 빠르게, 마무리는 내 방식대로."
+      ],
+      "details": ["URL 붙여넣기", "초안 자동 생성", "직접 편집·발행"],
+      "footer": "무료로 시작하기",
+      "palette": {
+        "surface": "#F0EEE7",
+        "ink": "#151B25",
+        "muted": "#48515A",
+        "accent": "#216FD4"
+      },
+      "layout": {
+        "textBounds": { "x": 48, "y": 154, "width": 342, "height": 398 },
+        "subjectBounds": { "x": 418, "y": 154, "width": 662, "height": 746 },
+        "logoBounds": { "x": 48, "y": 48, "width": 248, "height": 64 }
+      }
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "template": "site-report",
+      "background": "assets/backgrounds/roadmap.jpg",
+      "logo": "../company-promo-testbed/assets/logos/roadmap.svg",
+      "sourceUrl": "https://roadmap.ne.kr/",
+      "eyebrow": "SITE REPORT / SMART PARKING",
+      "headline": [
+        "도심 속 숨겨진 공간을",
+        "깨우다"
+      ],
+      "body": [
+        "현장 센서와 운영 데이터로",
+        "주차 공간의 흐름을 더 정확하게."
+      ],
+      "details": ["현장 감지", "주차 유도", "운영 최적화"],
+      "footer": "ROADMAP CO., LTD. / ANYANG",
+      "palette": {
+        "surface": "#121A1E",
+        "ink": "#F5F7F6",
+        "muted": "#C6CDD0",
+        "accent": "#56C9D8"
+      },
+      "layout": {
+        "textBounds": { "x": 76, "y": 170, "width": 376, "height": 710 },
+        "subjectBounds": { "x": 592, "y": 48, "width": 488, "height": 984 },
+        "logoBounds": { "x": 76, "y": 76, "width": 234, "height": 56 }
+      }
+    }
+  ]
+}

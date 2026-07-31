@@ -25,7 +25,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "testbed:promo": "node experiments/company-promo-testbed/render.mjs",
+    "testbed:promo:v2": "node experiments/company-promo-editorial-v2/render.mjs",
+    "testbed:promo:v2:check": "npm run testbed:promo:v2 && git diff --exit-code -- experiments/company-promo-editorial-v2/output",
     "stock:verify": "node scripts/verify-stock.mjs",
+    "stock:verify:v2": "node scripts/verify-stock.mjs stock/generated/company-promo-v2/manifest.json",
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm test"

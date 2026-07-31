@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "direction": "human-editorial-v2",
+  "renderer": "@resvg/resvg-js",
+  "sourceRoot": "experiments/company-promo-editorial-v2",
+  "visualPolicy": {
+    "fontFamilies": [
+      "IBM Plex Sans KR"
+    ],
+    "usesGradient": false,
+    "usesFilter": false,
+    "usesTextStroke": false,
+    "usesRoundedPills": false,
+    "effects": []
+  },
+  "campaigns": [
+    {
+      "id": "sevasa",
+      "company": "SEVASA",
+      "output": "output/sevasa.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "core-text-contrast",
+          "pass": true,
+          "value": 15.38
+        },
+        {
+          "name": "supporting-text-contrast",
+          "pass": true,
+          "value": 6.5
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 4.78
+        },
+        {
+          "name": "effects-policy-is-empty",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-only-approved-text-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    {
+      "id": "supershorts",
+      "company": "슈퍼쇼츠",
+      "output": "output/supershorts.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "core-text-contrast",
+          "pass": true,
+          "value": 14.88
+        },
+        {
+          "name": "supporting-text-contrast",
+          "pass": true,
+          "value": 6.96
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 4.22
+        },
+        {
+          "name": "effects-policy-is-empty",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-only-approved-text-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    {
+      "id": "roadmap",
+      "company": "주식회사 로드맵",
+      "output": "output/roadmap.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "textBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "subjectBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "logoBounds-inside-canvas",
+          "pass": true
+        },
+        {
+          "name": "headline-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-subject",
+          "pass": true
+        },
+        {
+          "name": "logo-avoids-copy",
+          "pass": true
+        },
+        {
+          "name": "content-respects-safe-area",
+          "pass": true
+        },
+        {
+          "name": "copy-is-bounded",
+          "pass": true
+        },
+        {
+          "name": "core-text-contrast",
+          "pass": true,
+          "value": 16.37
+        },
+        {
+          "name": "supporting-text-contrast",
+          "pass": true,
+          "value": 10.94
+        },
+        {
+          "name": "accent-contrast",
+          "pass": true,
+          "value": 9.01
+        },
+        {
+          "name": "effects-policy-is-empty",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-gradient",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-filter",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-drop-shadow",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-text-stroke",
+          "pass": true
+        },
+        {
+          "name": "svg-has-no-rounded-pills",
+          "pass": true
+        },
+        {
+          "name": "svg-uses-only-approved-text-font",
+          "pass": true
+        },
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1080,
+            "height": 1080
+          }
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "contact-sheet",
+      "output": "output/contact-sheet.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1780,
+            "height": 730
+          }
+        }
+      ]
+    },
+    {
+      "name": "comparison-v1-v2",
+      "output": "output/comparison-v1-v2.png",
+      "passed": true,
+      "checks": [
+        {
+          "name": "rendered-dimensions",
+          "pass": true,
+          "value": {
+            "width": 1780,
+            "height": 1320
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}
