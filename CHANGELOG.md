@@ -46,6 +46,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - PPTX가 슬라이드 페이지 배경을 기록하지 않아 변환 시 배경과 텍스트 대비가 손실되던 문제
 - 정책 regex에서 bare `.` 와일드카드가 허용되던 문제를 allowlist 문법 검증으로 수정
 
+## [0.4.0] - 2026-08-08
+- chore: npm 퍼블리시 준비 — version 0.3.0, repository/files 필드
+- fix: CLI 버전을 package.json에서 동적 로드
+- chore: LICENSE (MIT) + CONTRIBUTING.md + .gitignore 보강
+- chore: prepublishOnly 가드 (build+test before npm publish)
+- feat: add company promo thumbnail testbed (#5)
+- feat: archive generated image stock (#7)
+- feat: add human editorial promo direction (#10)
+- feat: add Naver-ready promo thumbnails (#12)
+- feat: 미리캔버스 파리티 디자인 엔진 코어 (#20)
+- chore: install repo-development-os thin routine
+- docs: v0.1.0, v0.2.0 릴리스 리포트 추가
+- feat: 웹 에디터 UI — 브라우저에서 디자인 엔진 직접 조작 (#21)
+- docs: 미리캔버스 파리티 진행 상태 정리 문서
+- docs: 주간 회고 폴더를 retrospectives로 통일
+- docs(atlas): 코드 아틀라스 신규 생성
+- docs: 디자인 시안(mockups)과 Shooble UX 리서치 추가, deploy 제외
+
 ## [0.2.0] - 2026-07-30
 
 ### Added
