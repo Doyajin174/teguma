@@ -73,6 +73,37 @@ SEED Figma MCP의 REST API(PAT)와 플러그인/WebSocket 경로는 POC에서 �
 - [ ] Figma MCP를 사용할 경우 비밀 값 미기록과 read-only 동작을 수동 점검한다. PAT가 없으면 이 항목은 WebSocket 또는 fixture 기반 검증으로 대체하며, POC 자체의 차단 사유가 아니다.
 - [ ] POC 결과(지원 토큰 수, 미지원 종류, 대표 산출물)를 이 이슈 또는 후속 PR에 기록한다.
 
+## POC 계획
+
+POC는 실제 SEED 구조를 재현한 최소 fixture 하나로 이슈의 Completion Scenario를 자동 검증한다. 공개 upstream의 값·경로만 축소해 담고 PAT, Figma file key, WebSocket 주소 및 기타 비밀 값은 포함하지 않는다.
+
+| 단계 | 작업과 산출물 | 예상 파일 |
+| --- | --- | --- |
+| 1. fixture | `kind`/`metadata`/`data.collection`/`data.tokens` 구조에 `theme-light`·`theme-dark` 색상, `default` font-size, `$dimension.spacing-x.global-gutter → $dimension.x4` 참조를 포함한 YAML fixture를 둔다. | `test/fixtures/seed-rootage.yaml` |
+| 2. 파서 | YAML을 읽고 허용된 rootage 토큰 구조만 검증해 collection·token·values를 얻는다. | `src/design/seed.ts` |
+| 3. mode·참조 | 호출 mode가 존재하는지 확인하고 `$` 완전 경로를 재귀 해석한다. 없는 mode/참조와 순환 참조는 오류로 반환한다. | `src/design/seed.ts`, `test/seed.test.ts` |
+| 4. 정규화 | hex 색상과 `px`/`rem` 길이를 정규화한다. `rem`은 fixture 입력의 root font-size로 px를 계산하고, 미지원 단위·범주는 manifest의 `unsupported`에 남긴다. | `src/design/seed.ts`, `test/seed.test.ts` |
+| 5. teguma 변환 | 해석 결과에서 `BrandKit`과 typography/spacing 문서 생성 입력을 만들고, 대표 `DesignDocument`에 적용한다. | `src/design/seed.ts`, `test/seed.test.ts` |
+| 6. 회귀 검증 | schema parse, `applyBrandKit`, `inspectDocument`와 결정론적 산출물을 확인한다. 오류·unsupported 경로도 별도 assertion으로 고정한다. | `test/seed.test.ts` |
+
+완료 기준은 다음과 같이 측정한다.
+
+- fixture 하나를 `theme-light`와 `default` 입력으로 처리해 `$color.palette.carrot-600`의 `#ff6600`, `$font-size.t1`의 11px(16px root 기준), `$dimension.spacing-x.global-gutter`의 16px을 각각 산출한다.
+- 생성한 BrandKit과 대표 DesignDocument가 각각 `BrandKitSchema` 및 `DesignDocumentSchema`을 통과하고, `inspectDocument` 결과 `passed === true`를 만족한다.
+- mode 부재, 없는 참조, 순환 참조는 테스트에서 실패를 단언하며, 지원하지 않는 단위·범주는 조용한 대체 없이 manifest `unsupported`에 남긴다.
+- 동일 fixture·mode를 두 번 변환한 manifest·BrandKit·문서 입력이 deep equality로 동일하고, `npm test` 전체가 통과한다.
+
+이 문서 변경은 POC 계획과 계약만 확정한다. 위 fixture·파서·테스트 구현은 이 태스크 범위 밖이며, 구현 PR이 완료 기준의 체크박스를 갱신한다.
+
+## 명세 재점검
+
+이슈 #22의 완료 시나리오와 Definition of Done을 기준으로 재검토한 결과다.
+
+- **일치:** 입력 YAML 한 개, 명시 mode, 색상·타이포·간격 해석, BrandKit/DesignDocument 변환 및 QA 통과라는 핵심 흐름은 이 명세의 목표·파이프라인·POC 완료 조건에 반영돼 있다. 실제 upstream 검증에서 색상은 theme mode, global token은 default mode임을 확인했으며 입력 규칙도 이에 맞는다.
+- **측정 가능성:** 기존의 일반적 “해석한다” 조건을 위 POC 계획의 fixture 토큰별 기대값, schema/QA boolean, 오류 assertion, deep-equality 결정론성, `npm test`로 수치·판정 가능한 기준으로 보강했다.
+- **누락·모순 해소:** “mode별 values”를 모든 토큰이 light/dark 쌍이라는 의미로 읽을 여지가 있었으므로, mode는 호출자가 명시하고 각 token에 해당 key가 없으면 실패한다고 일관되게 고정했다. 실제 rootage에는 `rem`과 `px`가 공존하므로 root font-size를 POC 입력으로 명시하는 규칙도 유지했다.
+- **범위 판정:** fixture→파서→변환→QA는 이슈 시나리오를 재현하는 최소 범위다. Figma 쓰기, SEED 컴포넌트/recipe, 다중 테마 영속 모델, 공개 스키마 변경은 현 POC를 넓히므로 제외한다. 이 문서 태스크는 구현을 포함하지 않으므로 이슈의 POC 구현·전체 테스트·PR/merge 조건은 아직 미완료이며 후속 구현 PR에서만 완료 처리한다.
+
 ## 검증 계획
 
 구현 PR은 토큰 파서 단위 테스트와 `BrandKit`/`DesignDocument` 통합 회귀 테스트를 함께 실행한다. 최소 회귀 경로는 다음과 같다.

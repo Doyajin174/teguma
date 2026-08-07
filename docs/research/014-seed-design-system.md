@@ -59,6 +59,16 @@ data:
 3. 색상은 `#RRGGBB`, 길이는 px, `rem` 글꼴 크기는 기준 root font-size와 함께 명시적으로 px로 정규화한다.
 4. 알 수 없는 단위·복합 값·순환 참조·선택 mode 부재는 임의 대체하지 않고 변환 오류로 보고한다.
 
+### 검증 보강 — 실제 YAML 원본
+
+2026-08-08에 `daangn/seed-design`을 depth 1으로 내려받아 `b1c26fe31295a5b51ec58f6126d91cf7dc1337d8` 커밋의 `packages/rootage` 원본을 확인했다. 문서 서술이 아닌 실제 토큰 파일을 기준으로 한 검증 결과는 다음과 같다.
+
+- [`color.yaml`](https://github.com/daangn/seed-design/blob/b1c26fe31295a5b51ec58f6126d91cf7dc1337d8/packages/rootage/color.yaml)는 최상위 `kind: Tokens`, `metadata`, `data.collection: color`, `data.tokens` 구조를 가진다. 실제 `$color.palette.carrot-600`은 `values.theme-light: "#ff6600"`, `values.theme-dark: "#e65200"`으로 mode별 값을 둔다.
+- [`dimension.yaml`](https://github.com/daangn/seed-design/blob/b1c26fe31295a5b51ec58f6126d91cf7dc1337d8/packages/rootage/dimension.yaml)는 `data.collection: global`에서 `$dimension.x4`를 `default: 16px`로 정의하고, `$dimension.spacing-x.global-gutter`를 `default: $dimension.x4`로 참조한다. 즉 `$` 완전 경로 참조는 값 문자열로 실제 사용된다.
+- [`font-size.yaml`](https://github.com/daangn/seed-design/blob/b1c26fe31295a5b51ec58f6126d91cf7dc1337d8/packages/rootage/font-size.yaml)은 같은 `kind`/`metadata`/`data` 구조이며, `$font-size.t1`의 `default: 0.6875rem`, `$font-size.t1-static`의 `default: 11px`처럼 global 토큰은 `default` mode에 `rem`과 `px`를 모두 사용한다.
+
+따라서 이전 조사의 형식 주장은 확인됐다. 단, “mode별 values”는 모든 파일에 theme 쌍이 있다는 뜻이 아니라, 색상은 `theme-light`/`theme-dark`, global foundation 토큰은 `default`라는 서로 다른 mode 키를 쓴다는 뜻으로 해석해야 한다. POC fixture와 파서는 이 차이를 그대로 재현하고, 호출자가 선택한 mode에 값이 없으면 실패해야 한다.
+
 ## Figma 연동 방식
 
 SEED는 Figma 라이브러리에 토큰·아이콘·컴포넌트·화면 템플릿을 제공하며, Figma 디자인을 React 코드로 변환하기 위한 MCP를 제공한다. 현재 문서는 두 전송 방식을 구분한다.
@@ -87,5 +97,6 @@ SEED 저장소의 `packages/figma/figma-extractor.config.ts`는 Figma foundation
 - [SEED Design System 저장소](https://github.com/daangn/seed-design) — 패키지 계층과 생성 파이프라인
 - [rootage preset README](https://github.com/daangn/seed-design/blob/dev/packages/rootage/README.md) — 생성 대상
 - [rootage 색상 토큰](https://github.com/daangn/seed-design/blob/dev/packages/rootage/color.yaml), [글꼴 크기 토큰](https://github.com/daangn/seed-design/blob/dev/packages/rootage/font-size.yaml), [dimension 토큰](https://github.com/daangn/seed-design/blob/dev/packages/rootage/dimension.yaml) — YAML 형식과 값·참조 예시
+- [검증 기준 커밋](https://github.com/daangn/seed-design/tree/b1c26fe31295a5b51ec58f6126d91cf7dc1337d8/packages/rootage) — 실제 원본 검증 시점의 고정 경로
 - [SEED Figma MCP 가이드](https://seed-design.io/ai-integration/figma-mcp) — REST API/PAT 및 플러그인·WebSocket 경로
 - [SEED AI & Tools 개요](https://seed-design.io/ai-integration) — Figma 디자인→코드 MCP 제공 범위
