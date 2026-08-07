@@ -35,7 +35,6 @@
     "stock:verify:v3": "node scripts/verify-stock.mjs stock/generated/company-promo-v3/manifest.json",
     "design:demo": "npm run build && node scripts/design-demo.mjs",
     "design:gallery": "npm run build && node scripts/design-gallery.mjs",
-    "web:dev": "npm run build && node web/server.mjs",
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm test"
