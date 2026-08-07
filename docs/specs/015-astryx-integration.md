@@ -16,7 +16,7 @@ Penpot에서 teguma가 추출한 브랜드 토큰과 레이아웃 제약을, Rea
 
 - 이 이슈에서 Astryx 패키지를 설치하거나 teguma 의존성·런타임을 변경하지 않는다.
 - Penpot 캔버스와 Astryx React 컴포넌트의 양방향 동기화·픽셀 동등성을 만들지 않는다.
-- Astryx CLI를 teguma 서버가 실행하거나, 별도 MCP 서버를 추가·프록시하지 않는다.
+- Astryx CLI를 teguma 서버가 실행하거나, Astryx의 공식 MCP를 프록시하거나, 별도 MCP 서버를 추가하지 않는다.
 - React 코드·JSX·CSS를 자동으로 생성하거나 Astryx component 매핑을 자동 확정하지 않는다.
 - teguma의 기존 `get_tokens` 응답 계약을 변경하지 않는다.
 
@@ -50,6 +50,12 @@ Penpot
 | Astryx CLI subprocess 호출 | 보류 | CLI 버전 고정, 실행 환경, JSON 계약, 실패 처리의 별도 설계가 필요 |
 | JSX/React 코드 생성 | 후속 | Astryx의 component/template 문서를 존중해야 하며 컴포넌트 의미 매핑 검토가 선행돼야 함 |
 | Penpot ↔ Astryx 양방향 동기화 | 제외 | 캔버스 디자인과 런타임 UI의 모델·책임이 달라 현 이슈의 단일 책임을 벗어남 |
+
+### 공식 Astryx MCP와의 관계
+
+2026-08-08 검증 결과 Astryx는 공식 원격 MCP 서버(`https://astryx.atmeta.com/mcp`)를 제공한다. 계약은 문서·컴포넌트·template 검색용 `search(query, limit?)` 및 상세 조회용 `get(name, section?)` 두 도구이며, theme build나 Penpot 토큰 변환 도구는 포함하지 않는다. 근거와 endpoint 검증 결과는 [조사 문서의 검증 보강](../research/015-astryx-design-system.md#검증-보강-공식-mcp-서버-계약)을 따른다.
+
+따라서 호출 에이전트는 직접 Astryx MCP를 연결해 컴포넌트·예제를 조회할 수 있지만, teguma는 이를 내장·프록시하지 않는다. `CLI subprocess 호출`을 채택하지 않는다는 결론도 유지한다. 단, POC 검증 담당자는 teguma 밖의 고정 버전 consumer sandbox에서 공식 CLI를 명시적으로 실행해 `theme build`를 검증한다. 이는 teguma 런타임의 subprocess 통합이 아니다.
 
 ## 토큰 변환 계약 (POC)
 
@@ -109,35 +115,49 @@ interface AstryxThemeDraft {
 
 teguma는 이 흐름에서 Penpot 원천 컨텍스트와 검토 가능한 변환 결과를 제공한다. Astryx CLI의 설치·실행·코드 작성은 소비 애플리케이션과 그 에이전트의 책임이다.
 
-## POC 방향
+## POC 계획
 
-### 선행 조건
+### 범위와 입력
 
-- 조사 당시 Astryx는 Beta이므로 POC 시작 시 `@astryxdesign/core`·CLI 버전을 하나로 고정한다.
-- 고정 버전의 `docs tokens`, `docs theme`, `manifest --json`, `theme build` 결과를 fixture로 보관할 승인 범위를 별도 이슈에서 정한다.
-- 대표 Penpot 파일 1개와 light/dark·역할 기반 색상·타이포·spacing을 포함한 비식별 fixture를 선정한다.
+이번 이슈의 구현 POC는 **비식별 Penpot 토큰 fixture → Astryx CSS 변수 테마 초안 및 매핑·경고 보고**만 다룬다. 실제 Penpot 파일, 사용자·조직명, URL, 폰트 라이선스 정보, 이미지, 비밀값은 fixture에 넣지 않는다. role이 명시된 색상, light/dark 쌍, typography, 단조 spacing scale과 의도적으로 role 없는 색상·dark 누락 사례를 한 fixture에 포함한다. 대표 React 화면 조합은 POC 완료 조건이 아니며 별도 후속 범위다.
 
-### POC 시나리오
+### 버전 고정
 
-1. fixture에서 `get_tokens`와 `get_constraints`를 호출한다.
-2. 순수 변환기를 실행해 `AstryxThemeDraft`와 경고 보고를 얻는다.
-3. 사람이 semantic role 매핑을 검토하고, 고정 Astryx 버전에서 유효한 theme 초안인지 `theme build`로 확인한다.
-4. `build` 또는 `template` 결과를 사용해 하나의 대표 화면을 별도 React 19+ sandbox에서 조합한다.
-5. 토큰 원천, 생성 theme, 선택 컴포넌트, 남은 수동 결정을 표로 비교한다.
+Astryx는 Beta이므로 POC를 시작하기 전에 consumer sandbox의 `@astryxdesign/core`와 `@astryxdesign/cli`를 정확히 같은 버전(`0.3.0`으로 시작; 업그레이드는 별도 승인)으로 고정하고 lockfile을 커밋한다. 그 버전의 `astryx manifest --json`, `astryx docs theme --json`, `astryx theme build`의 결과·오류 형식을 POC 증적으로 기록한다. 버전, manifest 또는 build 결과가 달라지면 매핑을 변경하지 말고 POC를 중단해 재검토한다.
 
-### POC 성공 기준
+### 예상 파일과 단계
 
-- 입력이 동일하면 변환 결과의 매핑 순서·경고 순서가 결정론적으로 동일하다.
-- 변환기는 role 없는 색상과 불완전한 dark mode를 임의 보정하지 않고 구조화된 경고로 남긴다.
-- 사람이 승인한 theme 초안이 고정 Astryx 버전의 공식 빌드에서 성공한다.
-- 대표 화면이 Astryx 공식 컴포넌트·템플릿을 사용하며, teguma 원천 토큰과 다른 값은 명시적으로 문서화한다.
-- teguma의 기존 MCP 도구 계약·런타임 의존성·Penpot 쓰기 동작은 변하지 않는다.
+| 단계 | 예상 파일 | 산출물 |
+| --- | --- | --- |
+| 1. 입력 고정 | `test/fixtures/astryx-penpot-tokens.json` | 비식별 `get_tokens` 형태 fixture와 명시적 semantic role override 사례 |
+| 2. 순수 변환 | `src/design/astryx-theme.ts` | `AstryxThemeDraft` 초안, stable mapping/warning 정렬, 추측하지 않는 누락 처리 |
+| 3. 단위 검증 | `test/astryx-theme.test.ts` | mapped/unmapped/conflict, dark 누락, invalid value, 결정론 순서를 검증하는 테스트 1개 이상 |
+| 4. consumer 검증 | `test/fixtures/astryx-theme-poc/` (독립 sandbox 또는 동등한 fixture 경로) | 고정 `package.json`·lockfile·승인된 theme 입력과 `theme build` 실행 기록 |
+| 5. 결과 기록 | `docs/research/015-astryx-design-system.md` 또는 후속 POC 보고 | 고정 버전, build 명령·결과, 수동 결정, 미매핑 토큰 |
+
+단계 2의 모듈은 기존 `get_tokens` 결과를 입력으로 받을 뿐 MCP 서버에 등록하지 않는다. 단계 4의 CLI 실행은 consumer sandbox에서만 수행하며, teguma dependency나 런타임 subprocess를 추가하지 않는다.
+
+### 완료 기준과 검증
+
+- 동일 fixture를 두 번 변환해 mapping·warning 배열이 바이트 단위로 동일함을 단위 테스트로 증명한다.
+- role 없는 색상과 단일 모드 입력이 각각 `MISSING_ROLE`, `MISSING_DARK_MODE` 구조화 경고를 내고 임의 semantic token을 만들지 않음을 검증한다.
+- 사람이 승인한 fixture의 theme 입력이 고정된 `@astryxdesign/cli` 버전에서 `astryx theme build <input> --out <output>`로 exit code 0을 반환하고 output CSS가 생성됨을 검증한다.
+- `npm test` 전체가 통과하고 기존 `get_tokens` 응답 계약·teguma 의존성·MCP 도구 등록에 변경이 없음을 확인한다.
+
+### 명세 재점검 (2026-08-08)
+
+| 점검 항목 | 결과 | 반영 |
+| --- | --- | --- |
+| 이슈 #23 완료 시나리오 | Penpot 토큰 조회에서 Astryx 테마 초안·색상/타이포/간격 매핑·누락 보고가 재현 가능해야 한다. | POC 입력, 산출물, `theme build` 성공 기준을 측정 가능하게 명시했다. 실제 POC 코드·테스트는 아직 미완료다. |
+| 측정 가능성 | 기존 "POC 방향"은 fixture 내용·예상 파일·명령 성공 조건이 충분히 구체적이지 않았다. | 비식별 fixture, 예상 파일, 고정 버전, stable output, exit code 0/CSS 생성, 전체 회귀를 완료 기준으로 추가했다. |
+| 누락·모순 | 기존 대표 React 화면 조합은 이슈의 토큰 변환 완료 시나리오보다 넓고, `theme build` 실행 주체도 분명하지 않았다. | 화면 조합을 후속 범위로 분리하고, build는 teguma 밖 consumer sandbox의 명시적 검증으로 한정했다. |
+| MCP/CLI 결론 | 이전 조사의 "공식 독립 MCP 미확인"은 현행 저장소·endpoint와 모순됐다. CLI subprocess 채택 보류와도 구분이 필요했다. | 공식 MCP의 존재·두 도구 계약을 반영했다. remote MCP 직접 사용은 허용하되 teguma의 MCP 프록시·CLI subprocess 통합은 계속 비목표로 유지한다. |
 
 ## 완료 조건
 
-- [x] Astryx 저장소 구조, 토큰/테마, CLI·agent workflow, teguma 시너지 조사를 문서화한다.
-- [x] 이 연동 명세에서 목표·비목표·방식 선택·POC 방향을 확정한다.
-- [ ] 별도 승인 이슈에서 Astryx 고정 버전과 POC fixture를 선정한다.
+- [x] Astryx 저장소 구조, 토큰/테마, CLI·agent workflow, 공식 MCP 계약, teguma 시너지 조사를 문서화한다.
+- [x] 이 연동 명세에서 목표·비목표·방식 선택·측정 가능한 POC 계획을 확정한다.
+- [ ] POC 시작 시 `@astryxdesign/core`·CLI 고정 버전과 비식별 fixture를 선정·커밋한다.
 - [ ] 순수 토큰 변환 POC와 단위 테스트를 구현한다.
 - [ ] 고정 Astryx 버전의 `theme build` 및 대표 React sandbox 검증을 기록한다.
 - [ ] POC 결과를 바탕으로 MCP 공개 여부와 코드 생성 범위를 별도 결정한다.
