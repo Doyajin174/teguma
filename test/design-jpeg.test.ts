@@ -42,21 +42,28 @@ function headerMarkers(jpeg: Buffer): number[] {
   throw new Error("JPEG did not contain a start-of-scan marker");
 }
 
-async function decodeWithSips(jpeg: Buffer): Promise<{ png: PNG; info: string }> {
+async function decodeWithPillow(jpeg: Buffer): Promise<{ png: PNG; info: string }> {
   const directory = await mkdtemp(path.join(tmpdir(), "teguma-jpeg-"));
   const input = path.join(directory, "image.jpg");
   const output = path.join(directory, "image.png");
   await writeFile(input, jpeg);
   try {
     const info = execFileSync(
-      "sips",
-      ["-g", "format", "-g", "pixelWidth", "-g", "pixelHeight", input],
+      "python3",
+      [
+        "-c",
+        [
+          "from PIL import Image",
+          "import sys",
+          "image = Image.open(sys.argv[1])",
+          "print(f'format={image.format} size={image.width}x{image.height}')",
+          "image.convert('RGB').save(sys.argv[2])",
+        ].join("\n"),
+        input,
+        output,
+      ],
       { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-    );
-    execFileSync("sips", ["-s", "format", "png", input, "--out", output], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    ).trim();
     return { png: PNG.sync.read(await readFile(output)), info };
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -129,10 +136,9 @@ describe("baseline JPEG export", () => {
     expect(first.subarray(-2)).toEqual(Buffer.from([0xFF, 0xD9]));
     expect(headerMarkers(first)).toEqual([0xD8, 0xE0, 0xDB, 0xC0, 0xC4, 0xDA]);
 
-    const decoded = await decodeWithSips(first);
-    expect(decoded.info).toContain("format: jpeg");
-    expect(decoded.info).toContain("pixelWidth: 19");
-    expect(decoded.info).toContain("pixelHeight: 13");
+    const decoded = await decodeWithPillow(first);
+    expect(decoded.info).toContain("format=JPEG");
+    expect(decoded.info).toContain("size=19x13");
     expect(meanAbsoluteError(source, decoded.png)).toBeLessThan(2);
   });
 
@@ -143,7 +149,7 @@ describe("baseline JPEG export", () => {
       exportDocument(document, { format: "jpg", width: 320, quality: 95 }),
     ]);
     const source = PNG.sync.read(png.files[0].data);
-    const decoded = await decodeWithSips(jpg.files[0].data);
+    const decoded = await decodeWithPillow(jpg.files[0].data);
 
     expect(jpg.files[0].data.subarray(0, 2)).toEqual(Buffer.from([0xFF, 0xD8]));
     expect(decoded.png.width).toBe(source.width);
@@ -163,9 +169,9 @@ describe("baseline JPEG export", () => {
     const quality85 = encodeJpeg(source.data, source.width, source.height);
     const quality95 = encodeJpeg(source.data, source.width, source.height, { quality: 95 });
     const [decoded40, decoded85, decoded95] = await Promise.all([
-      decodeWithSips(quality40),
-      decodeWithSips(quality85),
-      decodeWithSips(quality95),
+      decodeWithPillow(quality40),
+      decodeWithPillow(quality85),
+      decodeWithPillow(quality95),
     ]);
 
     expect(quality95.length).toBeGreaterThan(quality40.length);
