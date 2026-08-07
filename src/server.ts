@@ -13,6 +13,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import path from "node:path";
 import { PenpotClient } from "./penpot/client.js";
 import { createLogger } from "./logger.js";
 import { getDesignContextSchema, getDesignContext } from "./tools/get-design-context.js";
@@ -25,10 +26,46 @@ import { importFigmaSchema, importFigma } from "./tools/import-figma.js";
 import { updateElementSchema, updateElement } from "./tools/update-element.js";
 import { deleteElementSchema, deleteElement } from "./tools/delete-element.js";
 import { checkConnection } from "./tools/check-connection.js";
+import {
+  autoLayoutDesignDocumentSchema,
+  autoLayoutDesignDocumentTool,
+  arrangeDesignLayersSchema,
+  arrangeDesignLayersTool,
+  createFromTemplateSchema,
+  createFromTemplateTool,
+  createDesignDocumentSchema,
+  createDesignDocumentTool,
+  checkDesignPolicySchema,
+  checkDesignPolicyTool,
+  exportDesignDocumentSchema,
+  exportDesignDocumentTool,
+  processDesignImageSchema,
+  processDesignImageTool,
+  listSizePresetsSchema,
+  listSizePresetsTool,
+  listDesignProjectsSchema,
+  listDesignProjectsTool,
+  loadDesignProjectSchema,
+  loadDesignProjectTool,
+  resizeDesignDocumentSchema,
+  resizeDesignDocumentTool,
+  saveDesignProjectSchema,
+  saveDesignProjectTool,
+} from "./tools/design-engine.js";
 
 export interface ServerConfig {
   penpotBaseUrl: string;
   penpotToken?: string;
+  /**
+   * Directory that design exports may write into.
+   * Defaults to `<cwd>/teguma-exports` so a stray path cannot escape the project.
+   */
+  exportRoot?: string;
+  /**
+   * Directory that persisted design projects may use.
+   * Defaults to `<cwd>/teguma-projects` to keep project state local and explicit.
+   */
+  projectRoot?: string;
 }
 
 export function createServer(config: ServerConfig): McpServer {
@@ -36,6 +73,8 @@ export function createServer(config: ServerConfig): McpServer {
     baseUrl: config.penpotBaseUrl,
     token: config.penpotToken,
   });
+  const exportRoot = config.exportRoot ?? path.join(process.cwd(), "teguma-exports");
+  const projectRoot = config.projectRoot ?? path.join(process.cwd(), "teguma-projects");
 
   const server = new McpServer({
     name: "teguma",
@@ -232,6 +271,215 @@ export function createServer(config: ServerConfig): McpServer {
     async () => {
       const result = await checkConnection(client);
       return { content: [{ type: "text" as const, text: result }] };
+    },
+  );
+
+  // --- Tool: list_size_presets ---
+  server.tool(
+    "list_size_presets",
+    "List canvas size presets for social, video, blog, presentation, and print output. Call this before creating a design document so the canvas matches the target channel.",
+    listSizePresetsSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: listSizePresetsTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: create_design_document ---
+  server.tool(
+    "create_design_document",
+    "Validate a multi-page design document and return an automated QA report covering canvas bounds, safe area, text contrast, and brand kit compliance. Use this before exporting.",
+    createDesignDocumentSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: createDesignDocumentTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: check_design_policy ---
+  server.tool(
+    "check_design_policy",
+    "Evaluate a design document against configurable banned terms, required terms, approval, and workspace capability restrictions. Returns violations and whether export is permitted.",
+    checkDesignPolicySchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: checkDesignPolicyTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: create_from_template ---
+  server.tool(
+    "create_from_template",
+    "Create an original, parameterized design document from a registered channel template. Returns the completed document, filled slots, and automated QA report.",
+    createFromTemplateSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: createFromTemplateTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: autolayout_design_document ---
+  server.tool(
+    "autolayout_design_document",
+    "Hard-wrap overflowing text, shrink it deterministically, then grow its frame inside the safe area or truncate only when requested. Returns the adjusted document, decisions, and QA report.",
+    autoLayoutDesignDocumentSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: autoLayoutDesignDocumentTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: arrange_design_layers ---
+  server.tool(
+    "arrange_design_layers",
+    "Arrange selected page layers with deterministic alignment, distribution, measured text stacking, or semantic vertical rhythm. The document canvas safe margin is always respected and the response includes fresh QA.",
+    arrangeDesignLayersSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: arrangeDesignLayersTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: resize_design_document ---
+  server.tool(
+    "resize_design_document",
+    "Resize a design document to a preset or explicit dimensions. Mode fill covers the canvas, fit keeps all content visible, original keeps layer sizes and only re-centres.",
+    resizeDesignDocumentSchema,
+    async (args) => {
+      try {
+        return { content: [{ type: "text" as const, text: resizeDesignDocumentTool(args) }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: export_design_document ---
+  server.tool(
+    "export_design_document",
+    "Export a design document to SVG, PNG, JPG, or multi-page PDF. Export is refused when automated QA fails. Files are written inside the configured export root only.",
+    exportDesignDocumentSchema,
+    async (args) => {
+      try {
+        const result = await exportDesignDocumentTool(args, { outputRoot: exportRoot });
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: process_design_image ---
+  server.tool(
+    "process_design_image",
+    "Apply ordered deterministic image operations: exact crop, high-quality scale, solid canvas padding, flat-background flood-fill removal, and transparent-margin trimming. Background removal is classical, not AI matting.",
+    processDesignImageSchema,
+    async (args) => {
+      try {
+        const result = await processDesignImageTool(args, { outputRoot: exportRoot });
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: save_design_project ---
+  server.tool(
+    "save_design_project",
+    "Save a reusable design project inside the configured project root. Drafts with QA failures are saved intentionally, and the response always reports their QA status.",
+    saveDesignProjectSchema,
+    async (args) => {
+      try {
+        const result = await saveDesignProjectTool(args, { projectRoot });
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: load_design_project ---
+  server.tool(
+    "load_design_project",
+    "Load a saved design project envelope and its normalized document for further editing.",
+    loadDesignProjectSchema,
+    async (args) => {
+      try {
+        const result = await loadDesignProjectTool(args, { projectRoot });
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: list_design_projects ---
+  server.tool(
+    "list_design_projects",
+    "List design projects saved inside the configured project root in deterministic id order.",
+    listDesignProjectsSchema,
+    async () => {
+      try {
+        const result = await listDesignProjectsTool({ projectRoot });
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
     },
   );
 
