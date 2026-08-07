@@ -51,6 +51,32 @@ python3 /Users/hyenjinkang/.codex/skills/ui-ux-pro-max/scripts/search.py \
 
 조사 실행에서 `color`는 `Micro SaaS` 등 역할 색상 레코드를, `typography`는 `Modern Professional` 및 `Korean Modern` 조합을, `ux`는 `Color Contrast`(정상 텍스트 4.5:1)를 반환했다. 검색 결과는 추천을 위한 입력이지, QA의 동적 런타임 입력이 아니다.
 
+## 검증 보강
+
+아래 값은 POC의 고정 입력 후보를 추측하지 않도록, 2026-08-08에 스킬 원본 CSV와 검색 CLI를 다시 대조한 결과다. CSV 경로는 모두 `/Users/hyenjinkang/.codex/skills/ui-ux-pro-max/data/`이다.
+
+| 원본 | 실제 행 데이터 | POC에 쓰는 의미 |
+|---|---|---|
+| `colors.csv` | `Product Type=Micro SaaS`, `Primary=#6366F1`, `On Primary=#FFFFFF`, `Accent=#059669`, `Background=#F5F3FF`, `Foreground=#1E1B4B` | 페이지와 텍스트, primary/accent 표면과 그 위 텍스트의 역할 쌍 |
+| `typography.csv` | `Font Pairing Name=Korean Modern`, `Heading Font=Noto Sans KR`, `Body Font=Noto Sans KR` | 한국어 POC의 헤딩·본문 허용 글꼴 |
+| `ux-guidelines.csv` No. 36 | `Issue=Color Contrast`, `Do=Minimum 4.5:1 ratio for normal text`, `Severity=High` | 기존 4.5:1 대비 판정의 출처 |
+| `ux-guidelines.csv` No. 72 | `Issue=Line Height`, `Do=Use 1.5-1.75 for body text`, `Severity=Medium` | 본문 행간 검사 범위 |
+| `ux-guidelines.csv` No. 74 | `Issue=Font Size Scale`, `Code Example Good=Type scale (12 14 16 18 24 32)`, `Severity=Medium` | 허용 타입 스케일 |
+
+실행 인용:
+
+```bash
+python3 /Users/hyenjinkang/.codex/skills/ui-ux-pro-max/scripts/search.py \
+  "Micro SaaS" --domain color --json
+# count: 3; 첫 결과의 Product Type은 Micro SaaS이며 위 colors.csv 행과 일치
+
+python3 /Users/hyenjinkang/.codex/skills/ui-ux-pro-max/scripts/search.py \
+  "Korean Modern" --domain typography --json
+# count: 3; 첫 결과의 Heading Font/Body Font은 모두 Noto Sans KR
+```
+
+두 검색은 추천 결과를 확인하는 재현 절차일 뿐이다. 구현은 이 실행이나 CSV 경로에 의존하지 않고, 선택한 원본 행과 규칙을 저장소 안의 버전 고정 POC 입력으로 옮긴다.
+
 ## 기존 teguma와의 경계
 
 `src/design/qa.ts`는 이미 모든 텍스트 레이어의 실제 알려진 배경을 분할 샘플링하고, 최악 대비가 4.5:1 미만이면 `text-contrast-at-least-4.5`를 실패시킨다. 이미지·불완전한 둥근 배경은 fail-closed 처리한다. 또한 `brand-kit-respected`는 브랜드 팔레트·폰트·굵기 위반을 검사한다.
