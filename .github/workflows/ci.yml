@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+      - name: Install Pillow (design tests use PIL for raster verification)
+        run: python3 -m pip install --user pillow
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm test
