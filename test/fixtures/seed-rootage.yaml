@@ -1,0 +1,80 @@
+# SEED rootage YAML POC fixture
+#
+# daangn/seed-design packages/rootage 원본
+# (커밋 b1c26fe31295a5b51ec58f6126d91cf7dc1337d8)의 color.yaml / dimension.yaml /
+# font-size.yaml / font-weight.yaml / line-height.yaml / radius.yaml / duration.yaml
+# 값을 실제 구조(kind/metadata/data.collection/data.tokens, mode별 values, "$" 완전
+# 경로 참조)대로 축소·병합해 재현한 고정 입력이다. 비밀 값(PAT, Figma file key,
+# WebSocket 주소)은 포함하지 않는다.
+#
+# - collection은 실제 rootage 파일별 선언(collections.yaml: color → theme-light/
+#   theme-dark, global → default)을 따라 토큰 네임스페이스로 판별한다.
+#   ($color.* → color, 그 외 foundation → global)
+# - $font-family.display는 rootage foundation에 별도 파일이 없는 SEED 문서형
+#   타입페이스(Pretendard) 규약을 POC용으로 재현한 항목이다.
+# - $radius.r2 / $duration.d3는 POC 범위 밖 범주(unsupported)의 실제 예시다.
+kind: Tokens
+metadata:
+  id: seed-poc
+  name: Seed POC
+data:
+  collection: global
+  tokens:
+    $color.palette.gray-00:
+      values:
+        theme-light: "#ffffff"
+        theme-dark: "#000000"
+    $color.palette.gray-1000:
+      values:
+        theme-light: "#1a1c20"
+        theme-dark: "#f3f4f5"
+    $color.palette.carrot-600:
+      values:
+        theme-light: "#ff6600"
+        theme-dark: "#e65200"
+    $dimension.x1:
+      values:
+        default: 4px
+    $dimension.x2:
+      values:
+        default: 8px
+    $dimension.x3:
+      values:
+        default: 12px
+    $dimension.x4:
+      values:
+        default: 16px
+    $dimension.spacing-x.global-gutter:
+      description: 화면 전체에 적용되는 기본 수평 padding 값입니다.
+      values:
+        default: $dimension.x4
+    $font-size.t1:
+      values:
+        default: 0.6875rem # 11px ÷ 16
+    $font-size.t2:
+      values:
+        default: 0.75rem # 12px ÷ 16
+    $font-size.t1-static:
+      values:
+        default: 11px
+    $line-height.t1:
+      values:
+        default: 0.9375rem # 15px ÷ 16
+    $font-family.display:
+      values:
+        default: Pretendard
+    $font-weight.regular:
+      values:
+        default: 400
+    $font-weight.medium:
+      values:
+        default: 500
+    $font-weight.bold:
+      values:
+        default: 700
+    $radius.r2:
+      values:
+        default: 8px
+    $duration.d3:
+      values:
+        default: 150ms
