@@ -18,6 +18,9 @@ dist/
 # Build artifacts
 *.tsbuildinfo
 
+# Design engine exports
+teguma-exports/
+
 # Python
 __pycache__/
 .venv/

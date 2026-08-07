@@ -9,6 +9,7 @@
   },
   "files": [
     "dist",
+    "assets/fonts",
     "README.md"
   ],
   "repository": {
@@ -32,20 +33,30 @@
     "stock:verify": "node scripts/verify-stock.mjs",
     "stock:verify:v2": "node scripts/verify-stock.mjs stock/generated/company-promo-v2/manifest.json",
     "stock:verify:v3": "node scripts/verify-stock.mjs stock/generated/company-promo-v3/manifest.json",
+    "design:demo": "npm run build && node scripts/design-demo.mjs",
+    "design:gallery": "npm run build && node scripts/design-gallery.mjs",
+    "web:dev": "npm run build && node web/server.mjs",
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build && npm test"
   },
-  "keywords": ["mcp", "penpot", "figma", "design", "ai"],
+  "keywords": [
+    "mcp",
+    "penpot",
+    "figma",
+    "design",
+    "ai"
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "pngjs": "^7.0.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.0.0",
-    "pngjs": "^7.0.0",
+    "@types/pngjs": "6.0.5",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
