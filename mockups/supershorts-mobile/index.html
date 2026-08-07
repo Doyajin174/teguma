@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>슈퍼쇼츠 모바일 앱 — 시안 v1</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: var(--font);
+    background: #E8ECF2;
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 24px 80px;
+  }
+  .doc-head { max-width: 1200px; margin: 0 auto 40px; }
+  .doc-head h1 { font-size: 28px; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .doc-head p { color: var(--muted-fg); font-size: 15px; line-height: 1.6; }
+  .doc-head .meta {
+    margin-top: 16px; padding: 14px 16px; background: #fff;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 13px; color: var(--muted-fg); line-height: 1.7;
+  }
+  .doc-head .meta strong { color: var(--fg); }
+  .screens {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 40px 32px;
+  }
+  .screen-wrap { width: 320px; }
+  .screen-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .screen-note {
+    font-size: 12px; color: var(--muted-fg); margin-bottom: 12px;
+    line-height: 1.5; min-height: 34px;
+  }
+  .phone {
+    width: 320px; height: 694px;
+    background: var(--bg);
+    border-radius: 38px;
+    border: 8px solid #1A1A1C;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 32px rgba(15,23,42,0.18);
+    display: flex; flex-direction: column;
+  }
+  .notch {
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    width:92px; height:24px; background:#1A1A1C; border-radius:14px; z-index:50;
+  }
+  .statusbar {
+    height: 42px; flex-shrink:0;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding: 0 20px 4px; font-size:11px; font-weight:600;
+  }
+  .body { flex:1; overflow:hidden; position:relative; }
+  .tabbar {
+    height: var(--tabbar-h); flex-shrink:0;
+    border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-around;
+    background: rgba(255,255,255,0.96);
+    padding-bottom: 6px;
+  }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted-fg); }
+  .tab.on { color: var(--brand-action); }
+  .tab svg { width:22px; height:22px; }
+  .tab span { font-size:10px; font-weight:600; }
+  .appbar {
+    height:52px; display:flex; align-items:center; gap:10px;
+    padding:0 16px; border-bottom:1px solid var(--border);
+  }
+  .appbar .title { font-size:17px; font-weight:700; letter-spacing:-0.01em; }
+  .appbar .spacer { flex:1; }
+  /* 실제 로고 자산을 쓴다 — SVG로 번개를 다시 그리면 원본과 형태가 달라진다.
+     출처: 웹 레포 public/logo-icon.png */
+  .logo { width:28px; height:28px; flex-shrink:0; }
+  .logo img { width:100%; height:100%; display:block; }
+  .pad { padding:16px; }
+  .btn {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    height:50px; border-radius:var(--radius-lg);
+    background:var(--brand-action); color:var(--brand-fg);
+    font-size:15px; font-weight:700; width:100%;
+  }
+  .btn.sm { height:38px; font-size:13px; border-radius:var(--radius); }
+  .plan-chip {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:5px 11px; border-radius:999px;
+    background:var(--muted); font-size:11px; font-weight:600;
+  }
+  .plan-chip i { width:6px; height:6px; border-radius:50%; background:var(--brand); }
+  .quota {
+    margin:14px 16px; padding:14px; border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+  }
+  .quota-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; }
+  .quota-row .k { color:var(--muted-fg); }
+  .quota-row .v { font-weight:700; }
+  .bar { height:5px; background:var(--muted); border-radius:3px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--brand); border-radius:3px; }
+  .sec-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 16px 10px;
+  }
+  .sec-head h3 { font-size:14px; font-weight:700; }
+  .sec-head a { font-size:12px; color:var(--muted-fg); }
+  .proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 16px; }
+  .card { border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+  .thumb {
+    aspect-ratio:9/16; background:linear-gradient(160deg,#DBEAFE,#BFDBFE);
+    position:relative; display:flex; align-items:center; justify-content:center;
+  }
+  .thumb.rendering { background:linear-gradient(160deg,#F1F5F9,#E2E8F0); }
+  .thumb .play {
+    width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center;
+  }
+  .thumb .dur {
+    position:absolute; bottom:6px; right:6px;
+    background:rgba(0,0,0,0.6); color:#fff; font-size:9px; font-weight:600;
+    padding:2px 5px; border-radius:4px;
+  }
+  .thumb .badge {
+    position:absolute; top:6px; left:6px;
+    background:var(--brand-action); color:#fff; font-size:9px; font-weight:700;
+    padding:3px 7px; border-radius:999px;
+  }
+  .card .cap { padding:8px 9px 10px; }
+  .card .cap p { font-size:11.5px; font-weight:600; line-height:1.35; }
+  .card .cap span { font-size:10px; color:var(--muted-fg); }
+  .spinner {
+    width:26px; height:26px; border-radius:50%;
+    border:2.5px solid var(--border); border-top-color:var(--brand);
+  }
+  .src-card {
+    display:flex; align-items:center; gap:12px;
+    padding:15px; border:1px solid var(--border); border-radius:var(--radius-lg);
+    margin-bottom:10px;
+  }
+  .src-card.pick { border-color:var(--brand-action); background:#F5F9FF; border-width:1.5px; }
+  .src-ico {
+    width:40px; height:40px; border-radius:11px; background:var(--muted);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .src-card.pick .src-ico { background:var(--brand-action); }
+  .src-card .tx { flex:1; }
+  .src-card .tx b { display:block; font-size:14px; margin-bottom:2px; }
+  .src-card .tx span { font-size:11.5px; color:var(--muted-fg); line-height:1.4; }
+  .input {
+    height:48px; border:1px solid var(--border); border-radius:var(--radius-lg);
+    display:flex; align-items:center; padding:0 14px;
+    font-size:13px; color:var(--muted-fg); background:var(--muted);
+  }
+  .steps { padding:4px 16px; }
+  .step { display:flex; gap:12px; padding:9px 0; }
+  .step .n {
+    width:24px; height:24px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    background:var(--muted); color:var(--muted-fg);
+  }
+  .step.done .n { background:var(--brand); color:#fff; }
+  .step.now .n { background:var(--brand-action); color:#fff; }
+  .step .lb { font-size:13px; padding-top:3px; color:var(--muted-fg); }
+  .step.done .lb, .step.now .lb { color:var(--fg); }
+  .step.now .lb { font-weight:700; }
+  .step .sub { font-size:11px; color:var(--muted-fg); margin-top:2px; font-weight:400; }
+  .progress-hero {
+    margin:18px 16px; padding:20px; border-radius:var(--radius-xl);
+    background:linear-gradient(150deg,#2362EA,#3C83F5); color:#fff;
+  }
+  .progress-hero .pct { font-size:32px; font-weight:800; letter-spacing:-0.02em; }
+  .progress-hero .lb { font-size:12.5px; opacity:0.9; margin-top:2px; }
+  .progress-hero .bar { margin-top:14px; background:rgba(255,255,255,0.25); }
+  .progress-hero .bar i { background:#fff; }
+  .progress-hero .eta { font-size:11px; opacity:0.8; margin-top:8px; }
+  .player {
+    height:340px; background:#0A0F1A;
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .player .play-lg {
+    width:56px; height:56px; border-radius:50%;
+    background:rgba(255,255,255,0.94);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .player .sub-demo {
+    position:absolute; bottom:64px; left:0; right:0; text-align:center;
+  }
+  .player .sub-demo span {
+    background:rgba(0,0,0,0.72); color:#fff;
+    font-size:13px; font-weight:700; padding:5px 10px; border-radius:5px;
+  }
+  .player .ctrl {
+    position:absolute; bottom:0; left:0; right:0; padding:12px 14px;
+    background:linear-gradient(transparent,rgba(0,0,0,0.55));
+  }
+  .player .ctrl .bar { background:rgba(255,255,255,0.3); }
+  .player .ctrl .bar i { background:#fff; }
+  .player .ctrl .t { display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:#fff; opacity:0.85; }
+  .act-row { display:flex; gap:9px; padding:14px 16px 0; }
+  .act {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:12px 4px; border:1px solid var(--border); border-radius:var(--radius-lg);
+  }
+  .act svg { width:20px; height:20px; color:var(--fg); }
+  .act span { font-size:10.5px; font-weight:600; }
+  .plan {
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:14px; margin-bottom:10px;
+  }
+  .plan.hi { border-color:var(--brand-action); border-width:1.5px; position:relative; }
+  .plan.hi::after {
+    content:'추천'; position:absolute; top:-8px; right:14px;
+    background:var(--brand-action); color:#fff; font-size:9.5px; font-weight:700;
+    padding:3px 9px; border-radius:999px;
+  }
+  .plan .pn { font-size:14px; font-weight:700; }
+  .plan .pp { font-size:20px; font-weight:800; margin:5px 0 3px; letter-spacing:-0.02em; }
+  .plan .pp small { font-size:11px; font-weight:500; color:var(--muted-fg); }
+  .plan ul { list-style:none; margin-top:9px; display:flex; flex-direction:column; gap:5px; }
+  .plan li { font-size:11.5px; color:var(--muted-fg); display:flex; gap:6px; align-items:center; }
+  .plan li svg { width:12px; height:12px; color:var(--brand); flex-shrink:0; }
+  .warn {
+    margin:0 16px 14px; padding:11px 13px; border-radius:var(--radius);
+    background:#FEF3C7; border:1px solid #FDE68A;
+    font-size:11px; line-height:1.55; color:#78350F;
+  }
+  .notes {
+    max-width:1200px; margin:56px auto 0; padding:24px;
+    background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg);
+  }
+  .notes h2 { font-size:18px; margin-bottom:14px; }
+  .notes h3 { font-size:14px; margin:20px 0 8px; }
+  .notes p, .notes li { font-size:13px; line-height:1.7; color:#334155; }
+  .notes ul { padding-left:20px; }
+  .notes table { width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px; }
+  .notes th, .notes td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--border); }
+  .notes th { background:var(--muted); font-weight:700; }
+  .notes code {
+    background:var(--muted); padding:1px 5px; border-radius:4px;
+    font-size:11.5px; font-family:ui-monospace,monospace;
+  }
+  .flag { color:#B45309; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="doc-head">
+  <h1>슈퍼쇼츠 모바일 앱 — 시안 v1</h1>
+  <p>웹 버전(<code>origin/staging</code>)을 전수 조사한 뒤 그 구조·토큰·용어를 그대로 이식한 첫 시안입니다.</p>
+  <div class="meta">
+    <strong>출처</strong> — 색상은 <code>app/globals.css</code>의 <code>--brand</code> 계열, 탭 구조는
+    <code>components/dashboard/MobileBottomNav.tsx</code>, 단계 이름은 <code>locales/ko.ts</code>,
+    요금제는 <code>prisma/schema.prisma</code> <code>enum Plan</code>에서 가져왔습니다.
+    <strong>추측한 값은 없습니다.</strong><br>
+    <strong>프레임</strong> — iPhone 16 (393×852) 비율을 0.814로 축소했습니다.
+  </div>
+</div>
+<div class="screens">
+  <div class="screen-wrap">
+    <div class="screen-label">1. 홈 — 내 프로젝트</div>
+    <div class="screen-note">웹 대시보드의 모바일 뷰를 앱 첫 화면으로. 남은 사용량을 상단에 고정했습니다.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="body">
+        <div class="appbar">
+          <div class="logo"><img src="assets/logo.png" alt="슈퍼쇼츠"></div>
+          <div class="title">슈퍼쇼츠</div>
+          <div class="spacer"></div>
+          <div class="plan-chip"><i></i>LIGHT</div>
+        </div>
+        <div class="quota">
+          <div class="quota-row"><span class="k">이번 달 영상</span><span class="v">7 / 20</span></div>
+          <div class="bar"><i style="width:35%"></i></div>
+        </div>
+        <div class="sec-head"><h3>만들고 있어요</h3></div>
+        <div class="proj-grid">
+          <div class="card">
+            <div class="thumb rendering">
+              <div class="spinner"></div>
+              <span class="badge">렌더 중</span>
+            </div>
+            <div class="cap"><p>가을 캠핑 준비물 7가지</p><span>62% · 약 2분</span></div>
+          </div>
+          <div class="card">
+            <div class="thumb"><div class="play"><svg viewBox="0 0 24 24" fill="#0A0F1A" width="13"><path d="M8 5v14l11-7z"/></svg></div><span class="dur">0:38</span></div>
+            <div class="cap"><p>에어프라이어 3분 레시피</p><span>오늘</span></div>
+          </div>
+        </div>
+        <div class="sec-head" style="padding-top:18px"><h3>완성된 영상</h3><a>전체 보기</a></div>
+        <div class="proj-grid">
+          <div class="card">
+            <div class="thumb"><div class="play"><svg viewBox="0 0 24 24" fill="#0A0F1A" width="13"><path d="M8 5v14l11-7z"/></svg></div><span class="dur">0:45</span></div>
+            <div class="cap"><p>제주 3박 4일 코스</p><span>어제</span></div>
+          </div>
+          <div class="card">
+            <div class="thumb"><div class="play"><svg viewBox="0 0 24 24" fill="#0A0F1A" width="13"><path d="M8 5v14l11-7z"/></svg></div><span class="dur">0:52</span></div>
+            <div class="cap"><p>홈트 초보 루틴</p><span>2일 전</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16"/></svg><span>내 프로젝트</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>만들기</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>내 정보</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-wrap">
+    <div class="screen-label">2. 만들기 — 소재 선택</div>
+    <div class="screen-note">웹의 <code>?source=link|manual</code> 분기를 카드 선택으로 바꿨습니다. 링크가 기본값입니다.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="body">
+        <div class="appbar"><div class="title">새 영상 만들기</div></div>
+        <div class="pad">
+          <div class="src-card pick">
+            <div class="src-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="20"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg></div>
+            <div class="tx"><b>링크로 만들기</b><span>블로그·뉴스 주소를 넣으면 AI가 읽고 대본을 씁니다</span></div>
+          </div>
+          <div class="src-card">
+            <div class="src-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0A0F1A" stroke-width="2" width="20"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+            <div class="tx"><b>사진·영상으로 만들기</b><span>갤러리에서 골라 올리면 순서대로 이어 붙입니다</span></div>
+          </div>
+          <div class="src-card">
+            <div class="src-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0A0F1A" stroke-width="2" width="20"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+            <div class="tx"><b>직접 글 쓰기</b><span>대본을 직접 입력합니다</span></div>
+          </div>
+          <div style="margin-top:18px">
+            <div style="font-size:12px;font-weight:600;margin-bottom:7px">링크 주소</div>
+            <div class="input">https://blog.naver.com/…</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 14px"><div class="btn">분석 시작하기</div></div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16"/></svg><span>내 프로젝트</span></div>
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>만들기</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>내 정보</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-wrap">
+    <div class="screen-label">3. 진행 — 단계 표시</div>
+    <div class="screen-note">웹 8단계 중 링크 흐름에서 <strong>실제 노출되는 1·3·6·7·8</strong>만 보여줍니다.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="body">
+        <div class="appbar"><div class="title">만들고 있어요</div></div>
+        <div class="progress-hero">
+          <div class="pct">62%</div>
+          <div class="lb">목소리를 입히고 있어요</div>
+          <div class="bar"><i style="width:62%"></i></div>
+          <div class="eta">남은 시간 약 2분 · 앱을 닫아도 계속됩니다</div>
+        </div>
+        <div class="steps">
+          <div class="step done"><div class="n"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="12"><path d="M5 13l4 4L19 7"/></svg></div><div class="lb">기획하기</div></div>
+          <div class="step done"><div class="n"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="12"><path d="M5 13l4 4L19 7"/></svg></div><div class="lb">주요 이미지 선택</div></div>
+          <div class="step now"><div class="n">3</div><div class="lb">목소리 선택<div class="sub">AI가 자막에 맞춰 읽고 있어요</div></div></div>
+          <div class="step"><div class="n">4</div><div class="lb">디자인 선택</div></div>
+          <div class="step"><div class="n">5</div><div class="lb">자동편집 및 커스텀설정</div></div>
+        </div>
+        <div class="warn">
+          <strong>확인 필요</strong> — 웹은 이 단계를 화면 왼쪽 사이드바에 세로로 놓습니다.
+          앱에서는 세로 공간이 부족해 진행률을 위로 올리고 단계를 목록으로 눕혔습니다.
+          단계 이름을 그대로 쓸지, 앱에서는 더 짧게 줄일지 결정이 필요합니다.
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16"/></svg><span>내 프로젝트</span></div>
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>만들기</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>내 정보</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-wrap">
+    <div class="screen-label">4. 결과 — 보기·저장·공유</div>
+    <div class="screen-note">웹은 QR로 폰에 전송하지만(<code>mobile-transfer</code>), 앱은 바로 갤러리에 저장합니다.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="body">
+        <div class="player">
+          <div class="play-lg"><svg viewBox="0 0 24 24" fill="#0A0F1A" width="22"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="sub-demo"><span>가을 캠핑 필수품</span></div>
+          <div class="ctrl">
+            <div class="bar"><i style="width:34%"></i></div>
+            <div class="t"><span>0:13</span><span>0:38</span></div>
+          </div>
+        </div>
+        <div class="act-row">
+          <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg><span>갤러리 저장</span></div>
+          <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg><span>공유</span></div>
+          <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span>수정</span></div>
+        </div>
+        <div class="pad" style="padding-top:14px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px">가을 캠핑 준비물 7가지</div>
+          <div style="font-size:11.5px;color:var(--muted-fg);line-height:1.5">1080×1920 · 0:38 · 오늘 09:38</div>
+        </div>
+        <div class="warn">
+          <strong>웹에 없던 화면</strong> — 웹은 브라우저 다운로드나 QR 전송을 씁니다.
+          앱에서는 갤러리 저장·네이티브 공유가 되므로 이 화면은 새로 설계했습니다.
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16"/></svg><span>내 프로젝트</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>만들기</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>내 정보</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-wrap">
+    <div class="screen-label">5. 요금제 — 인앱결제</div>
+    <div class="screen-note">가격은 <code>enum Plan</code> 주석의 웹 원화가입니다. <span class="flag">애플 30% 수수료 반영 여부는 미결</span>입니다.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="body">
+        <div class="appbar"><div class="title">요금제</div></div>
+        <div class="pad">
+          <div class="plan">
+            <div class="pn">FREE</div>
+            <div class="pp">0원</div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>영상 3개</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>목소리 3,000자</li>
+            </ul>
+          </div>
+          <div class="plan hi">
+            <div class="pn">LIGHT</div>
+            <div class="pp">9,900원<small> / 월</small></div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>영상 20개</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>목소리 10,000자</li>
+            </ul>
+            <div class="btn sm" style="margin-top:11px">이 요금제 선택</div>
+          </div>
+          <div class="plan">
+            <div class="pn">STANDARD</div>
+            <div class="pp">19,900원<small> / 월</small></div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>영상 50개</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>목소리 30,000자</li>
+            </ul>
+          </div>
+        </div>
+        <div class="warn">
+          <strong>결정 필요 3건</strong><br>
+          1. 앱 가격을 웹과 같게 둘지, 애플 수수료 30%를 반영해 올릴지<br>
+          2. 웹에서 이미 결제한 사용자에게 이 화면을 어떻게 보여줄지<br>
+          3. <strong>웹 결제 페이지로 보내는 링크는 넣을 수 없습니다</strong> — 한국 스토어프론트에서 리젝 사유입니다
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16"/></svg><span>내 프로젝트</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>만들기</span></div>
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>내 정보</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="notes">
+  <h2>웹 조사에서 가져온 것과 새로 만든 것</h2>
+  <h3>웹에 이미 있어서 그대로 이식한 것</h3>
+  <p>웹에 모바일 대응이 예상보다 많이 들어가 있었습니다. 새로 설계할 필요가 없던 부분입니다.</p>
+  <table>
+    <tr><th>항목</th><th>웹 출처</th><th>이식 결과</th></tr>
+    <tr><td>탭 3개 구조</td><td><code>MobileBottomNav.tsx</code></td><td>내 프로젝트 / 만들기 / 내 정보 — 순서까지 동일</td></tr>
+    <tr><td>탭바 높이 56px</td><td>같은 파일 <code>h-14</code></td><td>동일. 하단 안전영역 추가</td></tr>
+    <tr><td>브랜드 색</td><td><code>globals.css --brand</code></td><td><code>#3C83F5</code> / CTA <code>#2362EA</code></td></tr>
+    <tr><td>단계 이름 8개</td><td><code>locales/ko.ts</code></td><td>기획하기·대본 선택·주요 이미지 선택·장면별 이미지·제목 생성·목소리 선택·디자인 선택·자동편집</td></tr>
+    <tr><td>노출 단계 필터</td><td><code>wizard-step-flow.ts</code></td><td>링크 흐름은 2·4·5를 건너뜀 → 5단계만 표시</td></tr>
+    <tr><td>요금제 4종</td><td><code>schema.prisma enum Plan</code></td><td>FREE / LIGHT 9,900 / STANDARD 19,900 / CREATOR 39,900</td></tr>
+    <tr><td>영상 규격</td><td><code>submitProjectRender.ts</code></td><td>1080×1920</td></tr>
+  </table>
+  <h3>웹에 없어서 새로 만든 것</h3>
+  <ul>
+    <li><strong>결과 화면의 갤러리 저장·네이티브 공유</strong> — 웹은 브라우저 다운로드나 QR 전송(<code>mobile-transfer</code>)을 씁니다. 앱에는 그 우회가 필요 없습니다.</li>
+    <li><strong>사용량을 홈 상단에 고정</strong> — 웹은 사이드바에 있습니다. 앱은 사이드바가 없어 위로 올렸습니다.</li>
+    <li><strong>진행률을 큰 숫자로</strong> — 웹은 세로 사이드바에 단계를 놓지만 앱은 세로 공간이 부족합니다.</li>
+    <li><strong>요금제 화면</strong> — 웹 <code>/pricing</code>은 643줄 랜딩형입니다. 앱은 인앱결제 규정 때문에 구조가 달라야 합니다.</li>
+  </ul>
+  <h3>의도적으로 앱에 넣지 않은 것</h3>
+  <ul>
+    <li><strong>정밀 편집기</strong>(<code>/editor/[id]</code>) — 고정 좌표계 캔버스 기반이라 RN에는 그 DOM이 없습니다. 포팅이 아니라 재작성이고, 웹 전용으로 남깁니다.</li>
+    <li><strong>관리자 화면 13개</strong>, <strong>B2B API 문서</strong>, <strong>블로그·공지</strong> — 앱 1차 범위 밖입니다.</li>
+  </ul>
+  <h3 class="flag">시안이 답하지 못한 것 — 결정이 필요합니다</h3>
+  <ul>
+    <li><strong>앱 가격</strong> — 웹과 같게 둘지, 애플 수수료 30%를 반영해 올릴지</li>
+    <li><strong>웹 구독자 처리</strong> — 이미 웹에서 결제한 사용자에게 요금제 화면을 어떻게 보일지. 서버가 <code>User.Plan</code> 하나로 관리하므로 두 결제 경로가 충돌합니다</li>
+    <li><strong>다크 모드</strong> — 웹은 다크 토큰이 있습니다. 앱 기본을 라이트로 할지 시스템 설정을 따를지</li>
+    <li><strong>단계 이름 길이</strong> — "자동편집 및 커스텀설정"은 앱 화면에서 깁니다. 줄일지 그대로 둘지</li>
+    <li><strong>홈 첫 화면</strong> — 프로젝트가 0개인 신규 사용자에게 무엇을 보일지(이 시안에는 빈 상태가 없습니다)</li>
+  </ul>
+  <h3>다음에 만들 화면</h3>
+  <p>이번 시안은 핵심 흐름 5개입니다. 아래는 아직 없습니다.</p>
+  <ul>
+    <li>로그인 (웹은 카카오 연동 — <code>app/api/kakao</code>)</li>
+    <li>내 정보 / 설정</li>
+    <li>빈 상태 (프로젝트 0개)</li>
+    <li>오류 상태 (렌더 실패, 네트워크 끊김)</li>
+    <li>신고·차단 화면 — <strong>애플 심사 필수</strong>입니다. AI 생성 앱은 이 수단 없이 통과하지 못합니다</li>
+  </ul>
+</div>
+</body>
+</html>

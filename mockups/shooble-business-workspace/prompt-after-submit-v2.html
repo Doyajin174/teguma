@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business Shooble — 스마트에디터형 생성 미리보기</title>
+  <style>
+    :root {
+      --ink: #202124;
+      --ink-strong: #17181a;
+      --ink-soft: #4b4f56;
+      --muted: #777d86;
+      --muted-2: #a4a9b0;
+      --line: #e2e5e8;
+      --line-soft: #edf0f2;
+      --canvas: #f5f6f7;
+      --paper: #fff;
+      --rail: #17212b;
+      --blue: #2f6ee5;
+      --blue-soft: #eef5ff;
+      --blue-line: #cbdcff;
+      --green: #08a66b;
+      --green-soft: #effaf5;
+      --amber: #a76616;
+      --font-ui: Inter, Pretendard, "Apple SD Gothic Neo", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-doc: Pretendard, "Apple SD Gothic Neo", system-ui, sans-serif;
+      --shadow: 0 1px 4px rgba(20, 31, 43, .08), 0 12px 28px rgba(20, 31, 43, .05);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-width: 320px; min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible {
+      outline: 3px solid rgba(47, 110, 229, .28);
+      outline-offset: 2px;
+    }
+    h1, h2, h3, h4, p { margin: 0; }
+    svg { display: block; }
+
+    .app {
+      min-height: 100vh;
+      display: block;
+      background: var(--canvas);
+    }
+
+    .app-rail {
+      display: none;
+    }
+
+    .rail-mark {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .rail-button {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 5px;
+      border: 0;
+      border-radius: 7px;
+      color: #9aa6b2;
+      background: transparent;
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .rail-button:hover,
+    .rail-button.active {
+      color: #fff;
+      background: rgba(255, 255, 255, .13);
+    }
+
+    .rail-button svg { width: 16px; height: 16px; }
+    .rail-spacer { flex: 1; }
+
+    .editor {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: var(--canvas);
+    }
+
+    .global-bar {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 22px 0 20px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .global-bar .saved-state,
+    .global-bar .account {
+      display: none;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 154px;
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: -.025em;
+    }
+
+    .brand small {
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .08em;
+    }
+
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .global-topic {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .global-topic b {
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-weight: 750;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .global-spacer { flex: 1; }
+
+    .saved-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .saved-state::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .global-action {
+      min-height: 29px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .global-action:hover { background: #f8fafc; }
+
+    .account {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--ink-soft);
+      background: #fafbfc;
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .editor-context {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 65px;
+      padding: 13px 28px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .context-copy { min-width: 0; }
+
+    .context-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .context-breadcrumb i { color: #c5c9ce; font-style: normal; }
+
+    .context-copy h1 {
+      overflow: hidden;
+      color: var(--ink-strong);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.045em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .context-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 25px;
+      padding: 0 9px;
+      border: 1px solid var(--blue-line);
+      border-radius: 999px;
+      color: #2b61c7;
+      background: var(--blue-soft);
+      font-size: 9px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .mode-badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 3px rgba(47, 110, 229, .12);
+    }
+
+    .cancel-button {
+      min-height: 29px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .cancel-button:hover { color: var(--ink-soft); background: #f8fafc; }
+
+    .toolbar {
+      display: none;
+    }
+
+    .toolbar-primary,
+    .toolbar-format {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      padding: 0 22px;
+      overflow: hidden;
+    }
+
+    .toolbar-primary {
+      height: 64px;
+      gap: 1px;
+    }
+
+    .toolbar-format {
+      height: 40px;
+      gap: 1px;
+      border-top: 1px solid var(--line-soft);
+      background: #fbfcfd;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 26px;
+      flex: 0 0 auto;
+      margin: 0 9px;
+      background: var(--line);
+    }
+
+    .tool {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 45px;
+      height: 52px;
+      padding: 4px 6px;
+      border: 0;
+      border-radius: 5px;
+      color: #68717b;
+      background: transparent;
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 150ms ease, background 150ms ease;
+    }
+
+    .tool:hover { color: var(--ink-soft); background: #f3f5f7; }
+    .tool[disabled] { color: #7c858f; cursor: default; opacity: .78; }
+    .tool svg { width: 18px; height: 18px; }
+    .tool[disabled]:hover { background: transparent; }
+
+    .toolbar-primary button[aria-label^="수식"],
+    .toolbar-primary button[aria-label^="코드"] {
+      display: none;
+    }
+
+    .tool.compact {
+      flex-direction: row;
+      gap: 7px;
+      min-width: auto;
+      height: 29px;
+      padding: 0 8px;
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .tool.compact svg { width: 15px; height: 15px; }
+
+    .tool-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      height: 28px;
+      padding: 0 9px;
+      border-right: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tool-label::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(45deg) translateY(-2px);
+    }
+
+    .format-spacer { flex: 1; }
+
+    .toolbar-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 9px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .toolbar-note svg { width: 13px; height: 13px; }
+
+    .activity-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 40px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .activity-label {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .activity-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(47, 110, 229, .1);
+    }
+
+    .activity-compact {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .activity-compact::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(47, 110, 229, .1);
+    }
+
+    .activity-compact strong {
+      color: var(--ink-soft);
+      font-weight: 850;
+    }
+
+    .activity-compact i {
+      width: 1px;
+      height: 13px;
+      margin: 0 3px;
+      background: var(--line);
+    }
+
+    .activity-compact .source {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .activity-track {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.1fr) minmax(200px, .9fr) minmax(190px, .8fr);
+      min-width: 0;
+      flex: 1;
+    }
+
+    .activity-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 0 15px;
+      border-left: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .activity-item:first-child { border-left: 0; }
+
+    .activity-item b {
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-weight: 800;
+      text-overflow: ellipsis;
+    }
+
+    .activity-item span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .activity-item em {
+      flex: 0 0 auto;
+      color: var(--muted-2);
+      font-size: 8px;
+      font-style: normal;
+      font-weight: 750;
+    }
+
+    .activity-item.complete::before,
+    .activity-item.active::before,
+    .activity-item.pending::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+    }
+
+    .activity-item.complete::before { background: var(--green); box-shadow: inset 0 0 0 2px #fff; border: 1px solid var(--green); }
+    .activity-item.active::before { border: 2px solid var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(47, 110, 229, .1); }
+    .activity-item.pending::before { border: 1px solid #c9ced4; background: #fff; }
+
+    .activity-more {
+      flex: 0 0 auto;
+      margin-left: auto;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .activity-more:hover { color: var(--ink-soft); background: #f8fafc; }
+
+    .detail-row {
+      display: none;
+      align-items: center;
+      gap: 14px;
+      min-height: 36px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      background: #fbfcfd;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .detail-row.open { display: flex; }
+    .detail-row strong { color: var(--ink-soft); font-weight: 850; }
+    .detail-row span + span { padding-left: 14px; border-left: 1px solid var(--line); }
+
+    .canvas {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      min-height: 0;
+      flex: 1;
+      padding: 32px 22px 54px;
+      overflow: auto;
+      background: #f1f3f5;
+    }
+
+    .paper-wrap {
+      position: relative;
+      width: min(100%, 834px);
+    }
+
+    .paper {
+      position: relative;
+      min-height: 820px;
+      padding: 72px 86px 92px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .paper-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 26px;
+      color: var(--muted-2);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .paper-meta strong {
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .06em;
+    }
+
+    .paper h2 {
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: 35px;
+      font-weight: 750;
+      letter-spacing: -.065em;
+      line-height: 1.32;
+    }
+
+    .paper-rule {
+      height: 1px;
+      margin: 29px 0 27px;
+      background: var(--line);
+    }
+
+    .paper h3 {
+      margin-bottom: 13px;
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: 19px;
+      font-weight: 750;
+      letter-spacing: -.045em;
+      line-height: 1.45;
+    }
+
+    .paper p {
+      max-width: 630px;
+      margin-bottom: 20px;
+      color: #42474e;
+      font-family: var(--font-doc);
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: -.028em;
+      line-height: 1.95;
+    }
+
+    .paper p:last-of-type { margin-bottom: 0; }
+
+    .caret {
+      display: inline-block;
+      width: 1px;
+      height: 20px;
+      margin-left: 3px;
+      vertical-align: -3px;
+      background: var(--blue);
+      animation: blink 1.1s steps(2, start) infinite;
+    }
+
+    .fragment-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 28px;
+      padding: 6px 9px;
+      border: 1px solid var(--blue-line);
+      border-radius: 4px;
+      color: #2b61c7;
+      background: var(--blue-soft);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .fragment-note,
+    .skeleton {
+      display: none;
+    }
+
+    .fragment-note::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .skeleton {
+      display: grid;
+      gap: 10px;
+      margin-top: 38px;
+      opacity: .58;
+    }
+
+    .skeleton span {
+      display: block;
+      height: 10px;
+      border-radius: 2px;
+      background: #edf0f2;
+    }
+
+    .skeleton span:nth-child(2) { width: 91%; }
+    .skeleton span:nth-child(3) { width: 96%; }
+    .skeleton span:nth-child(4) { width: 75%; }
+
+    .fragment-note,
+    .skeleton {
+      display: none;
+    }
+
+    .paper-lock {
+      position: absolute;
+      right: 28px;
+      bottom: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .paper-lock svg { width: 13px; height: 13px; }
+
+    .insert-button {
+      position: absolute;
+      left: -18px;
+      top: 203px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--muted);
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(20, 31, 43, .05);
+    }
+
+    .insert-button:hover { color: var(--ink-soft); background: #fbfcfd; }
+    .insert-button svg { width: 17px; height: 17px; }
+
+    .canvas-footer {
+      position: sticky;
+      bottom: -34px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      width: min(100%, 834px);
+      min-height: 39px;
+      margin: -39px auto 0;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .96);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .canvas-footer strong { color: var(--ink-soft); font-weight: 850; }
+
+    .jump-button {
+      min-height: 25px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .jump-button:hover { background: #f8fafc; }
+
+    .bottom-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      min-height: 30px;
+      padding: 0 28px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .bottom-status strong { color: var(--ink-soft); font-weight: 850; }
+    .bottom-status i,
+    .bottom-status button { display: none; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .activity-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .activity-item span { display: none; }
+      .paper { padding-left: 62px; padding-right: 62px; }
+      .tool { min-width: 42px; }
+      .toolbar-primary, .toolbar-format { padding-left: 12px; padding-right: 12px; }
+    }
+
+    @media (max-width: 720px) {
+      .global-bar { gap: 10px; padding: 0 12px; }
+      .brand { min-width: auto; }
+      .brand small, .global-topic, .saved-state { display: none; }
+      .editor-context { min-height: 61px; padding: 11px 14px; }
+      .context-copy h1 { font-size: 16px; }
+      .mode-badge { display: none; }
+      .toolbar-primary { height: 57px; overflow-x: auto; }
+      .toolbar-format { overflow-x: auto; }
+      .toolbar-note { display: none; }
+      .activity-bar { padding: 0 14px; }
+      .activity-compact { overflow: hidden; }
+      .activity-compact span { overflow: hidden; text-overflow: ellipsis; }
+      .activity-more { display: none; }
+      .detail-row { align-items: flex-start; flex-direction: column; gap: 5px; padding: 8px 14px; }
+      .detail-row span + span { padding-left: 0; border-left: 0; }
+      .canvas { padding: 15px 12px 44px; }
+      .paper { min-height: 670px; padding: 44px 27px 75px; }
+      .paper h2 { font-size: 28px; }
+      .paper h3 { font-size: 17px; }
+      .paper p { font-size: 14px; }
+      .insert-button { left: -8px; top: 150px; }
+      .canvas-footer { bottom: -20px; }
+      .bottom-status { padding: 0 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="app-rail" aria-label="앱 내비게이션">
+      <div class="rail-mark">S</div>
+      <button class="rail-button active" type="button" aria-label="원고 제작">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 4.5h10a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2v-13Z"/>
+          <path d="M7 19.5h12V7.5"/>
+          <path d="M8.5 9h6M8.5 12h6M8.5 15h4"/>
+        </svg>
+      </button>
+      <button class="rail-button" type="button" aria-label="보관함">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 7.5h15v12h-15z"/>
+          <path d="m4.5 7.5 2-3h11l2 3M9 11h6"/>
+        </svg>
+      </button>
+      <div class="rail-spacer"></div>
+      <button class="rail-button" type="button" aria-label="설정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/>
+          <path d="m19.2 13.2 1.1.8-1.4 2.4-1.3-.5a7.5 7.5 0 0 1-1.7 1l-.2 1.4h-2.8l-.2-1.4a7.5 7.5 0 0 1-1.8-1l-1.2.5-1.4-2.4 1.1-.8a6.9 6.9 0 0 1 0-2.3l-1.1-.8 1.4-2.4 1.3.5a7.5 7.5 0 0 1 1.7-1l.2-1.4h2.8l.2 1.4a7.5 7.5 0 0 1 1.8 1l1.2-.5 1.4 2.4-1.1.8a6.9 6.9 0 0 1 0 2.3Z"/>
+        </svg>
+      </button>
+    </aside>
+
+    <section class="editor">
+      <header class="global-bar">
+        <div class="brand">
+          <span class="brand-mark">S</span>
+          <span>슈블</span>
+          <small>BUSINESS</small>
+        </div>
+        <div class="global-topic"><b>세바사 홍보 글 써줘</b></div>
+        <div class="global-spacer"></div>
+        <span class="saved-state">생성 중</span>
+        <button class="global-action" type="button">취소</button>
+        <span class="account" aria-label="계정">JD</span>
+      </header>
+
+      <header class="editor-context">
+        <div class="context-copy">
+          <div class="context-breadcrumb"><span>Business workspace</span><i>/</i><span>새 원고</span></div>
+          <h1>세바사 홍보 글 써줘</h1>
+        </div>
+        <div class="context-actions">
+          <span class="mode-badge">조사와 원고 작성 중</span>
+          <button class="cancel-button" type="button">취소</button>
+        </div>
+      </header>
+
+      <div class="toolbar" aria-label="미리보기 도구 모음">
+        <div class="toolbar-primary">
+          <button class="tool" type="button" disabled aria-label="사진 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="2"/>
+              <circle cx="9" cy="10" r="1.3"/>
+              <path d="m6.5 17 4-4 2.5 2 2-2 2.5 4"/>
+            </svg>
+            사진
+          </button>
+          <button class="tool" type="button" disabled aria-label="파일 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 4.5h9l5 5v10H5z"/>
+              <path d="M14 4.5v5h5M8 14h8M8 17h5"/>
+            </svg>
+            파일
+          </button>
+          <button class="tool" type="button" disabled aria-label="링크 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.5 14.5 14.5 9.5"/>
+              <path d="M7.5 17.5H6a4 4 0 0 1 0-8h3"/>
+              <path d="M16.5 6.5H18a4 4 0 0 1 0 8h-3"/>
+            </svg>
+            링크
+          </button>
+          <button class="tool" type="button" disabled aria-label="인용 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8.8 9.2H5.5a2 2 0 0 0-2 2v3.3a2 2 0 0 0 2 2h3.3a2 2 0 0 0 2-2v-3.3a2 2 0 0 0-2-2Z"/>
+              <path d="M20.5 9.2h-3.3a2 2 0 0 0-2 2v3.3a2 2 0 0 0 2 2h3.3a2 2 0 0 0 2-2v-3.3a2 2 0 0 0-2-2Z"/>
+              <path d="M7 9.2c.2-2 1-3.3 2.5-4M18.7 9.2c.2-2 1-3.3 2.5-4"/>
+            </svg>
+            인용
+          </button>
+          <span class="toolbar-divider"></span>
+          <button class="tool" type="button" disabled aria-label="표 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="1"/>
+              <path d="M4 10h16M4 14h16M10 5v14M15 5v14"/>
+            </svg>
+            표
+          </button>
+          <button class="tool" type="button" disabled aria-label="수식 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 6h12M6 18h12M9 6l6 12M15 6l-6 12"/>
+            </svg>
+            수식
+          </button>
+          <button class="tool" type="button" disabled aria-label="코드 추가는 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m9 7-4 5 4 5M15 7l4 5-4 5"/>
+            </svg>
+            코드
+          </button>
+          <button class="tool" type="button" disabled aria-label="템플릿은 원고 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <path d="M8 8h8M8 12h5M8 16h7"/>
+            </svg>
+            템플릿
+          </button>
+          <div class="format-spacer"></div>
+          <span class="toolbar-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="10" width="14" height="10" rx="2"/>
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            </svg>
+            읽기 전용
+          </span>
+        </div>
+
+        <div class="toolbar-format">
+          <span class="tool-label">본문</span>
+          <span class="tool-label">Pretendard</span>
+          <span class="tool-label">16</span>
+          <span class="toolbar-divider"></span>
+          <button class="tool compact" type="button" disabled aria-label="굵게">B</button>
+          <button class="tool compact" type="button" disabled aria-label="기울임"><i>I</i></button>
+          <button class="tool compact" type="button" disabled aria-label="밑줄"><u>U</u></button>
+          <button class="tool compact" type="button" disabled aria-label="취소선"><s>S</s></button>
+          <span class="toolbar-divider"></span>
+          <button class="tool compact" type="button" disabled aria-label="왼쪽 정렬">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h14"/></svg>
+          </button>
+          <button class="tool compact" type="button" disabled aria-label="가운데 정렬">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 7h14M7 12h10M5 17h14"/></svg>
+          </button>
+          <button class="tool compact" type="button" disabled aria-label="목록">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 7h11M8 12h11M8 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/></svg>
+          </button>
+          <button class="tool compact" type="button" disabled aria-label="링크">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 14.5 5-5M7.5 17.5H6a4 4 0 0 1 0-8h3M16.5 6.5H18a4 4 0 0 1 0 8h-3"/></svg>
+          </button>
+          <div class="format-spacer"></div>
+          <span class="toolbar-note">도착한 원고만 표시합니다</span>
+        </div>
+      </div>
+
+      <section class="activity-bar" aria-label="실시간 조사 상태">
+        <div class="activity-compact">
+          <strong>자료 확인 중</strong>
+          <span>세바사 공식 제품 서비스</span>
+          <i></i>
+          <span class="source">SEVASA Landing 확인됨</span>
+        </div>
+        <button class="activity-more" id="detailsButton" type="button" aria-expanded="false">진행 정보</button>
+      </section>
+
+      <div class="detail-row" id="detailRow" aria-hidden="true">
+        <strong>현재 시도</strong>
+        <span>확인된 공개 페이지 1개</span>
+        <span>원고 조각 2개 수신</span>
+        <span>검증 전 · 편집 및 발행 잠금</span>
+      </div>
+
+      <main class="canvas" aria-label="읽기 전용 원고 미리보기">
+        <div class="paper-wrap">
+          <button class="insert-button" type="button" aria-label="문서 요소 추가는 검증 후 사용 가능">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <article class="paper">
+            <div class="paper-meta">
+              <strong>SEVASA / COMPANY PROFILE</strong>
+              <span>미리보기 · 초안 01</span>
+            </div>
+            <h2>세바사를 제대로 알아보기 위해<br>먼저 확인해야 할 것<span class="caret" aria-hidden="true"></span></h2>
+            <div class="paper-rule"></div>
+            <h3>무엇을 제공하는 회사인지부터 확인합니다</h3>
+            <p>세바사에 관심이 생겼다면 가장 먼저 확인해야 할 것은 이름의 인상이 아니라, 세바사가 실제로 어떤 제품과 서비스를 제공하는지입니다.</p>
+            <p>공식 자료에서 확인한 범위 안에서 제품의 역할과 사용 장면을 정리하고 있습니다<span class="caret" aria-hidden="true"></span></p>
+            <span class="fragment-note">원고 조각 수신 · 2개</span>
+            <div class="skeleton" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span class="paper-lock">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="10" width="14" height="10" rx="2"/>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+              </svg>
+              검증 전 · 읽기 전용
+            </span>
+          </article>
+        </div>
+      </main>
+
+      <div class="bottom-status">
+        <strong>실시간 미리보기</strong>
+        <span>실제 응답 조각만 표시 · 검증 전 읽기 전용</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const detailsButton = document.querySelector('#detailsButton');
+    const detailRow = document.querySelector('#detailRow');
+
+    detailsButton.addEventListener('click', () => {
+      const isOpen = detailRow.classList.toggle('open');
+      detailsButton.setAttribute('aria-expanded', String(isOpen));
+      detailRow.setAttribute('aria-hidden', String(!isOpen));
+      detailsButton.textContent = isOpen ? '진행 정보 접기' : '진행 정보';
+    });
+  </script>
+</body>
+</html>

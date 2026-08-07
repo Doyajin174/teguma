@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business Shooble — 프롬프트 입력 직후 시안</title>
+  <style>
+    :root {
+      --ink: #101828;
+      --ink-strong: #0b1220;
+      --ink-soft: #344054;
+      --muted: #667085;
+      --muted-2: #98a2b3;
+      --line: #e4e7ec;
+      --line-strong: #d0d5dd;
+      --canvas: #f6f8fb;
+      --paper: #ffffff;
+      --rail: #101828;
+      --rail-muted: #98a2b3;
+      --navy: #1e3a5f;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --blue-line: #bfdbfe;
+      --green: #0f9f6e;
+      --green-soft: #ecfdf3;
+      --amber: #a16207;
+      --amber-soft: #fffbeb;
+      --font-ui: Inter, Pretendard, "Apple SD Gothic Neo", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-doc: "Noto Serif KR", "Nanum Myeongjo", Georgia, serif;
+      --shadow: 0 22px 60px rgba(16, 24, 40, .16), 0 4px 14px rgba(16, 24, 40, .08);
+      --shadow-paper: 0 12px 32px rgba(16, 24, 40, .09), 0 1px 4px rgba(16, 24, 40, .05);
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #dfe6ee; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% -8%, rgba(255, 255, 255, .96), transparent 34rem),
+        linear-gradient(180deg, #e9eef4 0%, #dce4ec 100%);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, .28);
+      outline-offset: 3px;
+    }
+    h1, h2, h3, h4, p { margin: 0; }
+    svg { display: block; }
+
+    .review-page {
+      width: min(1480px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 46px 0 68px;
+    }
+
+    .review-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 25px;
+    }
+
+    .eyebrow {
+      margin-bottom: 11px;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .review-header h1 {
+      max-width: 760px;
+      color: var(--ink-strong);
+      font-size: clamp(30px, 3vw, 46px);
+      font-weight: 780;
+      letter-spacing: -.06em;
+      line-height: 1.04;
+    }
+
+    .review-copy {
+      max-width: 650px;
+      margin-top: 13px;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .review-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: 380px;
+      align-self: flex-start;
+      padding-top: 4px;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(152, 162, 179, .45);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, .56);
+      font-size: 11px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .frame-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 10px 2px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+
+    .frame-label::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+    }
+
+    .app {
+      overflow: hidden;
+      border: 1px solid rgba(16, 24, 40, .14);
+      border-radius: 16px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .app-topbar {
+      display: flex;
+      align-items: center;
+      height: 51px;
+      padding: 0 22px 0 17px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .98);
+    }
+
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 152px;
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: -.025em;
+    }
+
+    .wordmark-mark {
+      width: 23px;
+      height: 23px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--navy);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: -.09em;
+    }
+
+    .wordmark small {
+      margin-left: 2px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .1em;
+    }
+
+    .topbar-context {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .topbar-context b {
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-weight: 750;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-spacer { flex: 1; }
+
+    .ai-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 18px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ai-label::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .account {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--ink-soft);
+      background: #f8fafc;
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      min-height: 774px;
+      background: var(--canvas);
+    }
+
+    .rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 0 13px;
+      background: var(--rail);
+    }
+
+    .rail-button {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 6px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--rail-muted);
+      background: transparent;
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .rail-button:hover,
+    .rail-button.active {
+      color: #fff;
+      background: rgba(255, 255, 255, .13);
+    }
+
+    .rail-button svg { width: 17px; height: 17px; }
+    .rail-spacer { flex: 1; }
+
+    .work-area {
+      min-width: 0;
+      padding: 27px 29px 29px;
+    }
+
+    .work-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .breadcrumb i { color: #c2c8d0; font-style: normal; }
+
+    .work-header h2 {
+      color: var(--ink-strong);
+      font-size: clamp(22px, 2.1vw, 31px);
+      font-weight: 790;
+      letter-spacing: -.055em;
+      line-height: 1.12;
+    }
+
+    .work-header p {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .button {
+      min-height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .button:hover { border-color: #aab4c1; background: #f8fafc; }
+    .button.quiet { border-color: transparent; color: var(--muted); background: transparent; }
+
+    .work-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      margin-bottom: 17px;
+    }
+
+    .meta-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .meta-value {
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .meta-divider { width: 1px; height: 13px; background: var(--line-strong); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      margin-left: auto;
+      padding: 0 9px;
+      border: 1px solid var(--blue-line);
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: var(--blue-soft);
+      font-size: 9px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      display: inline-block;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .phase-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      margin-bottom: 17px;
+    }
+
+    .phase {
+      position: relative;
+      padding: 17px 0 0;
+      color: var(--muted-2);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .phase:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 19px;
+      right: 9px;
+      height: 1px;
+      background: var(--line-strong);
+    }
+
+    .phase::before {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 0;
+      z-index: 1;
+      width: 11px;
+      height: 11px;
+      border: 2px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--canvas);
+    }
+
+    .phase.active { color: var(--blue); }
+    .phase.active::before {
+      border-color: var(--blue);
+      background: var(--canvas);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+    .phase.active::after { background: linear-gradient(90deg, var(--blue) 40%, var(--line-strong) 40%); }
+    .phase.live { color: var(--green); }
+    .phase.live::before {
+      border-color: var(--green);
+      background: var(--green);
+      box-shadow: inset 0 0 0 3px var(--canvas);
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 306px;
+      gap: 16px;
+      min-height: 594px;
+    }
+
+    .preview-panel,
+    .research-panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 43px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .92);
+    }
+
+    .panel-head strong {
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .panel-head span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 750;
+    }
+
+    .panel-head span::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .preview-surface {
+      display: flex;
+      justify-content: center;
+      min-height: 0;
+      flex: 1;
+      padding: 22px 19px 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.28) 1px, transparent 1px),
+        #edf1f5;
+      background-size: 26px 26px;
+    }
+
+    .document {
+      position: relative;
+      width: min(100%, 694px);
+      min-height: 500px;
+      padding: 49px 57px 46px;
+      border: 1px solid #e8eaee;
+      background: var(--paper);
+      box-shadow: var(--shadow-paper);
+    }
+
+    .document-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 22px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .document-topline strong { color: var(--navy); }
+
+    .document h3 {
+      max-width: 570px;
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: clamp(28px, 3vw, 40px);
+      font-weight: 700;
+      letter-spacing: -.065em;
+      line-height: 1.26;
+    }
+
+    .document-rule {
+      width: 100%;
+      height: 1px;
+      margin: 24px 0 22px;
+      background: var(--line);
+    }
+
+    .document h4 {
+      margin-bottom: 10px;
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.045em;
+    }
+
+    .document p {
+      max-width: 570px;
+      margin-bottom: 15px;
+      color: #344054;
+      font-family: var(--font-doc);
+      font-size: 13px;
+      letter-spacing: -.025em;
+      line-height: 1.9;
+    }
+
+    .document p:last-of-type { margin-bottom: 0; }
+
+    .caret {
+      display: inline-block;
+      width: 1px;
+      height: 17px;
+      margin-left: 3px;
+      vertical-align: -2px;
+      background: var(--blue);
+      animation: blink 1.05s steps(2, start) infinite;
+    }
+
+    .incoming-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 27px;
+      padding: 6px 9px;
+      border: 1px solid var(--blue-line);
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: var(--blue-soft);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .incoming-note::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .pending-lines {
+      display: grid;
+      gap: 9px;
+      margin-top: 31px;
+      opacity: .55;
+    }
+
+    .pending-lines span {
+      height: 9px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #eef1f5 0%, #f6f7f9 48%, #eef1f5 100%);
+    }
+
+    .pending-lines span:nth-child(2) { width: 82%; }
+    .pending-lines span:nth-child(3) { width: 91%; }
+    .pending-lines span:nth-child(4) { width: 65%; }
+
+    .document-lock {
+      position: absolute;
+      right: 19px;
+      bottom: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 25px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,.96);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .document-lock svg { width: 12px; height: 12px; color: var(--muted); }
+
+    .preview-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 43px;
+      padding: 0 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255, 255, 255, .92);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .preview-footer strong { color: var(--ink-soft); font-weight: 850; }
+
+    .copy-button {
+      min-height: 25px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .copy-button:hover { background: #f8fafc; }
+
+    .research-panel {
+      padding: 16px;
+      background: rgba(255, 255, 255, .96);
+    }
+
+    .research-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .research-heading h3 {
+      color: var(--ink-strong);
+      font-size: 14px;
+      font-weight: 850;
+      letter-spacing: -.03em;
+    }
+
+    .research-heading p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 23px;
+      padding: 0 8px;
+      border: 1px solid #abefc6;
+      border-radius: 999px;
+      color: #087443;
+      background: var(--green-soft);
+      font-size: 8px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .live-badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(15, 159, 110, .12);
+    }
+
+    .query-card {
+      padding: 13px;
+      border: 1px solid var(--blue-line);
+      border-radius: 9px;
+      background: linear-gradient(180deg, #f7fbff 0%, #eff6ff 100%);
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 9px;
+      color: #1d4ed8;
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .search-icon {
+      width: 14px;
+      height: 14px;
+      color: #1d4ed8;
+    }
+
+    .query {
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -.025em;
+      line-height: 1.4;
+    }
+
+    .query-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .query-meta .spinner {
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .research-section {
+      padding: 17px 0 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 11px;
+      color: var(--ink-soft);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .section-title span {
+      color: var(--muted-2);
+      font-size: 8px;
+      font-weight: 750;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .activity {
+      position: relative;
+      display: grid;
+      grid-template-columns: 13px minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: start;
+      color: var(--ink-soft);
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    .activity::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      margin-top: 3px;
+      border: 1.5px solid var(--line-strong);
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .activity.complete::before {
+      border-color: var(--green);
+      background: var(--green);
+      box-shadow: inset 0 0 0 2px #fff;
+    }
+
+    .activity.active::before {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .activity em {
+      color: var(--muted);
+      font-size: 8px;
+      font-style: normal;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .activity b { color: var(--ink-soft); font-weight: 800; }
+    .activity small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .source-card {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .source-mark {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #d5e3f4;
+      border-radius: 7px;
+      color: var(--navy);
+      background: #eef5fc;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .source-card strong {
+      display: block;
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 850;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-card span {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 8px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-status {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px !important;
+      color: #087443 !important;
+      font-weight: 800;
+    }
+
+    .source-status::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .progress-summary {
+      display: grid;
+      gap: 10px;
+      padding-top: 16px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .summary-row strong {
+      color: var(--ink-soft);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .summary-bar {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #edf0f3;
+    }
+
+    .summary-bar span {
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), #5b8def);
+    }
+
+    .details-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 32px;
+      margin-top: 16px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .details-button:hover { background: #f8fafc; }
+    .details-button svg { width: 13px; height: 13px; }
+
+    .guardrail {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 13px;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      color: var(--muted);
+      background: #f8fafc;
+      font-size: 8px;
+      line-height: 1.55;
+    }
+
+    .guardrail svg { width: 13px; height: 13px; flex: 0 0 auto; color: var(--navy); }
+
+    .review-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 11px;
+      margin-top: 17px;
+    }
+
+    .note {
+      min-height: 80px;
+      padding: 13px 14px;
+      border: 1px solid rgba(152, 162, 179, .36);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .56);
+    }
+
+    .note small {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--blue);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .note p {
+      color: var(--ink-soft);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .interactive-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 16px;
+      padding: 11px 13px;
+      border: 1px solid rgba(37, 99, 235, .18);
+      border-radius: 8px;
+      color: #36507a;
+      background: rgba(239, 246, 255, .58);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .interactive-note button {
+      flex: 0 0 auto;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--blue-line);
+      border-radius: 6px;
+      color: #1d4ed8;
+      background: #fff;
+      font-size: 9px;
+      font-weight: 850;
+      transition: background 180ms ease;
+    }
+
+    .interactive-note button:hover { background: #f8fbff; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .review-header { display: block; }
+      .review-meta { justify-content: flex-start; margin-top: 17px; }
+      .work-grid { grid-template-columns: minmax(0, 1fr) 282px; }
+      .document { padding-left: 42px; padding-right: 42px; }
+    }
+
+    @media (max-width: 900px) {
+      .review-page { width: min(100% - 24px, 760px); padding-top: 29px; }
+      .work-area { padding: 22px 17px 20px; }
+      .work-grid { grid-template-columns: 1fr; }
+      .research-panel { min-height: 0; }
+      .review-notes { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .app { border-radius: 12px; }
+      .app-topbar { padding: 0 12px; }
+      .wordmark { min-width: auto; }
+      .wordmark small, .topbar-context, .ai-label { display: none; }
+      .app-shell { grid-template-columns: 47px minmax(0, 1fr); }
+      .work-header { display: block; }
+      .head-actions { margin-top: 14px; }
+      .status-pill { margin-left: auto; }
+      .preview-surface { padding: 12px 8px 15px; }
+      .document { min-height: 465px; padding: 34px 26px 40px; }
+      .document h3 { font-size: 27px; }
+      .document h4 { font-size: 15px; }
+      .document p { font-size: 12px; }
+      .preview-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding: 9px 12px; }
+      .interactive-note { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="review-page" id="mockup">
+    <header class="review-header">
+      <div>
+        <p class="eyebrow">Business Shooble / prompt submitted</p>
+        <h1>입력 직후부터,<br>문서가 먼저 보여야 한다.</h1>
+        <p class="review-copy">프롬프트를 제출한 순간 빈 로딩 화면을 거치지 않고 흰 문서 캔버스를 엽니다. 오른쪽에는 실제 조사 활동을, 문서 안에는 실제로 도착한 원고 조각만 보여주는 첫 화면 시안입니다.</p>
+      </div>
+      <div class="review-meta" aria-label="시안 원칙">
+        <span class="meta-chip">세바사 홍보 글 써줘</span>
+        <span class="meta-chip">비즈니스 홍보형</span>
+        <span class="meta-chip">입력 직후 · 읽기 전용</span>
+      </div>
+    </header>
+
+    <p class="frame-label">01 · 프롬프트 제출 후 첫 작업대</p>
+
+    <section class="app" aria-label="Business Shooble 프롬프트 입력 직후 화면 시안">
+      <div class="app-topbar">
+        <div class="wordmark">
+          <span class="wordmark-mark">S</span>
+          <span>Shooble</span>
+          <small>BUSINESS</small>
+        </div>
+        <div class="topbar-context">
+          <span>원고 제작</span>
+          <span>/</span>
+          <b>세바사 홍보 글 써줘</b>
+        </div>
+        <div class="topbar-spacer"></div>
+        <span class="ai-label">Codex 원고 생성 중</span>
+        <span class="account" aria-label="계정">JD</span>
+      </div>
+
+      <div class="app-shell">
+        <nav class="rail" aria-label="앱 내비게이션">
+          <button class="rail-button active" type="button" aria-label="원고 제작">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 4.5h10a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2v-13Z"/>
+              <path d="M7 19.5h12V7.5"/>
+              <path d="M8.5 9h6M8.5 12h6M8.5 15h4"/>
+            </svg>
+          </button>
+          <button class="rail-button" type="button" aria-label="보관함">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.5 7.5h15v12h-15z"/>
+              <path d="m4.5 7.5 2-3h11l2 3M9 11h6"/>
+            </svg>
+          </button>
+          <div class="rail-spacer"></div>
+          <button class="rail-button" type="button" aria-label="설정">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/>
+              <path d="m19.2 13.2 1.1.8-1.4 2.4-1.3-.5a7.5 7.5 0 0 1-1.7 1l-.2 1.4h-2.8l-.2-1.4a7.5 7.5 0 0 1-1.8-1l-1.2.5-1.4-2.4 1.1-.8a6.9 6.9 0 0 1 0-2.3l-1.1-.8 1.4-2.4 1.3.5a7.5 7.5 0 0 1 1.7-1l.2-1.4h2.8l.2 1.4a7.5 7.5 0 0 1 1.8 1l1.2-.5 1.4 2.4-1.1.8a6.9 6.9 0 0 1 0 2.3Z"/>
+            </svg>
+          </button>
+        </nav>
+
+        <main class="work-area">
+          <header class="work-header">
+            <div>
+              <div class="breadcrumb"><span>원고 제작</span><i>/</i><span>새 원고</span></div>
+              <h2>세바사 홍보 글 써줘</h2>
+              <p>요청을 확인했습니다. 실제 자료를 확인하는 동안 원고가 도착하는 순서대로 이 문서에 반영합니다.</p>
+            </div>
+            <div class="head-actions">
+              <button class="button quiet" type="button">취소</button>
+            </div>
+          </header>
+
+          <div class="work-meta">
+            <span class="meta-label">작성 방식</span>
+            <span class="meta-value">비즈니스 홍보형</span>
+            <span class="meta-divider"></span>
+            <span class="meta-label">편집 잠금</span>
+            <span class="status-pill"><span class="status-dot"></span>조사와 원고 작성 중</span>
+          </div>
+
+          <div class="phase-strip" aria-label="작성 진행 상태">
+            <div class="phase active">자료 확인</div>
+            <div class="phase live">초안 작성 · 수신 중</div>
+            <div class="phase">검증 대기</div>
+          </div>
+
+          <div class="work-grid">
+            <section class="preview-panel" aria-label="실시간 원고 미리보기">
+              <div class="panel-head">
+                <strong>실시간 원고 미리보기</strong>
+                <span>실제 응답 조각 반영 중</span>
+              </div>
+
+              <div class="preview-surface">
+                <article class="document" aria-label="읽기 전용 원고 미리보기">
+                  <div class="document-topline">
+                    <strong>Sevasa / Company profile</strong>
+                    <span>초안 01</span>
+                  </div>
+                  <h3>세바사를 제대로 알아보기 위해<br>먼저 확인해야 할 것<span class="caret" aria-hidden="true"></span></h3>
+                  <div class="document-rule"></div>
+                  <h4>무엇을 제공하는 회사인지부터 확인합니다</h4>
+                  <p>세바사에 관심이 생겼다면 가장 먼저 확인해야 할 것은 이름의 인상이 아니라, 세바사가 실제로 어떤 제품과 서비스를 제공하는지입니다.</p>
+                  <p>공식 자료에서 확인한 범위 안에서 제품의 역할과 사용 장면을 정리하고 있습니다<span class="caret" aria-hidden="true"></span></p>
+                  <span class="incoming-note">원고 조각 수신 · 2개</span>
+                  <div class="pending-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <span class="document-lock">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="10" width="14" height="10" rx="2"/>
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                    검증 전 · 읽기 전용
+                  </span>
+                </article>
+              </div>
+
+              <div class="preview-footer">
+                <span><strong>작성 위치를 따라가는 중</strong> · 편집과 발행은 원고 검증 후 열립니다.</span>
+                <button class="copy-button" type="button">복사</button>
+              </div>
+            </section>
+
+            <aside class="research-panel" aria-label="실시간 자료 확인">
+              <div class="research-heading">
+                <div>
+                  <h3>자료 확인</h3>
+                  <p>지금 확인하는 내용을 한눈에 보여줍니다.</p>
+                </div>
+                <span class="live-badge">진행 중</span>
+              </div>
+
+              <div class="query-card">
+                <div class="card-label">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="6.5"/>
+                    <path d="m16 16 4 4"/>
+                  </svg>
+                  현재 검색
+                </div>
+                <div class="query">세바사 공식 제품 서비스</div>
+                <div class="query-meta"><span class="spinner"></span>공개 자료를 찾는 중</div>
+              </div>
+
+              <div class="research-section">
+                <div class="section-title"><span>조사 활동</span><span>실제 이벤트만 표시</span></div>
+                <ol class="activity-list">
+                  <li class="activity active">
+                    <div><b>검색</b><small>세바사 공식 제품 서비스</small></div>
+                    <em>진행 중</em>
+                  </li>
+                  <li class="activity complete">
+                    <div><b>페이지 확인</b><small>SEVASA Landing · sevasa.co.kr</small></div>
+                    <em>완료</em>
+                  </li>
+                  <li class="activity">
+                    <div><b>추가 확인</b><small>회사·제품·서비스 범위</small></div>
+                    <em>대기</em>
+                  </li>
+                </ol>
+              </div>
+
+              <div class="research-section">
+                <div class="section-title"><span>확인된 공개 페이지</span><span>1개</span></div>
+                <div class="source-card">
+                  <div class="source-mark">S</div>
+                  <div>
+                    <strong>SEVASA Landing</strong>
+                    <span>www.sevasa.co.kr</span>
+                    <span class="source-status">페이지 확인 완료</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="progress-summary">
+                <div class="summary-row"><span>현재 시도</span><strong>자료 확인 중</strong></div>
+                <div class="summary-bar" aria-label="현재 진행률"><span></span></div>
+                <div class="summary-row"><span>표시된 원고 조각</span><strong>2개</strong></div>
+              </div>
+
+              <button class="details-button" type="button" aria-expanded="false">
+                <span>진행 정보</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m7 9 5 5 5-5"/>
+                </svg>
+              </button>
+
+              <div class="guardrail">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3 5 6v5c0 4.7 2.9 8.2 7 10 4.1-1.8 7-5.3 7-10V6l-7-3Z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>실제로 확인된 자료와 도착한 원고 조각만 표시합니다.</span>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <section class="review-notes" aria-label="이번 화면에서 확인할 점">
+      <article class="note"><small>First impression</small><p>제출 직후에도 흰 문서가 열려 사용자가 ‘기다리는 중’이 아니라 ‘작업이 시작됐다’고 느낍니다.</p></article>
+      <article class="note"><small>Research visibility</small><p>검색어와 확인된 페이지를 오른쪽에 고정해, 무엇을 하고 있는지 숨기지 않습니다.</p></article>
+      <article class="note"><small>Trust boundary</small><p>도착한 조각만 문서에 쓰고, 검증 전에는 편집·발행을 잠급니다.</p></article>
+    </section>
+
+    <div class="interactive-note">
+      <span>시안 검토용 인터랙션: 커서를 켜고 끄며 ‘실시간 수신’ 인상을 비교할 수 있습니다.</span>
+      <button type="button" id="toggleCursor">커서 표시 끄기</button>
+    </div>
+  </main>
+
+  <script>
+    const toggleCursor = document.querySelector('#toggleCursor');
+    const carets = document.querySelectorAll('.caret');
+
+    toggleCursor.addEventListener('click', () => {
+      const isHidden = carets[0].style.display === 'none';
+      carets.forEach((caret) => {
+        caret.style.display = isHidden ? 'inline-block' : 'none';
+      });
+      toggleCursor.textContent = isHidden ? '커서 표시 끄기' : '커서 표시 켜기';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business Shooble — 원고 제작 작업대 시안</title>
+  <style>
+    :root {
+      --ink: #101828;
+      --ink-strong: #0b1220;
+      --ink-soft: #475467;
+      --muted: #667085;
+      --muted-2: #98a2b3;
+      --line: #e4e7ec;
+      --line-strong: #d0d5dd;
+      --canvas: #f7f9fc;
+      --paper: #ffffff;
+      --rail: #101828;
+      --rail-muted: #98a2b3;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --blue-line: #bfdbfe;
+      --green: #0f9f6e;
+      --green-soft: #ecfdf3;
+      --amber: #b54708;
+      --amber-soft: #fffaeb;
+      --shadow: 0 18px 44px rgba(16, 24, 40, .13), 0 3px 10px rgba(16, 24, 40, .06);
+      --font-ui: Inter, Pretendard, "Apple SD Gothic Neo", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-doc: "Noto Serif KR", "Nanum Myeongjo", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #dce3eb; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% -8%, rgba(255,255,255,.9), transparent 33rem),
+        linear-gradient(180deg, #e8edf3 0%, #dbe3eb 100%);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid rgba(37,99,235,.28); outline-offset: 3px; }
+
+    .page {
+      width: min(1512px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 48px 0 76px;
+    }
+
+    .brief {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 11px;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    .brief h1 {
+      max-width: 720px;
+      color: var(--ink-strong);
+      font-size: clamp(28px, 3.2vw, 46px);
+      font-weight: 780;
+      letter-spacing: -.055em;
+      line-height: 1.04;
+    }
+
+    .brief-copy {
+      max-width: 600px;
+      margin-top: 13px;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .brief-meta {
+      display: grid;
+      grid-template-columns: repeat(3, max-content);
+      gap: 8px;
+      align-self: flex-start;
+      padding-top: 5px;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(152,162,179,.45);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255,255,255,.55);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .stage-note {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 11px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+
+    .stage-note::before,
+    .stage-note::after {
+      content: "";
+      height: 1px;
+      flex: 0 1 44px;
+      background: #b9c3cf;
+    }
+
+    .stage-note::before { margin-left: 4px; }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+
+    .screen-wrap { min-width: 0; }
+
+    .screen-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 10px;
+    }
+
+    .screen-caption strong {
+      color: var(--ink-strong);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+    }
+
+    .screen-caption span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .app {
+      min-height: 688px;
+      overflow: hidden;
+      border: 1px solid rgba(16,24,40,.14);
+      border-radius: 16px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .app-topbar {
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 17px 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+    }
+
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 126px;
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+
+    .wordmark-mark {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      color: white;
+      background: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: -.08em;
+    }
+
+    .wordmark small {
+      margin-left: 2px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .1em;
+    }
+
+    .topbar-center {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .topbar-center b {
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-spacer { flex: 1; }
+
+    .save-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 13px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      display: inline-block;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .topbar-avatar {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--ink-soft);
+      background: #f8fafc;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      min-height: 639px;
+      background: var(--canvas);
+    }
+
+    .rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 0 12px;
+      background: var(--rail);
+    }
+
+    .rail-button {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 5px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--rail-muted);
+      background: transparent;
+    }
+
+    .rail-button.active {
+      color: white;
+      background: rgba(255,255,255,.13);
+    }
+
+    .rail-button svg { width: 16px; height: 16px; stroke: currentColor; }
+    .rail-spacer { flex: 1; }
+
+    .workspace {
+      min-width: 0;
+      padding: 23px 25px 26px;
+    }
+
+    .workspace-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .breadcrumb i { color: #c2c8d0; font-style: normal; }
+
+    .workspace-head h2 {
+      color: var(--ink-strong);
+      font-size: 20px;
+      font-weight: 780;
+      letter-spacing: -.04em;
+      line-height: 1.1;
+    }
+
+    .workspace-head p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .button {
+      min-height: 31px;
+      padding: 0 11px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--ink-soft);
+      background: white;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .button.primary {
+      border-color: var(--blue);
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 1px 2px rgba(37,99,235,.18);
+    }
+
+    .button.quiet {
+      border-color: transparent;
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .work-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      margin-bottom: 17px;
+    }
+
+    .meta-label {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta-value {
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-size: 10px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta-divider { width: 1px; height: 13px; background: var(--line-strong); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 23px;
+      margin-left: auto;
+      padding: 0 8px;
+      border: 1px solid var(--blue-line);
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: var(--blue-soft);
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-pill.complete {
+      border-color: #abefc6;
+      color: #087443;
+      background: var(--green-soft);
+    }
+
+    .status-pill .status-dot { background: var(--blue); }
+    .status-pill.complete .status-dot { background: var(--green); }
+
+    .progress-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-bottom: 16px;
+    }
+
+    .step {
+      position: relative;
+      padding-top: 17px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 18px;
+      right: 6px;
+      height: 1px;
+      background: var(--line-strong);
+    }
+
+    .step::before {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 0;
+      z-index: 1;
+      width: 11px;
+      height: 11px;
+      border: 2px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--canvas);
+    }
+
+    .step.done { color: var(--ink-soft); }
+    .step.done::before { border-color: var(--green); background: var(--green); box-shadow: inset 0 0 0 3px var(--canvas); }
+    .step.active { color: var(--blue); }
+    .step.active::before { border-color: var(--blue); background: var(--canvas); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .step.active::after { background: linear-gradient(90deg, var(--blue) 42%, var(--line-strong) 42%); }
+
+    .editor-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 454px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #eef1f5;
+      overflow: hidden;
+    }
+
+    .editor-stage.with-inspector {
+      grid-template-columns: minmax(0, 1fr) 198px;
+      min-height: 444px;
+    }
+
+    .document-column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .document-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 35px;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.8);
+    }
+
+    .toolbar-label {
+      margin-right: 6px;
+      color: var(--muted-2);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .tool-button {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 5px;
+      color: var(--ink-soft);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .tool-button:hover { background: #f2f4f7; }
+    .tool-button.muted { color: var(--muted-2); }
+
+    .document-scroll {
+      display: flex;
+      justify-content: center;
+      min-height: 0;
+      flex: 1;
+      padding: 17px 15px 19px;
+      overflow: hidden;
+    }
+
+    .document {
+      position: relative;
+      width: min(100%, 357px);
+      min-height: 397px;
+      padding: 29px 31px 28px;
+      border: 1px solid #e8eaee;
+      background: var(--paper);
+      box-shadow: 0 4px 12px rgba(16,24,40,.07);
+    }
+
+    .document-kicker {
+      margin-bottom: 10px;
+      color: var(--blue);
+      font-family: var(--font-ui);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .document h3 {
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -.06em;
+      line-height: 1.35;
+    }
+
+    .document-rule {
+      width: 100%;
+      height: 1px;
+      margin: 16px 0 15px;
+      background: var(--line);
+    }
+
+    .document h4 {
+      margin: 0 0 6px;
+      color: var(--ink-strong);
+      font-family: var(--font-doc);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -.04em;
+    }
+
+    .document p {
+      margin-bottom: 12px;
+      color: #344054;
+      font-family: var(--font-doc);
+      font-size: 10px;
+      line-height: 1.85;
+      letter-spacing: -.025em;
+    }
+
+    .document p:last-child { margin-bottom: 0; }
+
+    .caret {
+      display: inline-block;
+      width: 1px;
+      height: 12px;
+      margin-left: 2px;
+      vertical-align: -2px;
+      background: var(--blue);
+      animation: blink 1.05s steps(2, start) infinite;
+    }
+
+    .document-footnote {
+      position: absolute;
+      right: 26px;
+      bottom: 18px;
+      color: var(--muted-2);
+      font-family: var(--font-ui);
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .document-position {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--blue-line);
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: rgba(239,246,255,.96);
+      font-family: var(--font-ui);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .stage-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 39px;
+      padding: 0 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255,255,255,.74);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .stage-footer strong { color: var(--ink-soft); font-weight: 800; }
+
+    .footer-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 23px;
+      padding: 0 7px;
+      border: 0;
+      border-radius: 5px;
+      color: var(--ink-soft);
+      background: #f2f4f7;
+      font-size: 8px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .inspector {
+      min-width: 0;
+      border-left: 1px solid var(--line);
+      background: rgba(255,255,255,.9);
+    }
+
+    .inspector-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 35px;
+      padding: 0 11px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .inspector-head strong { color: var(--ink-soft); font-size: 9px; font-weight: 800; }
+    .inspector-head span { color: var(--muted-2); font-size: 9px; }
+
+    .inspector-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      padding: 0 8px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .inspector-tab {
+      min-height: 33px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      background: transparent;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .inspector-tab.active { border-bottom-color: var(--blue); color: var(--blue); }
+
+    .inspector-section {
+      padding: 13px 11px;
+      border-bottom: 1px solid #f0f1f3;
+    }
+
+    .inspector-section h4 {
+      margin: 0 0 9px;
+      color: var(--ink-soft);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .field-value {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--ink-soft);
+      font-weight: 800;
+    }
+
+    .color-swatch {
+      width: 10px;
+      height: 10px;
+      border: 1px solid rgba(16,24,40,.12);
+      border-radius: 3px;
+      background: var(--ink-strong);
+    }
+
+    .source-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.5;
+    }
+
+    .source-mark {
+      width: 5px;
+      height: 5px;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .small-callout {
+      margin: 13px 0 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--muted);
+      background: #f8fafc;
+      font-size: 8px;
+      line-height: 1.55;
+    }
+
+    .mode-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 25px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .mode-note .line { width: 48px; height: 1px; background: #b9c3cf; }
+    .mode-note b { color: var(--ink-soft); font-weight: 800; }
+
+    .decision-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 11px;
+      margin-top: 29px;
+    }
+
+    .decision {
+      min-height: 87px;
+      padding: 14px 15px;
+      border: 1px solid rgba(152,162,179,.35);
+      border-radius: 10px;
+      background: rgba(255,255,255,.55);
+    }
+
+    .decision small {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--blue);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .decision p { color: var(--ink-soft); font-size: 11px; font-weight: 700; line-height: 1.55; }
+
+    .interactive-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 17px;
+      padding: 12px 14px;
+      border: 1px solid rgba(37,99,235,.2);
+      border-radius: 9px;
+      background: rgba(239,246,255,.58);
+      color: #36507a;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .interactive-note button {
+      flex: 0 0 auto;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid var(--blue-line);
+      border-radius: 6px;
+      color: #1d4ed8;
+      background: white;
+      font-size: 9px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .interactive-note button:hover { background: #f8fbff; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+
+    @media (max-width: 1040px) {
+      .brief { display: block; }
+      .brief-meta { margin-top: 17px; }
+      .comparison { grid-template-columns: 1fr; }
+      .app { max-width: 760px; margin: 0 auto; }
+      .decision-strip { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .page { width: min(100% - 24px, 520px); padding-top: 28px; }
+      .brief h1 { font-size: 32px; }
+      .brief-meta { grid-template-columns: 1fr 1fr; }
+      .app { border-radius: 12px; }
+      .workspace { padding: 18px 14px 19px; }
+      .workspace-head { display: block; }
+      .head-actions { margin-top: 14px; }
+      .editor-stage.with-inspector { grid-template-columns: minmax(0, 1fr); }
+      .editor-stage.with-inspector .inspector { display: none; }
+      .document { padding-left: 23px; padding-right: 23px; }
+      .topbar-center { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="mockup">
+    <header class="brief">
+      <div>
+        <p class="eyebrow">Business Shooble / workspace concept</p>
+        <h1>원고를 쓰는 동안,<br>문서만 보이게.</h1>
+        <p class="brief-copy">캐릭터와 대화하는 화면을 걷어내고, 실제 응답이 도착하는 만큼 중앙 문서에 반영합니다. 생성이 끝나면 같은 캔버스가 업무용 편집 작업대로 전환됩니다.</p>
+      </div>
+      <div class="brief-meta" aria-label="시안 원칙">
+        <span class="meta-chip">작성 방식 · 비즈니스 홍보형</span>
+        <span class="meta-chip">단일 문서 작업대</span>
+        <span class="meta-chip">채팅 패널 없음</span>
+      </div>
+    </header>
+
+    <p class="stage-note"><span>same canvas</span><span>state transition</span></p>
+
+    <section class="comparison" aria-label="생성 중과 원고 완성 상태 비교">
+      <div class="screen-wrap">
+        <div class="screen-caption">
+          <strong>01 · 생성 중</strong>
+          <span>읽기 전용 / 실제 응답 조각 반영</span>
+        </div>
+        <section class="app" aria-label="생성 중 화면 시안">
+          <div class="app-topbar">
+            <div class="wordmark"><span class="wordmark-mark">S</span><span>Shooble</span><small>BUSINESS</small></div>
+            <div class="topbar-center"><span>원고 제작</span><span>/</span><b>마케팅 자동화 도입 가이드</b></div>
+            <div class="topbar-spacer"></div>
+            <span class="save-state"><span class="status-dot"></span>작성 중</span>
+            <span class="topbar-avatar" aria-label="계정">JD</span>
+          </div>
+          <div class="app-shell">
+            <nav class="rail" aria-label="앱 내비게이션">
+              <button class="rail-button active" aria-label="원고 제작">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 4.5h10a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2v-13Z"/><path d="M7 19.5h12V7.5"/><path d="M8.5 9h6M8.5 12h6M8.5 15h4"/></svg>
+              </button>
+              <button class="rail-button" aria-label="보관함">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4.5 7.5h15v12h-15z"/><path d="m4.5 7.5 2-3h11l2 3M9 11h6"/></svg>
+              </button>
+              <div class="rail-spacer"></div>
+              <button class="rail-button" aria-label="설정">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.2 13.2 1.1.8-1.4 2.4-1.3-.5a7.5 7.5 0 0 1-1.7 1l-.2 1.4h-2.8l-.2-1.4a7.5 7.5 0 0 1-1.8-1l-1.2.5-1.4-2.4 1.1-.8a6.9 6.9 0 0 1 0-2.3l-1.1-.8 1.4-2.4 1.3.5a7.5 7.5 0 0 1 1.7-1l.2-1.4h2.8l.2 1.4a7.5 7.5 0 0 1 1.8 1l1.2-.5 1.4 2.4-1.1.8a6.9 6.9 0 0 1 0 2.3Z"/></svg>
+              </button>
+            </nav>
+            <div class="workspace">
+              <div class="workspace-head">
+                <div>
+                  <div class="breadcrumb"><span>원고 제작</span><i>/</i><span>새 원고</span></div>
+                  <h2>마케팅 자동화 도입 가이드</h2>
+                  <p>요청한 주제를 바탕으로 업무용 홍보 원고를 작성하고 있습니다.</p>
+                </div>
+                <div class="head-actions"><button class="button quiet">취소</button></div>
+              </div>
+
+              <div class="work-meta">
+                <span class="meta-label">작성 방식</span>
+                <span class="meta-value">비즈니스 홍보형</span>
+                <span class="meta-divider"></span>
+                <span class="meta-label">읽기 전용</span>
+                <span class="status-pill"><span class="status-dot"></span>초안 작성 중</span>
+              </div>
+
+              <div class="progress-steps" aria-label="작성 진행 상태">
+                <div class="step done">자료 확인</div>
+                <div class="step active">초안 작성</div>
+                <div class="step">정리</div>
+              </div>
+
+              <div class="editor-stage">
+                <div class="document-column">
+                  <div class="document-toolbar"><span class="toolbar-label">실시간 초안</span><span class="topbar-spacer"></span><button class="tool-button muted" aria-label="확대 축소 비활성">−</button><button class="tool-button muted" aria-label="확대 축소 비활성">＋</button></div>
+                  <div class="document-scroll">
+                    <article class="document" aria-label="읽기 전용 원고 미리보기">
+                      <p class="document-kicker">Business guide</p>
+                      <h3>마케팅 자동화,<br>반복을 줄이고 핵심 업무에 집중하는 방법</h3>
+                      <div class="document-rule"></div>
+                      <h4>반복 업무를 줄이는 것에서 시작합니다</h4>
+                      <p>고객 문의에 답하고, 캠페인 결과를 정리하고, 다음 콘텐츠를 준비하는 일은 중요하지만 매번 같은 방식으로 반복됩니다. 팀이 성장할수록 이 작은 업무의 누적 비용도 커집니다.</p>
+                      <p>마케팅 자동화는 모든 일을 대신하는 기술이 아니라, 반복되는 흐름을 정리해 사람이 판단해야 할 순간에 집중하도록 돕는 운영 방식입니다<span class="caret" aria-hidden="true"></span></p>
+                      <span class="document-position">작성 위치로 이동</span>
+                    </article>
+                  </div>
+                  <div class="stage-footer"><span><strong>응답을 반영하는 중</strong> · 편집과 발행은 원고 완성 후 이용할 수 있습니다.</span><button class="footer-action">복사</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="screen-wrap">
+        <div class="screen-caption">
+          <strong>02 · 원고 완성</strong>
+          <span>편집 가능 / 발행 설정으로 연결</span>
+        </div>
+        <section class="app" aria-label="원고 완성 후 편집 화면 시안">
+          <div class="app-topbar">
+            <div class="wordmark"><span class="wordmark-mark">S</span><span>Shooble</span><small>BUSINESS</small></div>
+            <div class="topbar-center"><span>원고 제작</span><span>/</span><b>마케팅 자동화 도입 가이드</b></div>
+            <div class="topbar-spacer"></div>
+            <span class="save-state"><span class="status-dot"></span>자동 저장됨</span>
+            <span class="topbar-avatar" aria-label="계정">JD</span>
+          </div>
+          <div class="app-shell">
+            <nav class="rail" aria-label="앱 내비게이션">
+              <button class="rail-button active" aria-label="원고 제작">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 4.5h10a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2v-13Z"/><path d="M7 19.5h12V7.5"/><path d="M8.5 9h6M8.5 12h6M8.5 15h4"/></svg>
+              </button>
+              <button class="rail-button" aria-label="보관함">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4.5 7.5h15v12h-15z"/><path d="m4.5 7.5 2-3h11l2 3M9 11h6"/></svg>
+              </button>
+              <div class="rail-spacer"></div>
+              <button class="rail-button" aria-label="설정">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.2 13.2 1.1.8-1.4 2.4-1.3-.5a7.5 7.5 0 0 1-1.7 1l-.2 1.4h-2.8l-.2-1.4a7.5 7.5 0 0 1-1.8-1l-1.2.5-1.4-2.4 1.1-.8a6.9 6.9 0 0 1 0-2.3l-1.1-.8 1.4-2.4 1.3.5a7.5 7.5 0 0 1 1.7-1l.2-1.4h2.8l.2 1.4a7.5 7.5 0 0 1 1.8 1l1.2-.5 1.4 2.4-1.1.8a6.9 6.9 0 0 1 0 2.3Z"/></svg>
+              </button>
+            </nav>
+            <div class="workspace">
+              <div class="workspace-head">
+                <div>
+                  <div class="breadcrumb"><span>원고 제작</span><i>/</i><span>새 원고</span></div>
+                  <h2>마케팅 자동화 도입 가이드</h2>
+                  <p>최종 원고 검증을 마쳤습니다. 필요한 내용을 확인하고 발행을 설정하세요.</p>
+                </div>
+                <div class="head-actions"><button class="button quiet">다시 생성</button><button class="button primary">발행 설정</button></div>
+              </div>
+
+              <div class="work-meta">
+                <span class="meta-label">작성 방식</span>
+                <span class="meta-value">비즈니스 홍보형</span>
+                <span class="meta-divider"></span>
+                <span class="meta-label">최종 검증 완료</span>
+                <span class="status-pill complete"><span class="status-dot"></span>원고 완성</span>
+              </div>
+
+              <div class="progress-steps" aria-label="작성 진행 상태">
+                <div class="step done">자료 확인</div>
+                <div class="step done">초안 작성</div>
+                <div class="step done">정리</div>
+              </div>
+
+              <div class="editor-stage with-inspector">
+                <div class="document-column">
+                  <div class="document-toolbar"><span class="toolbar-label">본문 편집</span><button class="tool-button" aria-label="실행 취소">↶</button><button class="tool-button muted" aria-label="다시 실행">↷</button><span class="topbar-spacer"></span><button class="tool-button" aria-label="굵게">B</button><button class="tool-button" aria-label="링크">↗</button><button class="tool-button muted" aria-label="확대 축소">＋</button></div>
+                  <div class="document-scroll">
+                    <article class="document" aria-label="편집 가능한 원고">
+                      <p class="document-kicker">Business guide</p>
+                      <h3>마케팅 자동화,<br>반복을 줄이고 핵심 업무에 집중하는 방법</h3>
+                      <div class="document-rule"></div>
+                      <h4>반복 업무를 줄이는 것에서 시작합니다</h4>
+                      <p>고객 문의에 답하고, 캠페인 결과를 정리하고, 다음 콘텐츠를 준비하는 일은 중요하지만 매번 같은 방식으로 반복됩니다. 팀이 성장할수록 이 작은 업무의 누적 비용도 커집니다.</p>
+                      <p>마케팅 자동화는 모든 일을 대신하는 기술이 아니라, 반복되는 흐름을 정리해 사람이 판단해야 할 순간에 집중하도록 돕는 운영 방식입니다.</p>
+                      <span class="document-footnote">마지막 저장 16:42</span>
+                    </article>
+                  </div>
+                  <div class="stage-footer"><span><strong>원고 완성</strong> · 수정 내용은 자동 저장됩니다.</span><button class="footer-action">미리보기</button></div>
+                </div>
+
+                <aside class="inspector" aria-label="편집 인스펙터">
+                  <div class="inspector-head"><strong>편집 도구</strong><span>접기</span></div>
+                  <div class="inspector-tabs"><button class="inspector-tab active">서식</button><button class="inspector-tab">이미지</button><button class="inspector-tab">근거</button></div>
+                  <div class="inspector-section">
+                    <h4>선택한 문단</h4>
+                    <div class="field-row"><span>스타일</span><span class="field-value">본문 <span>⌄</span></span></div>
+                    <div class="field-row"><span>정렬</span><span class="field-value">왼쪽 <span>⌄</span></span></div>
+                    <div class="field-row"><span>강조 색상</span><span class="field-value"><i class="color-swatch"></i>기본</span></div>
+                  </div>
+                  <div class="inspector-section">
+                    <h4>연결된 근거</h4>
+                    <div class="source-row"><i class="source-mark"></i><span>업로드한 회사 자료<br>3개 항목 연결됨</span></div>
+                    <div class="small-callout">근거를 확인하면 원고의 해당 문단으로 바로 이동합니다.</div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <p class="mode-note"><span class="line"></span><b>검증 통과 순간</b><span>같은 문서 위치에서 편집 모드로 전환</span><span class="line"></span></p>
+
+    <section class="decision-strip" aria-label="이번 시안에서 고정한 결정">
+      <article class="decision"><small>Label</small><p>사용자 노출명은 ‘비즈니스 홍보형’으로 두고, 김부장은 내부 작성 엔진명으로 남깁니다.</p></article>
+      <article class="decision"><small>Language</small><p>Business 전 화면의 상위 개념은 ‘작가’ 대신 ‘작성 방식’으로 통일합니다.</p></article>
+      <article class="decision"><small>Progress</small><p>기본은 한 줄 상태만 보이고, 상세 진행 정보는 필요할 때만 펼칩니다.</p></article>
+    </section>
+
+    <div class="interactive-note">
+      <span>이 파일은 시안 검토용입니다. 우측 상단의 화면 구조와 용어를 먼저 확정한 뒤 실제 앱에 반영합니다.</span>
+      <button type="button" id="toggleMotion">커서 표시 전환</button>
+    </div>
+  </main>
+
+  <script>
+    const toggle = document.querySelector('#toggleMotion');
+    const carets = document.querySelectorAll('.caret');
+    toggle.addEventListener('click', () => {
+      const hidden = carets[0].style.display === 'none';
+      carets.forEach((caret) => { caret.style.display = hidden ? 'inline-block' : 'none'; });
+      toggle.textContent = hidden ? '커서 표시 끄기' : '커서 표시 전환';
+    });
+  </script>
+</body>
+</html>

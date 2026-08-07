@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business Shooble — 검색 중 미리보기 v8</title>
+  <style>
+    :root {
+      --ink: #202124;
+      --ink-soft: #59615d;
+      --muted: #707873;
+      --line: #d9dfdc;
+      --canvas: #f6f7f7;
+      --panel: #fff;
+      --green: #03c75a;
+      --green-ink: #067238;
+      --green-soft: #eaf8ef;
+      --blue: #2675c9;
+      --blue-soft: #eef5ff;
+      --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      --shadow: 0 8px 22px rgba(20, 31, 24, .07), 0 1px 2px rgba(20, 31, 24, .05);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-width: 320px; min-height: 100%; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--green-ink); outline-offset: 3px; }
+    svg { display: block; }
+
+    .app { min-height: 100vh; display: grid; grid-template-columns: 52px minmax(0, 1fr); background: var(--canvas); }
+    .rail { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 14px 0 12px; border-right: 1px solid #e7e7ea; background: #f7f7f8; }
+    .rail-mark { width: 28px; height: 28px; display: grid; place-items: center; margin-bottom: 16px; border-radius: 50%; color: #fff; background: var(--green); font-size: 12px; font-weight: 850; }
+    .rail-button { width: 34px; height: 34px; display: grid; place-items: center; margin-bottom: 5px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; }
+    .rail-button:hover, .rail-button.active { color: var(--green-ink); background: var(--green-soft); }
+    .rail-button svg { width: 17px; height: 17px; }
+    .rail-spacer { flex: 1; }
+
+    .main { min-width: 0; min-height: 100vh; }
+    .topbar { height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 30px; border-bottom: 1px solid #eff0f1; background: #fff; }
+    .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: 13px; font-weight: 800; white-space: nowrap; }
+    .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--green); font-size: 12px; font-weight: 850; }
+    .topbar-divider { width: 1px; height: 20px; margin: 0 5px; background: var(--line); }
+    .topic { overflow: hidden; color: var(--ink-soft); font-size: 13px; font-weight: 700; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
+    .topbar-spacer { flex: 1; }
+    .cancel { min-height: 34px; padding: 0 13px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-soft); background: #fff; font-size: 12px; font-weight: 700; }
+    .cancel:hover { border-color: #aebbb2; background: #fafcfa; }
+
+    .workspace { min-height: calc(100vh - 64px); padding: 18px 30px 34px; }
+    .stack { width: min(100%, 900px); margin: 0 auto; }
+    .research-line { min-height: 37px; display: flex; align-items: center; gap: 9px; color: var(--ink-soft); font-size: 12px; }
+    .research-dot { width: 8px; height: 8px; flex: 0 0 auto; border: 2px solid var(--blue); border-radius: 50%; background: var(--canvas); box-shadow: 0 0 0 3px var(--blue-soft); animation: pulse 1.8s ease-in-out infinite; }
+    .research-line strong { color: var(--ink); font-weight: 800; white-space: nowrap; }
+    .research-query { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
+
+    .paper { min-height: 535px; padding: 36px 77px 48px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow); }
+    .paper-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid #edf0ee; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .paper-head strong { color: var(--ink-soft); font-weight: 800; }
+    .paper-body { max-width: 600px; margin: 48px auto 0; }
+    .visited-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--ink-soft); font-size: 12px; font-weight: 800; }
+    .visited-head span { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .page-row { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; align-items: center; gap: 11px; min-height: 64px; border-bottom: 1px solid #edf0ee; }
+    .page-icon { width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #cbd9ce; border-radius: 6px; color: var(--green-ink); background: #f8fcf9; }
+    .page-icon svg { width: 13px; height: 13px; }
+    .page-copy { display: grid; min-width: 0; gap: 3px; }
+    .page-copy strong { overflow: hidden; color: var(--ink); font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .page-copy small { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .page-state { color: var(--green-ink); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .page-row.active .page-icon { border-color: #9bc8aa; color: var(--green-ink); box-shadow: 0 0 0 3px var(--green-soft); }
+    .page-row.active .page-state { color: var(--blue); }
+    .paper-note { margin: 18px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+    @keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .research-dot { animation: none; } }
+    @media (max-width: 720px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .topbar { height: 56px; padding: 0 14px; }
+      .topbar-divider, .topic { display: none; }
+      .workspace { min-height: calc(100vh - 56px); padding: 11px 14px 24px; }
+      .paper { min-height: 470px; padding: 30px 24px 38px; }
+      .paper-body { margin-top: 38px; }
+      .paper-head span { display: none; }
+      .page-row { grid-template-columns: 24px minmax(0,1fr); padding: 9px 0; }
+      .page-state { grid-column: 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="작업 내비게이션">
+      <span class="rail-mark">S</span>
+      <button class="rail-button" type="button" aria-label="홈">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z"/><path d="M9 20v-6h6v6"/></svg>
+      </button>
+      <button class="rail-button active" type="button" aria-label="원고 제작" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8l4 4V20.5H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z"/><path d="M14 3.5v5h4M8 13h6M8 16h5"/></svg>
+      </button>
+      <span class="rail-spacer"></span>
+      <button class="rail-button" type="button" aria-label="설정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="m19 13 1.2.8-1.5 2.5-1.4-.6a7 7 0 0 1-1.8 1l-.2 1.5h-2.9l-.2-1.5a7 7 0 0 1-1.8-1l-1.4.6-1.5-2.5L7 13a7 7 0 0 1 0-2l-1.3-.9 1.5-2.5 1.4.6a7 7 0 0 1 1.8-1l.2-1.5h2.9l.2 1.5a7 7 0 0 1 1.8 1l1.4-.6 1.5 2.5L19 11a7 7 0 0 1 0 2Z"/></svg>
+      </button>
+    </nav>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">S</span><span>슈블</span></div>
+        <span class="topbar-divider" aria-hidden="true"></span>
+        <span class="topic">세바사 홍보 글 써줘</span>
+        <span class="topbar-spacer"></span>
+        <button class="cancel" type="button">취소</button>
+      </header>
+
+      <section class="workspace">
+        <div class="stack">
+          <div class="research-line" aria-label="현재 조사 상태">
+            <span class="research-dot" aria-hidden="true"></span>
+            <strong>검색 중</strong>
+            <span class="research-query">세바사 공식 제품 서비스</span>
+          </div>
+
+          <article class="paper" aria-label="읽기 전용 원고 미리보기">
+            <header class="paper-head"><strong>원고 미리보기</strong><span>읽기 전용</span></header>
+            <div class="paper-body">
+              <div class="visited-head"><strong>방문한 페이지</strong><span>2개 확인됨</span></div>
+              <div class="page-row">
+                <span class="page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2.2 3 4.9 3 8s-1 5.8-3 8c-2-2.2-3-4.9-3-8s1-5.8 3-8Z"/></svg></span>
+                <span class="page-copy"><strong>SEVASA Landing</strong><small>www.sevasa.co.kr</small></span>
+                <span class="page-state">확인됨</span>
+              </div>
+              <div class="page-row active">
+                <span class="page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2.2 3 4.9 3 8s-1 5.8-3 8c-2-2.2-3-4.9-3-8s1-5.8 3-8Z"/></svg></span>
+                <span class="page-copy"><strong>[스타트업] ‘AI 전력 제어 전기차 충전기’</strong><small>www.newsprime.co.kr</small></span>
+                <span class="page-state">확인 중</span>
+              </div>
+              <p class="paper-note">확인된 페이지가 추가되면 이 목록에 이어서 표시됩니다.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

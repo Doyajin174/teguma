@@ -37,3 +37,4 @@ __pycache__/
 *.py[cod]
 .DS_Store
 # repo-development-os:gitignore:end
+/deploy/

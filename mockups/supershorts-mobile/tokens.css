@@ -1,0 +1,41 @@
+/*
+ * 슈퍼쇼츠 모바일 앱 — 디자인 토큰
+ *
+ * 값의 출처: 웹 레포(Bigguyyouknow/super-shorts) origin/staging 실측.
+ * 추측한 값이 없다. HSL은 app/globals.css 에서 가져와 HEX로 환산했다.
+ */
+
+:root {
+  /* ── 브랜드 (app/globals.css --brand 계열) ───────────────── */
+  --brand: #3C83F5;              /* hsl(217 91% 60%) — 로고 배경색 */
+  --brand-action: #2362EA;       /* hsl(221 83% 53%) — 주 CTA */
+  --brand-action-hover: #1D4ED7; /* hsl(224 76% 48%) */
+  --brand-fg: #FFFFFF;
+
+  /* ── 중성 (shadcn 기본. 웹과 동일하게 유지) ──────────────── */
+  --bg: #FFFFFF;                 /* hsl(0 0% 100%) */
+  --fg: #0A0F1A;                 /* hsl(222.2 84% 4.9%) */
+  --muted: #F1F5F9;              /* hsl(210 40% 96.1%) */
+  --muted-fg: #64748B;           /* hsl(215.4 16.3% 46.9%) */
+  --border: #E2E8F0;             /* hsl(214.3 31.8% 91.4%) */
+
+  /* ── 다크 (앱은 다크를 기본으로 쓸지 별도 판단 — 값만 준비) ── */
+  --bg-dark: #0A0F1A;
+  --fg-dark: #F8FAFC;
+  --muted-dark: #1E293B;
+  --border-dark: #1E293B;
+
+  /* ── 반경 (globals.css --radius: 0.5rem) ────────────────── */
+  --radius: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* ── 타이포 ─────────────────────────────────────────────── */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Pretendard",
+          "Apple SD Gothic Neo", system-ui, sans-serif;
+
+  /* ── 앱 전용 (웹에 없던 것. 네이티브 규격) ───────────────── */
+  --tap-min: 44px;               /* 애플 HIG 최소 터치 타깃 */
+  --tabbar-h: 56px;              /* 웹 MobileBottomNav h-14 = 56px 와 일치 */
+  --safe-bottom: 34px;           /* 홈 인디케이터 영역 */
+}
