@@ -104,7 +104,7 @@ gh issue close <issue>   # 또는 PR 머지가 자동 close
 
 ## 5. 주간 회고
 
-매주 금요일(또는 마지막 작업일) `docs/retro/YYYY-WNN.md` 작성:
+매주 금요일(또는 마지막 작업일) `docs/retrospectives/YYYY-WNN.md` 작성:
 
 - **완료**: 이번 주 머지된 PR 목록
 - **밀린 것**: 이월 이슈 + 사유
