@@ -18,8 +18,17 @@ import {
  * garbage samples from a correct file.
  */
 
-const FFPROBE = "/opt/homebrew/bin/ffprobe";
-const FFMPEG = "/opt/homebrew/bin/ffmpeg";
+function resolveCommand(command: string): string | undefined {
+  try {
+    return execFileSync("which", [command], { encoding: "utf8" }).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const FFPROBE = resolveCommand("ffprobe");
+const FFMPEG = resolveCommand("ffmpeg");
+const describeMp4 = FFPROBE && FFMPEG ? describe : describe.skip;
 
 let workspace: string;
 
@@ -79,7 +88,7 @@ function topLevelBoxes(data: Buffer): Array<{ type: string; size: number }> {
   return boxes;
 }
 
-describe("Motion JPEG MP4 export", () => {
+describeMp4("Motion JPEG MP4 export", () => {
   it("writes a container whose boxes exactly span the file", () => {
     const result = encodeMp4([{ rgb: solidFrame(16, 16, [200, 30, 40]) }], 16, 16);
     const boxes = topLevelBoxes(result.data);

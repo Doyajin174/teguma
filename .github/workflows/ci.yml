@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+      - name: Install ffmpeg (MP4 tests use ffmpeg and ffprobe)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install Pillow (design tests use PIL for raster verification)
         run: python3 -m pip install --user pillow
       - run: npm ci
