@@ -1,0 +1,51 @@
+{
+  "baseTheme": "neutral",
+  "modes": {
+    "light": {
+      "colors": [
+        { "name": "ink", "value": "#1f2937", "role": "text-primary" },
+        { "name": "ink-muted", "value": "#6b7280", "role": "text-secondary" },
+        { "name": "paper", "value": "#ffffff", "role": "background-surface" },
+        { "name": "card", "value": "#f9fafb", "role": "background-elevated" },
+        { "name": "line", "value": "#e5e7eb", "role": "border-default" },
+        { "name": "divider", "value": "#d1d5db", "role": "border-default" },
+        { "name": "warn", "value": "#d97706", "role": "state-warning" },
+        { "name": "brand", "value": "#0f766e", "role": "brand-primary" },
+        { "name": "hero-blue", "value": "#2563eb" },
+        { "name": "graph-bg", "value": "#eef2ff" }
+      ],
+      "typography": {
+        "families": ["Inter", "Noto Sans KR"],
+        "scale": [
+          { "name": "display", "size": 40, "weight": 700, "lineHeight": 1.2 },
+          { "name": "body", "size": 16, "weight": 400, "lineHeight": 1.6 }
+        ],
+        "baseSize": 16
+      },
+      "spacing": { "baseUnit": 4, "scale": [4, 8, 16, 24, 32, 48] }
+    },
+    "dark": {
+      "colors": [
+        { "name": "ink", "value": "#f3f4f6", "role": "text-primary" },
+        { "name": "ink-muted", "value": "#9ca3af", "role": "text-secondary" },
+        { "name": "paper", "value": "#111827", "role": "background-surface" },
+        { "name": "card", "value": "#1f2937", "role": "background-elevated" },
+        { "name": "line", "value": "#374151", "role": "border-default" },
+        { "name": "warn", "value": "#f59e0b", "role": "state-warning" },
+        { "name": "brand", "value": "#2dd4bf", "role": "brand-primary" }
+      ],
+      "typography": {
+        "families": ["Inter", "Noto Sans KR"],
+        "scale": [
+          { "name": "display", "size": 40, "weight": 700, "lineHeight": 1.2 },
+          { "name": "body", "size": 16, "weight": 400, "lineHeight": 1.6 }
+        ],
+        "baseSize": 16
+      },
+      "spacing": { "baseUnit": 4, "scale": [4, 8, 16, 24, 32, 48] }
+    }
+  },
+  "roleOverrides": [
+    { "token": "hero-blue", "mode": "light", "role": "text-link" }
+  ]
+}
