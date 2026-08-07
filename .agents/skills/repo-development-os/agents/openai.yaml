@@ -1,0 +1,7 @@
+interface:
+  display_name: "Repository Development OS"
+  short_description: "Follow a strict, small repository routine"
+  default_prompt: "Use $repo-development-os to run preflight and follow the repository-local issue-to-release sequence exactly."
+
+policy:
+  allow_implicit_invocation: true

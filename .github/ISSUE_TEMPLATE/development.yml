@@ -1,0 +1,35 @@
+# repo-development-os:managed
+name: Development work
+description: A short starting point for one observable repository change
+title: "[Development] "
+body:
+  - type: markdown
+    attributes:
+      value: Run the repository preflight and clear reported debt before starting this issue.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: State the outcome and who benefits.
+    validations:
+      required: true
+  - type: textarea
+    id: completion
+    attributes:
+      label: Completion scenario
+      description: Describe the observable end-to-end scenario that proves completion.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Measurable acceptance criteria
+      description: Use checkboxes with observable pass or fail conditions.
+      placeholder: "- [ ] Given ..., when ..., then ..."
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Optional context
+      description: Add current-code evidence, constraints, risk, rollback, or useful links when relevant.

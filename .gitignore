@@ -11,6 +11,9 @@ Thumbs.db
 .env
 .env.local
 
+# Local Penpot credentials for the lab instance. Never commit these.
+.secrets/
+
 # Node
 node_modules/
 dist/
@@ -28,3 +31,9 @@ __pycache__/
 
 # Worktrees
 ../teguma-wt/
+
+# repo-development-os:gitignore:begin
+__pycache__/
+*.py[cod]
+.DS_Store
+# repo-development-os:gitignore:end
