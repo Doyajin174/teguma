@@ -12,6 +12,17 @@ import {
 } from "../src/design/index.js";
 import { exportDesignDocumentTool } from "../src/tools/design-engine.js";
 
+function resolveCommand(command: string): string | undefined {
+  try {
+    return execFileSync("which", [command], { encoding: "utf8" }).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const hasLibreOffice = resolveCommand("soffice") && resolveCommand("pdftoppm");
+const describePptx = hasLibreOffice ? describe : describe.skip;
+
 let workspace: string;
 
 beforeAll(async () => {
@@ -231,7 +242,7 @@ with zipfile.ZipFile(path) as archive:
   return execFileSync("python3", ["-c", script, filePath], { encoding: "utf8" });
 }
 
-describe("editable PPTX export", () => {
+describePptx("editable PPTX export", () => {
   it("creates a deterministic, valid OOXML package with editable Korean text", async () => {
     const document = presentationDocument();
     const first = await exportDocument(document, { format: "pptx" });

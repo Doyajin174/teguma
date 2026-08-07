@@ -18,6 +18,8 @@ jobs:
           cache: npm
       - name: Install ffmpeg (MP4 tests use ffmpeg and ffprobe)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install LibreOffice and Poppler (PPTX tests use soffice and pdftoppm)
+        run: sudo apt-get update && sudo apt-get install -y libreoffice-impress poppler-utils
       - name: Install Pillow (design tests use PIL for raster verification)
         run: python3 -m pip install --user pillow
       - run: npm ci
