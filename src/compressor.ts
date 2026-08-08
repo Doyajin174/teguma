@@ -139,7 +139,8 @@ function compressColors(colors: PenpotColor[]): CompressedColor[] {
   }));
 }
 
-function inferColorRole(name: string, path?: string): string | undefined {
+/** 이름·경로 정규식 기반 coarse role 추론 — canonical 어댑터가 `mapped`로 재사용한다. */
+export function inferColorRole(name: string, path?: string): string | undefined {
   const combined = `${path ?? ""}/${name}`.toLowerCase();
   if (/primary|brand|accent/.test(combined)) return "primary";
   if (/secondary|support/.test(combined)) return "secondary";

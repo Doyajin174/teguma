@@ -1,0 +1,90 @@
+# canonical SEED 어댑터 전용 fixture (명세 10.1 예시 기준).
+#
+# - light/dark mode 토큰($color.palette.*), "$" alias(global-gutter → x4),
+#   미존재 참조(breakpoint.md), 순환 참조(circular-a/b), unsupported 범주
+#   ($shadow.s1), 구조화 값($color.gradient.hero), 비표준 단위($dimension.vw),
+#   % line-height($line-height.percent), radius/duration 포함.
+# - 토큰 선언 순서는 의도적으로 정렬과 다르게 배치 — 4.8 정렬 규칙 검증용.
+kind: Tokens
+metadata:
+  id: canonical-seed-poc
+  name: Canonical Seed POC
+data:
+  collection: global
+  tokens:
+    $duration.d3:
+      values:
+        default: 150ms
+    $dimension.circular-a:
+      values:
+        default: $dimension.circular-b
+    $color.palette.gray-00:
+      values:
+        theme-light: "#ffffff"
+        theme-dark: "#000000"
+    $line-height.t1:
+      values:
+        default: 0.9375rem
+    $font-weight.regular:
+      values:
+        default: 400
+    $shadow.s1:
+      values:
+        theme-light:
+          type: shadow
+          value:
+            - 0px
+            - 1px
+    $dimension.spacing-x.global-gutter:
+      description: 화면 전체에 적용되는 기본 수평 padding 값입니다.
+      values:
+        default: $dimension.x4
+    $line-height.percent:
+      values:
+        default: 150%
+    $dimension.breakpoint.md:
+      values:
+        default: $dimension.breakpoint.not-found
+    $color.gradient.hero:
+      values:
+        theme-light:
+          from: "#ff6600"
+          to: "#000000"
+    $font-size.t1:
+      values:
+        default: 0.6875rem
+    $dimension.circular-b:
+      values:
+        default: $dimension.circular-a
+    $dimension.vw:
+      values:
+        default: 2vw
+    $font-size.t1-static:
+      values:
+        default: 11px
+    $color.palette.carrot-600:
+      values:
+        theme-light: "#ff6600"
+        theme-dark: "#e65200"
+    $line-height.ratio:
+      values:
+        default: 1.5
+    $dimension.x1:
+      values:
+        default: 4px
+    $font-family.display:
+      values:
+        default: Pretendard
+    $dimension.x4:
+      values:
+        default: 16px
+    $dimension.x2:
+      values:
+        default: 8px
+    $color.palette.gray-1000:
+      values:
+        theme-light: "#1a1c20"
+        theme-dark: "#f3f4f5"
+    $radius.r2:
+      values:
+        default: 8px

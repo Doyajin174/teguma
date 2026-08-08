@@ -1,0 +1,318 @@
+{
+  "schemaVersion": "0.1.0",
+  "document": {
+    "id": "canonical:seed:seed-poc",
+    "sourceAdapter": "seed",
+    "sourceName": "Seed POC"
+  },
+  "tokens": [
+    {
+      "id": "seed:$color.palette.carrot-600",
+      "name": "carrot-600",
+      "path": "$color.palette.carrot-600",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#ff6600",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } }
+          }
+        },
+        "dark": {
+          "status": "resolved",
+          "raw": "#e65200",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [230, 82, 0], "alpha": 1, "hex": "#e65200" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [230, 82, 0], "alpha": 1, "hex": "#e65200" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "primary", "confidence": "mapped" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.palette.carrot-600", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$color.state.error",
+      "name": "error",
+      "path": "$color.state.error",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#dc2626",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [220, 38, 38], "alpha": 1, "hex": "#dc2626" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [220, 38, 38], "alpha": 1, "hex": "#dc2626" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "state-error", "confidence": "explicit" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.state.error", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$color.state.error-alt",
+      "name": "error-alt",
+      "path": "$color.state.error-alt",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#ff0000",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [255, 0, 0], "alpha": 1, "hex": "#ff0000" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [255, 0, 0], "alpha": 1, "hex": "#ff0000" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "state-error", "confidence": "explicit" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.state.error-alt", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$color.state.warning",
+      "name": "warning",
+      "path": "$color.state.warning",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#d97706",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [217, 119, 6], "alpha": 1, "hex": "#d97706" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [217, 119, 6], "alpha": 1, "hex": "#d97706" } }
+          }
+        },
+        "dark": {
+          "status": "resolved",
+          "raw": "#f59e0b",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [245, 158, 11], "alpha": 1, "hex": "#f59e0b" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [245, 158, 11], "alpha": 1, "hex": "#f59e0b" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "state-warning", "confidence": "explicit" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.state.warning", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$color.surface.card",
+      "name": "card",
+      "path": "$color.surface.card",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#f9fafb",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [249, 250, 251], "alpha": 1, "hex": "#f9fafb" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [249, 250, 251], "alpha": 1, "hex": "#f9fafb" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "background-elevated", "confidence": "explicit" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.surface.card", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$color.text.primary",
+      "name": "primary",
+      "path": "$color.text.primary",
+      "type": "color",
+      "values": {
+        "light": {
+          "status": "resolved",
+          "raw": "#1f2937",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [31, 41, 55], "alpha": 1, "hex": "#1f2937" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [31, 41, 55], "alpha": 1, "hex": "#1f2937" } }
+          }
+        },
+        "dark": {
+          "status": "resolved",
+          "raw": "#f3f4f6",
+          "resolvedValue": {
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [243, 244, 246], "alpha": 1, "hex": "#f3f4f6" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [243, 244, 246], "alpha": 1, "hex": "#f3f4f6" } }
+          }
+        }
+      },
+      "semanticRole": { "role": "text-primary", "confidence": "explicit" },
+      "provenance": { "adapter": "seed", "sourcePath": "$color.text.primary", "sourceId": "seed-poc", "collection": "color" }
+    },
+    {
+      "id": "seed:$dimension.breakpoint.md",
+      "name": "md",
+      "path": "$dimension.breakpoint.md",
+      "type": "dimension",
+      "values": {
+        "default": {
+          "status": "unresolved",
+          "raw": "$dimension.breakpoint.not-found",
+          "alias": { "ref": "seed:$dimension.breakpoint.not-found", "resolved": false, "reason": "missing" }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$dimension.breakpoint.md", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$dimension.x1",
+      "name": "x1",
+      "path": "$dimension.x1",
+      "type": "dimension",
+      "kind": "spacing",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "4px",
+          "resolvedValue": {
+            "sourceValue": { "value": 4, "unit": "px" },
+            "resolvedValue": { "value": 4, "unit": "px" }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$dimension.x1", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$dimension.x2",
+      "name": "x2",
+      "path": "$dimension.x2",
+      "type": "dimension",
+      "kind": "spacing",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "8px",
+          "resolvedValue": {
+            "sourceValue": { "value": 8, "unit": "px" },
+            "resolvedValue": { "value": 8, "unit": "px" }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$dimension.x2", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$dimension.x3",
+      "name": "x3",
+      "path": "$dimension.x3",
+      "type": "dimension",
+      "kind": "spacing",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "12px",
+          "resolvedValue": {
+            "sourceValue": { "value": 12, "unit": "px" },
+            "resolvedValue": { "value": 12, "unit": "px" }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$dimension.x3", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$duration.d3",
+      "name": "d3",
+      "path": "$duration.d3",
+      "type": "duration",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "150ms",
+          "resolvedValue": {
+            "sourceValue": { "value": 150, "unit": "ms" },
+            "resolvedValue": { "value": 150, "unit": "ms" }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$duration.d3", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$font-family.display",
+      "name": "display",
+      "path": "$font-family.display",
+      "type": "fontFamily",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "Pretendard",
+          "resolvedValue": {
+            "sourceValue": { "value": "Pretendard" },
+            "resolvedValue": { "value": "Pretendard" }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$font-family.display", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$font-size.t1",
+      "name": "t1",
+      "path": "$font-size.t1",
+      "type": "dimension",
+      "kind": "font-size",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": "0.6875rem",
+          "resolvedValue": {
+            "sourceValue": { "value": 0.6875, "unit": "rem" },
+            "resolvedValue": { "value": 11, "unit": "px" },
+            "conversion": { "kind": "rem-to-px", "rootFontSizePx": 16 }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$font-size.t1", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$font-weight.regular",
+      "name": "regular",
+      "path": "$font-weight.regular",
+      "type": "fontWeight",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": 400,
+          "resolvedValue": {
+            "sourceValue": { "value": 400 },
+            "resolvedValue": { "value": 400 }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$font-weight.regular", "sourceId": "seed-poc", "collection": "global" }
+    },
+    {
+      "id": "seed:$line-height.t1",
+      "name": "t1",
+      "path": "$line-height.t1",
+      "type": "number",
+      "kind": "line-height",
+      "values": {
+        "default": {
+          "status": "resolved",
+          "raw": 1.5,
+          "resolvedValue": {
+            "sourceValue": { "value": 1.5 },
+            "resolvedValue": { "value": 1.5 }
+          }
+        }
+      },
+      "provenance": { "adapter": "seed", "sourcePath": "$line-height.t1", "sourceId": "seed-poc", "collection": "global" }
+    }
+  ],
+  "importLoss": {
+    "unsupported": [
+      {
+        "path": "$shadow.s1",
+        "mode": "light",
+        "code": "unsupported-category",
+        "reason": "token category \"shadow\" is out of v0.1 scope",
+        "raw": {
+          "values": {
+            "theme-light": {
+              "type": "shadow",
+              "value": ["0px", "1px"]
+            }
+          }
+        }
+      }
+    ],
+    "ambiguous": [],
+    "lossy": []
+  }
+}

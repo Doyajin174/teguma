@@ -1,0 +1,103 @@
+{
+  "id": "file-42",
+  "name": "Canonical Penpot Fixture",
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Components",
+      "children": [
+        {
+          "id": "frame-1",
+          "type": "frame",
+          "name": "Buttons",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "layout": {
+            "type": "flex",
+            "direction": "column",
+            "gap": 16,
+            "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 }
+          }
+        },
+        {
+          "id": "frame-2",
+          "type": "frame",
+          "name": "Cards",
+          "x": 1500,
+          "y": 0,
+          "width": 1440,
+          "height": 1200,
+          "layout": {
+            "type": "flex",
+            "direction": "row",
+            "gap": 8,
+            "padding": { "top": 8, "right": 8, "bottom": 8, "left": 8 }
+          }
+        }
+      ]
+    }
+  ],
+  "components": [],
+  "colors": [
+    {
+      "id": "color-1",
+      "name": "Primary",
+      "path": "Brand",
+      "color": "#ff6600"
+    },
+    {
+      "id": "color-2",
+      "name": "Overlay",
+      "path": "Brand",
+      "color": "#000000",
+      "opacity": 0.8
+    },
+    {
+      "id": "color-3",
+      "name": "HeroGradient",
+      "path": "Brand",
+      "color": "",
+      "gradient": {
+        "type": "linear",
+        "startX": 0,
+        "startY": 0,
+        "endX": 100,
+        "endY": 100,
+        "stops": [
+          { "color": "#ff6600", "opacity": 1, "offset": 0 },
+          { "color": "#000000", "opacity": 1, "offset": 1 }
+        ]
+      }
+    },
+    {
+      "id": "color-4",
+      "name": "Muted",
+      "path": "Content",
+      "color": "#6b7280"
+    }
+  ],
+  "typographies": [
+    {
+      "id": "typo-1",
+      "name": "Body",
+      "path": "Typography",
+      "fontFamily": "Inter",
+      "fontSize": "16",
+      "fontWeight": "400",
+      "lineHeight": "1.5",
+      "letterSpacing": "0.5px",
+      "textTransform": "uppercase"
+    },
+    {
+      "id": "typo-2",
+      "name": "Display",
+      "path": "Typography",
+      "fontFamily": "Inter",
+      "fontSize": "40",
+      "fontWeight": "700",
+      "lineHeight": "48px"
+    }
+  ]
+}
