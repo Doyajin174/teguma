@@ -146,6 +146,48 @@ export class PenpotClient {
     });
   }
 
+  /**
+   * update-file 기반 원자적 쓰기 (명세 019 7.3 — 실측: commit-changes는
+   * 로컬 인스턴스에서 `~:not-found`, update-file만 노출).
+   *
+   * changes 변화 타입: add-obj · del-obj · mod-obj · add-page · mod-page ·
+   * del-page 등. 페이지 생성도 add-page 변화로만 가능하다 (research 6.1).
+   */
+  async updateFile(
+    fileId: string,
+    changes: Array<Record<string, unknown>>,
+    params: { revn?: number; vern?: number } = {},
+  ): Promise<void> {
+    // M3 — revn/vern 미지정 시 get-file에서 현재 리비전을 읽어 전송한다.
+    // 하드코딩 1은 stale revision으로 변경 충돌·유실 위험이 있다.
+    const revisions = await this.resolveRevisions(fileId, params.revn, params.vern);
+    await this.rpc("update-file", {
+      id: fileId,
+      "session-id": crypto.randomUUID(),
+      revn: revisions.revn ?? 1,
+      vern: revisions.vern ?? 1,
+      changes,
+    });
+  }
+
+  /**
+   * get-file 응답에서 현재 revn/vern을 읽는다 (M3). 필드가 노출되지 않는
+   * 인스턴스 대비 1로 폴백한다 — 명시적 params가 있으면 그 값이 우선.
+   */
+  private async resolveRevisions(
+    fileId: string,
+    revn?: number,
+    vern?: number,
+  ): Promise<{ revn?: number; vern?: number }> {
+    if (revn !== undefined && vern !== undefined) return { revn, vern };
+    const raw = await this.rpc<any>("get-file", { id: fileId });
+    const data = raw?.data ?? raw ?? {};
+    return {
+      revn: revn ?? data.revn ?? raw?.revn ?? 1,
+      vern: vern ?? data.vern ?? raw?.vern ?? 1,
+    };
+  }
+
   // --- Normalizers (Penpot internal format → teguma types) ---
 
   private normalizeFile(raw: any): PenpotFile {

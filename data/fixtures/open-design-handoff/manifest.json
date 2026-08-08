@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "0.1.0",
+  "source": {
+    "id": "handoff:sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+    "hash": "sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+    "createdAt": "2026-08-08T03:00:00Z",
+    "tool": "open-design",
+    "toolVersion": "0.18.1",
+    "mode": "user-handoff",
+    "truncated": false
+  },
+  "files": [
+    {
+      "path": "hero-section.svg",
+      "kind": "svg",
+      "hash": "sha256:87683898a261e51f77f33627121239f76a644861e712d3e280450c49765e6321",
+      "bytes": 1839
+    },
+    {
+      "path": "tokens.css",
+      "kind": "css",
+      "hash": "sha256:fa068965982c91a19a33808d4064e7710391b3dc39beed0ed2d917e773e5fd8c",
+      "bytes": 232
+    }
+  ],
+  "note": "비식별 샘플 — 실제 브랜드 데이터 아님 (CI fixture)"
+}

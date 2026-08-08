@@ -1,0 +1,10 @@
+:root {
+  --color-primary: #1a73e8;
+  --color-surface: #f8fafc;
+  --color-text: #0f172a;
+  --color-accent: var(--color-primary);
+  --font-body: Inter, sans-serif;
+  --font-size-base: 1rem;
+  --space-base: 8px;
+  --radius-sm: 4px;
+}
