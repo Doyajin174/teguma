@@ -253,6 +253,9 @@ export function projectToDesignDocument(
   ];
 
   const values: Partial<Record<"gutter" | "fontSize" | "lineHeight" | "family" | "weight" | "textColor" | "background", number | string>> = {};
+  // line-height는 단위 유무로 의미가 다르다(4.5): px → fontSize로 나눠 비율화,
+  // 단위 없는 number는 이미 비율 — 그대로 사용.
+  let lineHeightIsPx = false;
   for (const requirement of required) {
     const token = byPath.get(requirement.path);
     const resolution = token === undefined ? undefined : resolveTokenModeValue(token, params.mode);
@@ -276,7 +279,10 @@ export function projectToDesignDocument(
       }
     } else {
       const number = scalarNumber(scalar);
-      if (number !== undefined) values[requirement.key] = number;
+      if (number !== undefined) {
+        values[requirement.key] = number;
+        if (requirement.key === "lineHeight" && scalar.unit === "px") lineHeightIsPx = true;
+      }
     }
   }
 
@@ -305,7 +311,7 @@ export function projectToDesignDocument(
 
   const gutter = values.gutter as number;
   const fontSize = values.fontSize as number;
-  const lineHeightPx = values.lineHeight as number;
+  const lineHeightValue = values.lineHeight as number;
   const family = values.family as string;
   const weight = values.weight as number;
   const textColor = values.textColor as string;
@@ -356,7 +362,7 @@ export function projectToDesignDocument(
             fontWeight: weight,
             color: textColor,
             align: "start",
-            lineHeight: lineHeightPx / fontSize,
+            lineHeight: lineHeightIsPx ? lineHeightValue / fontSize : lineHeightValue,
             letterSpacing,
             opacity: 1,
           },

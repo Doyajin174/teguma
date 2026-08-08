@@ -255,7 +255,7 @@ interface CanonicalLossItem {
 
 1. `tokens`: `id` 오름차순 (locale 무관 바이트 순).
 2. 토큰 내 `values` 키 순서: `default` → `light` → `dark`.
-3. `importLoss`: category 고정 순서 `unsupported` → `ambiguous` → `lossy`, 항목 내 `tokenId`(없으면 `path`) 오름차순 → `mode`(순서 `default`→`light`→`dark`, 없으면 생략) → `code` 오름차순. 동률이면 `raw` 직렬화 문자열 오름차순.
+3. `importLoss`: category 고정 순서 `unsupported` → `ambiguous` → `lossy`, 항목 내 `tokenId`(없으면 `path`) 오름차순 → `mode`(순서 `default`→`light`→`dark`, 없으면 생략) → `code` 오름차순. 동률이면 `raw` 직렬화 문자열 오름차순 → `reason` 오름차순 (입력 순서 의존 제거).
 4. projection loss도 같은 규칙을 준용한다 (6.1).
 
 ## 5. 어댑터 (import: 원본 → canonical)
@@ -405,13 +405,15 @@ canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 �
 
 ### 9.2 구현 단계 (후속 PR — 이 이슈의 구현 범위)
 
+> **이 PR 범위**: 스키마·어댑터 4종(seed·penpot·astryx·brandkit)·결정론. DTCG exporter(6.4)와 `includeCanonical`(8.1)은 이 PR 범위가 아니며 후속 PR로 분리한다.
+
 - [ ] zod 기반 canonical 스키마 (`src/design/canonical-token.ts` 등) — `z.discriminatedUnion`(4.3) 포함, 저장소 표준 zod v3, 새 의존성 없음
 - [ ] logical token + mode별 `values`, alias(logical id 참조), provenance, semantic certainty, `importLoss`/projection loss 분리를 포함한 fixture
 - [ ] Penpot fixture와 SEED fixture가 같은 canonical contract로 변환됨 (5.1·5.2)
 - [ ] 기존 SEED mode·참조·단위 결과가 회귀 없이 보존됨 (manifest 유지 + canonical additive)
 - [ ] Astryx 변환기가 canonical을 소비하고 모호한 role을 추측하지 않음 (6.3, `mapped` 자동 매핑 금지)
 - [ ] 기존 `BrandKit`/`DesignDocument` 소비자를 위한 projection (6.2) + migration 문서 (8장)
-- [ ] DTCG 2025.10 exporter (6.4) + 공식 JSON Schema 검증
+- [ ] DTCG 2025.10 exporter (6.4) + 공식 JSON Schema 검증 — **후속 PR**
 - [ ] 동일 입력의 canonical JSON·loss manifest 결정론 테스트 (4.8 정렬 규칙)
 - [ ] 전체 테스트·빌드 통과
 - [ ] PR → 셀프 리뷰 → 독립 AI 리뷰 → squash merge

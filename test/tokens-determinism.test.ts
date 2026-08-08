@@ -3,7 +3,7 @@
  *
  * - 동일 입력 → 동일 canonical JSON 바이트 (SEED·Penpot 어댑터).
  * - 입력 순서에 무관한 고정 정렬: tokens id 바이트 순, values default→light→dark,
- *   loss category → tokenId/path → mode → code → raw.
+ *   loss category → tokenId/path → mode → code → raw → reason.
  */
 
 import { readFileSync } from "node:fs";
@@ -78,7 +78,7 @@ describe("결정론 — 4.8 정렬 규칙", () => {
     }
   });
 
-  it("loss 항목은 tokenId/path → mode → code → raw 순으로 정렬된다", () => {
+  it("loss 항목은 tokenId/path → mode → code → raw → reason 순으로 정렬된다", () => {
     const items: CanonicalLossItem[] = [
       { path: "B", code: "z", reason: "" },
       { path: "A", mode: "dark", code: "x", reason: "" },
@@ -101,5 +101,17 @@ describe("결정론 — 4.8 정렬 규칙", () => {
 
     const manifest = sortImportLoss({ unsupported: [...items], ambiguous: [], lossy: [] });
     expect(manifest.unsupported.map((item) => item.path)).toEqual(["A", "A", "A", "A", "A", "A", "B"]);
+  });
+
+  it("동일 (path/mode/code/raw) 항목은 reason으로 tie-break된다 — 입력 순서 무관", () => {
+    const items: CanonicalLossItem[] = [
+      { path: "A", mode: "light", code: "x", reason: "zzz" },
+      { path: "A", mode: "light", code: "x", reason: "aaa" },
+    ];
+    const sorted = [...items].sort(compareLossItems);
+    expect(sorted.map((item) => item.reason)).toEqual(["aaa", "zzz"]);
+    // 역순 입력도 동일 결과 — stable sort의 입력 순서 의존 제거
+    const reversed = [...items].reverse().sort(compareLossItems);
+    expect(reversed.map((item) => item.reason)).toEqual(["aaa", "zzz"]);
   });
 });

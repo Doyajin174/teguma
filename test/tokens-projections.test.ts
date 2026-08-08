@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import {
   readSeedRootageFile,
   transformSeedRootage,
+  type SeedRootageFile,
 } from "../src/design/seed.js";
 import type { PenpotFile } from "../src/penpot/types.js";
 import {
@@ -192,6 +193,19 @@ describe("canonical → Astryx theme draft (6.3)", () => {
       (entry) => entry.sourceToken === "$color.palette.carrot-600" && entry.status === "mapped",
     );
     expect(mapped?.astryxToken).toBe("--color-state-info");
+    // M-1: override 대상이 엔진에 path로 전달되어 "대상 토큰 없음" 경고가 남지 않는다
+    expect(result.value.warnings.some(
+      (warning) => warning.code === "INVALID_VALUE" && warning.message.includes("roleOverride 대상 토큰 없음"),
+    )).toBe(false);
+  });
+
+  it("존재하지 않는 id에 대한 roleOverride는 INVALID_VALUE 경고를 남긴다", () => {
+    const result = projectToAstryxTheme(loadCanonicalFixture(), {
+      roleOverrides: [{ token: "seed:$color.palette.ghost", role: "state-info" }],
+    });
+    expect(result.value.warnings.some(
+      (warning) => warning.code === "INVALID_VALUE" && warning.message.includes("roleOverride 대상 토큰 없음"),
+    )).toBe(true);
   });
 
   it("SEED 어댑터 문서: role 부재 토큰은 전부 unmapped, override만 매핑된다", () => {
@@ -213,6 +227,31 @@ describe("canonical → Astryx theme draft (6.3)", () => {
     });
     expect(overridden.value.light?.["--color-state-warning"]).toBe("#ff6600");
     expect(overridden.value.dark?.["--color-state-warning"]).toBe("#e65200");
+    expect(overridden.value.warnings.some(
+      (warning) => warning.code === "INVALID_VALUE" && warning.message.includes("roleOverride 대상 토큰 없음"),
+    )).toBe(false);
+  });
+
+  it("line-height가 비율(number)이면 나눗셈 없이 그대로 쓴다 (4.5·M-3)", () => {
+    const rootage: SeedRootageFile = {
+      kind: "Tokens",
+      metadata: { id: "ratio-line-height-poc", name: "Ratio Line Height POC" },
+      collection: "global",
+      tokens: [
+        { path: "$dimension.spacing-x.global-gutter", collection: "global", values: { default: "16px" } },
+        { path: "$font-size.t1", collection: "global", values: { default: "16px" } },
+        { path: "$line-height.t1", collection: "global", values: { default: 1.5 } },
+        { path: "$font-family.display", collection: "global", values: { default: "Pretendard" } },
+        { path: "$font-weight.regular", collection: "global", values: { default: 400 } },
+        { path: "$color.palette.carrot-600", collection: "color", values: { "theme-light": "#ff6600" } },
+        { path: "$color.palette.gray-1000", collection: "color", values: { "theme-light": "#1a1c20" } },
+      ],
+    };
+    const doc = transformSeedRootageToCanonical(rootage);
+    const result = projectToDesignDocument(doc, { mode: "light" });
+    expect(result.value).not.toBeNull();
+    const textLayer = result.value!.pages[0].layers.find((layer) => layer.type === "text");
+    expect(textLayer).toMatchObject({ lineHeight: 1.5 });
   });
 
   it("Penpot 어댑터 문서: mapped role은 자동 확정되지 않고 spacing·typography는 매핑된다", () => {

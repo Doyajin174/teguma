@@ -219,6 +219,44 @@ describe("SEED → canonical 어댑터", () => {
     });
   });
 
+  it("color 토큰이 default 값만 있어도 탈락하지 않는다 (5.2·원칙 4)", () => {
+    const rootage: SeedRootageFile = {
+      kind: "Tokens",
+      metadata: { id: "default-only-poc", name: "Default Only POC" },
+      collection: "global",
+      tokens: [
+        { path: "$color.brand.primary", collection: "color", values: { default: "#ff6600" } },
+      ],
+    };
+    const doc = transformSeedRootageToCanonical(rootage);
+    const token = tokenOf(doc, "seed:$color.brand.primary");
+    expect(token.type).toBe("color");
+    expect(Object.keys(token.values)).toEqual(["default"]);
+    expect(token.values.default?.status).toBe("resolved");
+    // 조용한 탈락 금지 — tokens·importLoss 어디에도 빠지지 않는다
+    expect(doc.importLoss.unsupported.find((item) => item.path === "$color.brand.primary")).toBeUndefined();
+    expect(doc.importLoss.lossy.find((item) => item.path === "$color.brand.primary")).toBeUndefined();
+  });
+
+  it("값이 전혀 없는 color 토큰은 missing-mode loss로 보고한다 (원칙 4)", () => {
+    const rootage: SeedRootageFile = {
+      kind: "Tokens",
+      metadata: { id: "empty-color-poc", name: "Empty Color POC" },
+      collection: "global",
+      tokens: [
+        { path: "$color.brand.ghost", collection: "color", values: {} },
+      ],
+    };
+    const doc = transformSeedRootageToCanonical(rootage);
+    expect(tokenOfSafe(doc, "seed:$color.brand.ghost")).toBeUndefined();
+    const item = doc.importLoss.unsupported.find((entry) => entry.path === "$color.brand.ghost");
+    expect(item).toMatchObject({
+      code: "missing-mode",
+      raw: { values: {} },
+    });
+    expect(item?.mode).toBeUndefined(); // mode 필터 없음 — mode 구분 없이 보고
+  });
+
   it("기존 transformSeedRootage 결과와 mode·참조·단위가 회귀 없이 일치한다", () => {
     // 순환 참조가 없는 기존 fixture 기준으로 교차 검증
     const rootage = readSeedRootageFile(LEGACY_FIXTURE_PATH);

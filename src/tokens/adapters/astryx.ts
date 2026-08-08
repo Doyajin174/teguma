@@ -179,6 +179,9 @@ export function projectToAstryxTheme(
 ): ProjectionResult<AstryxThemeDraft> {
   const loss = emptyLossManifest();
   const idByPath = new Map(doc.tokens.map((token) => [token.path, token.id]));
+  // 엔진은 roleOverride 대상 토큰을 color name(= canonical path)으로 매칭한다
+  // (indexRoleOverrides). canonical id(logical) 참조를 path로 되돌린다.
+  const pathById = new Map(doc.tokens.map((token) => [token.id, token.path]));
   const overrideRoles = new Map((params.roleOverrides ?? []).map((o) => [o.token, o.role]));
 
   const lightColors: CompressedColor[] = [];
@@ -425,7 +428,7 @@ export function projectToAstryxTheme(
 
   if (overrideRoles.size > 0) {
     input.roleOverrides = [...overrideRoles.entries()].map(([id, role]) => ({
-      token: idByPath.get(id) ?? id,
+      token: pathById.get(id) ?? id,
       role,
     }));
   }

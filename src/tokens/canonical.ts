@@ -56,13 +56,14 @@ export function compareMode(
   return ia - ib;
 }
 
-/** 4.8(3) — tokenId(없으면 path) → mode → code → raw 직렬화. */
+/** 4.8(3) — tokenId(없으면 path) → mode → code → raw 직렬화 → reason. */
 export function compareLossItems(a: CanonicalLossItem, b: CanonicalLossItem): number {
   return (
     compareBytes(a.tokenId ?? a.path, b.tokenId ?? b.path)
     || compareMode(a.mode, b.mode)
     || compareBytes(a.code, b.code)
     || compareBytes(JSON.stringify(a.raw ?? null), JSON.stringify(b.raw ?? null))
+    || compareBytes(a.reason, b.reason)
   );
 }
 

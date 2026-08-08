@@ -499,13 +499,18 @@ export function transformSeedRootageToCanonical(
     }
 
     const isColor = category === "color";
-    const sourceModes: SeedMode[] = isColor ? ["theme-light", "theme-dark"] : ["default"];
+    // 5.2 "default→values.default": color도 default 값을 읽는다. 순서는 canonical
+    // values 키 순서(default→light→dark)와 같게 default를 먼저 둔다.
+    const sourceModes: SeedMode[] = isColor ? ["default", "theme-light", "theme-dark"] : ["default"];
     const canonicalModeOf = (source: SeedMode): "light" | "dark" | "default" =>
       source === "theme-light" ? "light" : source === "theme-dark" ? "dark" : "default";
 
     const values: ModeValues = {};
     let anyResolved = false;
     let hasUnit = false;
+    // 값 또는 per-mode 실패(unsupported/lossy)가 하나라도 보고됐는지 —
+    // 아무것도 없을 때만 missing-mode를 보고한다(구조화 값 등은 이미 보고됨).
+    let anyReported = false;
 
     for (const sourceMode of sourceModes) {
       if (isColor && mode !== undefined && sourceMode !== mode) continue;
@@ -514,6 +519,7 @@ export function transformSeedRootageToCanonical(
       const built = buildModeValue(def, direct, sourceMode, category, byPath, rootFontSizePx);
       if (built.kind === "value") {
         values[canonicalModeOf(sourceMode)] = built.value;
+        anyReported = true;
         if (built.loss !== undefined) {
           (built.loss.code === "nonstandard-unit" ? lossy : unsupported).push(built.loss);
         }
@@ -522,18 +528,22 @@ export function transformSeedRootageToCanonical(
           if (built.value.resolvedValue.resolvedValue.unit !== undefined) hasUnit = true;
         }
       } else {
+        anyReported = true;
         (built.item.code === "nonstandard-unit" ? lossy : unsupported).push(built.item);
       }
     }
 
     if (Object.keys(values).length === 0) {
       // mode 필터 결과 값이 없는 color 토큰 — 기존 unsupported 보고와 동일(5.2).
-      if (isColor && mode !== undefined) {
+      // mode 미지정이면 값 자체가 없는 경우 — 원칙 4(조용히 버리지 않음)에 따라 보고.
+      if (isColor && !anyReported) {
         unsupported.push({
           path: def.path,
-          mode: canonicalModeOf(mode),
+          ...(mode !== undefined ? { mode: canonicalModeOf(mode) } : {}),
           code: "missing-mode",
-          reason: `color tokens have no "${mode}" mode in SEED rootage; pass theme-light or theme-dark`,
+          reason: mode !== undefined
+            ? `color tokens have no "${mode}" mode in SEED rootage; pass theme-light or theme-dark`
+            : "color 토큰에 theme-light/theme-dark/default 값이 모두 없음 — 탈락 (원칙 4)",
           raw: { values: asJson(def.values) },
         });
       }
