@@ -204,14 +204,9 @@ describe("SVG 파싱·셰이프 변환 (8장)", () => {
     const converted = await convertFixture();
     const path = converted.shapes.find((shape) => shape.type === "path");
     expect(path).toBeDefined();
-    expect(path?.content).toEqual([
-      { command: "move-to", params: [120, 320] },
-      { command: "line-to", params: [180, 320] },
-      { command: "curve-to", params: [190, 320, 200, 330, 200, 340] },
-      { command: "line-to", params: [200, 370] },
-      { command: "line-to", params: [120, 370] },
-      { command: "close-path", params: [] },
-    ]);
+    // 실측 (live smoke 2026-08-08): Penpot 서버는 path content를 명령 배열이
+    // 아니라 정규화된 path 문자열로 저장한다 — 원본 d를 그대로 전달한다.
+    expect(path?.content).toBe("M120 320 h60 c10 0 20 10 20 20 v30 h-80 z");
     expect(path?.selrect).toEqual({ x: 120, y: 320, width: 80, height: 50, x1: 120, y1: 320, x2: 200, y2: 370 });
     expect(path?.points).toHaveLength(4);
     expect(path?.transform).toEqual(IDENTITY_MATRIX);
@@ -238,8 +233,9 @@ describe("SVG 파싱·셰이프 변환 (8장)", () => {
     expect(lines[1].selrect.y).toBe(508.8);
     expect(lines[1]["line-height"]).toBe(28);
     const textContent = (shape: PenpotShapeObj): string => {
-      const root = shape.content as { children: Array<{ children: Array<{ children: Array<{ value: string }> }> }> };
-      return root.children[0].children[0].children[0].value;
+      // 실측 (live smoke 2026-08-08): text 리프 노드는 `value`가 아닌 `text` 키.
+      const root = shape.content as { children: Array<{ children: Array<{ children: Array<{ text: string }> }> }> };
+      return root.children[0].children[0].children[0].text;
     };
     expect(textContent(lines[0])).toBe("Open");
     expect(textContent(lines[1])).toBe("Design");
@@ -643,6 +639,14 @@ describe("import 오케스트레이션 — Penpot 쓰기 mock 경계 (14.2)", ()
     });
     expect(result.action).toBe("replaced");
     expect(writer.calls.some((call) => call.method === "updateFile")).toBe(true);
+    // 리뷰 M1 — force(같은 hash)도 기존 페이지 id를 재사용하지 않는다:
+    // 재사용하면 백업 삭제(del-page)가 재생성 페이지를 파괴한다 (실측).
+    const changes = (writer.calls.find((call) => call.method === "updateFile")?.args[1] ?? []) as PenpotChange[];
+    const addPages = changes.filter((change) => change.type === "add-page");
+    expect(addPages).toHaveLength(1);
+    expect(addPages[0].id).not.toBe("existing-page");
+    const delPages = changes.filter((change) => change.type === "del-page");
+    expect(delPages.map((change) => change.id)).toEqual(["existing-page"]);
   });
 
   it("canonical 문서를 저장하고 import 기록에 provenance를 남긴다 (9·10장)", async () => {

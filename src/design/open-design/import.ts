@@ -48,7 +48,7 @@ export interface PenpotWriter {
 }
 
 export type PenpotChange =
-  | { type: "add-page"; id: string; name: string; page: { id: string; name: string } }
+  | { type: "add-page"; id: string; name: string; page?: { id: string; name: string } }
   | { type: "mod-page"; id: string; page: { id: string; name: string } }
   | { type: "del-page"; id: string }
   | { type: "add-obj"; id: string; "page-id": string; "parent-id": string; "frame-id": string; obj: PenpotShapeObj }
@@ -177,7 +177,15 @@ export async function importOpenDesign(options: ImportOpenDesignOptions): Promis
     const resolved = resolveImportAction(source.id, source.hash, existingPages, options.force === true, slug);
     const pageName = multi ? handoffPageName(source.id, source.hash, entrySlug(entry.path)) : resolved.pageName;
     const existing = existingPages.find((page) => page.name === pageName);
-    const pageId = existing?.id ?? deterministicUuid(`${id12}:page:${entry.path}`);
+    // page id는 source+entry 뿐 아니라 content hash에도 의존해야 한다 —
+    // hash만 바뀐 replaced 케이스에서 같은 id가 재사용되면 백업 삭제가
+    // 재생성 페이지를 파괴한다 (live smoke 실측 2026-08-08).
+    const baseSeed = `${id12}:${source.hash}:page:${entry.path}`;
+    // force(같은 hash)도 같은 hazard다 — 기존 id를 재사용하면 백업 삭제가
+    // 재생성 페이지를 파괴한다. 시도별 fresh id를 생성한다 (리뷰 M1).
+    const pageId = existing !== undefined && resolved.action === "replaced"
+      ? deterministicUuid(`${baseSeed}:force-${Date.now()}`)
+      : (existing?.id ?? deterministicUuid(baseSeed));
     return {
       entryPath: entry.path,
       pageId,
@@ -200,21 +208,24 @@ export async function importOpenDesign(options: ImportOpenDesignOptions): Promis
     if (entry.action === "unchanged") continue;
     const conversion = conversions.find((item) => item.entry.path === entry.entryPath);
     if (conversion === undefined) continue;
+    const entryBackups: Array<{ pageId: string; pageName: string }> = [];
     if (entry.action === "replaced") {
       for (const staleId of entry.stalePageIds) {
         const page = existingPages.find((candidate) => candidate.id === staleId);
         if (page === undefined) continue;
         const backupName = backupPageName(page.name, epochMs);
         writes.push({ type: "mod-page", id: staleId, page: { id: staleId, name: backupName } });
-        backupRecords.push({ pageId: staleId, pageName: backupName });
+        const backup = { pageId: staleId, pageName: backupName };
+        entryBackups.push(backup);
+        backupRecords.push(backup);
       }
     }
-    entry.backups = backupRecords;
+    // 엔트리별 백업만 기록 (다중 SVG에서 엔트리 간 배열 공유 방지 — 리뷰 N7).
+    entry.backups = entryBackups;
     writes.push({
       type: "add-page",
       id: entry.pageId,
       name: entry.pageName,
-      page: { id: entry.pageId, name: entry.pageName },
     });
     for (const shape of conversion.converted.shapes) {
       writes.push({

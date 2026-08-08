@@ -177,7 +177,7 @@ flowchart LR
 | 6. 읽기 검증 | `get-page`(Penpot 셰이프 트리) + `get-page-layout`/`get-tokens`(teguma 읽기 도구) 재조회 → 8장 기준 비교 | 검증 수치 |
 | 7. loss report | 11장 스키마로 손실 항목·검증 수치 집계 | loss report |
 
-> **페이지 생성 실측 (2026-08-08, 로컬 Penpot 192.168.0.183:9001)** — 독립 페이지 생성 RPC(`create-page`·`add-page`·`duplicate-page` 등)는 전부 `~:not-found`로 **미노출**이다. 페이지 생성은 `update-file` RPC의 changes 변화 타입 `add-page`(`{ type, id?, name?, page? }`)로만 가능하며, teguma `client.ts`에는 이 경로가 없다. 또한 `client.ts`가 현재 사용하는 `commit-changes` RPC 자체도 이 인스턴스에서 `~:not-found`다 (실측 상세: research 6.1). → 구현 시 `update-file` 기반 쓰기 클라이언트(페이지 생성 포함) 추가가 선행 조건이며, 그 전까지 idempotency는 **기존 파일 내 페이지 교체로 제한**한다 (12장).
+> **페이지 생성 실측 (2026-08-08, 로컬 Penpot 192.168.0.183:9001)** — 독립 페이지 생성 RPC(`create-page`·`add-page`·`duplicate-page` 등)는 전부 `~:not-found`로 **미노출**이다. 페이지 생성은 `update-file` RPC의 changes 변화 타입 `add-page`로만 가능하다. **live smoke 추가 실측: `add-page` 변화는 `id`/`name` **또는** `page` 중 한 형태만 보내야 한다 — 둘 다 보내면 서버가 `"id+name or page should be provided, never both"`로 거부한다.** teguma `client.ts`에는 이 경로가 없다. 또한 `client.ts`가 현재 사용하는 `commit-changes` RPC 자체도 이 인스턴스에서 `~:not-found`다 (실측 상세: research 6.1). → 구현 시 `update-file` 기반 쓰기 클라이언트(페이지 생성 포함) 추가가 선행 조건이며, 그 전까지 idempotency는 **기존 파일 내 페이지 교체로 제한**한다 (12장).
 
 ### 7.3 Penpot 쓰기 경로 비교 (구현 시 확정)
 
@@ -195,7 +195,7 @@ flowchart LR
 | **텍스트** | `text` 요소 → Penpot text 셰이프(paragraph-set 구조). `font-family`/`font-size`/`font-weight`/`fill` 보존 | `font-not-found`: 폰트 미설치 → fallback 렌더(`lossy`). `text-as-path`: 텍스트가 경로화돼 편집 불가(`lossy`). `letter-spacing` 미지원(`lossy`, code `dropped-property`) |
 | **색상** | `fill`/`stroke` hex → Penpot fill/stroke. 불투명도는 alpha로 변환 | hex 외 표현(색상 이름·`currentColor`·var())은 해석 시도 후 실패 시 `unsupported`. gradient는 v0.2 후보 → `unsupported`(code `unsupported-category`) |
 | **프레임** | 최상위 `svg`의 `viewBox`/`width`/`height` → Penpot board(frame). 내부 크기는 CSS 변환 규칙(px 기준) 적용 | `rem`/`em`/`%` 크기 → px 정규화(`lossy`, `conversion` 기록). `vw` 등 비표준 단위 → `unsupported`(code `nonstandard-unit`) |
-| **레이어** | `g` → Penpot group, `rect`/`circle`/`ellipse` → 대응 셰이프, `path` → Penpot path 셰이프 (실측 8.2), 중첩 보존, `id`/`name` 보존 | 지원 요소 밖(`filter`/`clipPath`/`mask`/`symbol`/`use` 등) → `unsupported`(code `unsupported-element`) + 해당 서브트리 평탄화 여부 명시. 이름 없음 → 자동 이름(`lossy`) |
+| **레이어** | `g` → Penpot group, `rect` → rect, `circle` → circle, `ellipse` → **Penpot circle** (ellipse 타입 미지원 — live smoke 실측, selrect 크기로 rx≠ry 보존), `path` → Penpot path 셰이프 (실측 8.2), 중첩 보존, `id`/`name` 보존 | 지원 요소 밖(`filter`/`clipPath`/`mask`/`symbol`/`use` 등) → `unsupported`(code `unsupported-element`) + 해당 서브트리 평탄화 여부 명시. 이름 없음 → 자동 이름(`lossy`) |
 | **이미지** | `image` 요소의 data URI는 v0.2 후보. 외부 URL은 **미반입** | 외부 URL: `unsupported`(code `external-url-asset`) — URL·라이선스 미확인 기록, 사용자 확인 요구 (6.3). data URI: `unsupported`(code `embedded-image-v0.2`) |
 | **폰트** | `font-family` 목록을 파일 타이포그래피로 기록 | `font-license-unknown`: 라이선스 미확인 — 사용자 확인 전 자동 임베드 금지(`unsupported`). 미설치 폰트 → fallback(`lossy`, code `font-not-found`) |
 
@@ -222,7 +222,7 @@ flowchart LR
 
 **결과: `add-obj`로 path 셰이프 생성 가능** (2026-08-08 로컬 Penpot 192.168.0.183:9001 실측 — `update-file` changes `add-obj`, `type: "path"`). 생성·재조회 왕복으로 확인했으며, 서버 스키마가 요구하는 필드는 다음과 같다 (research 6.1):
 
-- `content` — path 명령 시퀀스 (`move-to`/`line-to`/`curve-to`/`close-path` 등, 서버에서 `penpot/path-data`로 인코딩) — SVG `d` 파싱으로 생성.
+- `content` — **원본 SVG `d` 문자열** (live smoke 실측 2026-08-08: 서버는 명령 배열을 수용하지 않고 NPE — 정규화된 path 문자열로 저장·응답한다. `M120 320 … Z` 형태). SVG `d` 파싱은 bbox 계산·명령 검증에만 사용.
 - `selrect` — `{ x, y, width, height, x1, y1, x2, y2 }` 바운딩 박스.
 - `points` — 4개 점 (`[{x,y} × 4]`).
 - `transform` / `transform-inverse` — identity matrix.
