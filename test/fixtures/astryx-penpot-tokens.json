@@ -12,7 +12,9 @@
         { "name": "warn", "value": "#d97706", "role": "state-warning" },
         { "name": "brand", "value": "#0f766e", "role": "brand-primary" },
         { "name": "hero-blue", "value": "#2563eb" },
-        { "name": "graph-bg", "value": "#eef2ff" }
+        { "name": "graph-bg", "value": "#eef2ff" },
+        { "name": "success-badge", "value": "#16a34a", "role": "semantic" },
+        { "name": "danger-badge", "value": "#dc2626", "role": "semantic" }
       ],
       "typography": {
         "families": ["Inter", "Noto Sans KR"],
@@ -46,6 +48,7 @@
     }
   },
   "roleOverrides": [
-    { "token": "hero-blue", "mode": "light", "role": "text-link" }
+    { "token": "hero-blue", "mode": "light", "role": "text-link" },
+    { "token": "danger-badge", "mode": "light", "role": "state-error" }
   ]
 }

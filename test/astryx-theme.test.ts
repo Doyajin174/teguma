@@ -22,6 +22,7 @@ describe("Penpot 토큰 → Astryx 테마 초안 변환 (POC, issue #23)", () =>
       "--color-background-elevated": "#f9fafb",
       "--color-state-warning": "#d97706",
       "--color-text-link": "#2563eb",
+      "--color-state-error": "#dc2626",
       "--spacing-1": "4px",
       "--spacing-2": "8px",
       "--spacing-4": "16px",
@@ -77,8 +78,8 @@ describe("Penpot 토큰 → Astryx 테마 초안 변환 (POC, issue #23)", () =>
     const unmapped = draft.mapping.filter((m) => m.status === "unmapped");
     const conflicted = draft.mapping.filter((m) => m.status === "conflict");
 
-    expect(mapped.length).toBe(33); // 색상 12(light 6 + dark 6) + spacing 12 + typography 9
-    expect(unmapped.length).toBe(3); // brand(light/dark) + graph-bg(light) — 후보 목록
+    expect(mapped.length).toBe(34); // 색상 13(light 7 + dark 6) + spacing 12 + typography 9
+    expect(unmapped.length).toBe(4); // brand(light/dark) + graph-bg + success-badge(실 coarse role) — 후보 목록
     expect(conflicted.length).toBe(2); // line + divider
 
     expect(
@@ -102,6 +103,26 @@ describe("Penpot 토큰 → Astryx 테마 초안 변환 (POC, issue #23)", () =>
     expect(brand?.status).toBe("unmapped");
     expect(brand?.astryxToken).toBeUndefined();
     expect(brand?.rationale).toContain("brand-primary");
+
+    // 실 get_tokens coarse role('semantic')은 Astryx 변수로 추측하지 않는다 (H1)
+    const successBadge = draft.mapping.find(
+      (m) => m.sourceToken === "success-badge" && m.mode === "light",
+    );
+    expect(successBadge?.status).toBe("unmapped");
+    expect(successBadge?.astryxToken).toBeUndefined();
+    expect(draft.light?.["--color-state-success"]).toBeUndefined();
+
+    // roleOverrides가 유일한 교두보: coarse role 토큰을 Astryx 역할로 명시 매핑
+    const dangerBadge = draft.mapping.find(
+      (m) => m.sourceToken === "danger-badge" && m.mode === "light",
+    );
+    expect(dangerBadge).toEqual({
+      sourceToken: "danger-badge",
+      mode: "light",
+      astryxToken: "--color-state-error",
+      status: "mapped",
+      rationale: "role 'state-error' → --color-state-error",
+    });
   });
 
   it("fixture: 누락·미지원 보고 — MISSING_ROLE/UNSUPPORTED_TOKEN만, 임의 토큰 없음", () => {
@@ -111,6 +132,7 @@ describe("Penpot 토큰 → Astryx 테마 초안 변환 (POC, issue #23)", () =>
       expect.arrayContaining([
         expect.objectContaining({ code: "MISSING_ROLE", sourceToken: "graph-bg" }),
         expect.objectContaining({ code: "UNSUPPORTED_TOKEN", sourceToken: "brand" }),
+        expect.objectContaining({ code: "UNSUPPORTED_TOKEN", sourceToken: "success-badge" }),
       ]),
     );
     expect(draft.warnings.some((w) => w.code === "MISSING_DARK_MODE")).toBe(false);
@@ -190,6 +212,78 @@ describe("Penpot 토큰 → Astryx 테마 초안 변환 (POC, issue #23)", () =>
     expect(draft.light?.["--color-text-primary"]).toBeUndefined();
     expect(draft.mapping.filter((m) => m.status === "conflict").length).toBe(2);
     expect(draft.warnings.some((w) => w.code === "UNSUPPORTED_TOKEN")).toBe(false);
+  });
+
+  it("충돌로 생략된 변수는 이후 같은 값을 가진 토큰으로도 복원되지 않는다 (3토큰 충돌)", () => {
+    const draft = convert({
+      baseTheme: "neutral",
+      modes: {
+        light: {
+          colors: [
+            { name: "a", value: "#111111", role: "text-primary" },
+            { name: "b", value: "#222222", role: "text-primary" },
+            { name: "c", value: "#111111", role: "text-primary" },
+          ],
+        },
+      },
+    });
+
+    expect(draft.light?.["--color-text-primary"]).toBeUndefined();
+    expect(draft.mapping.filter((m) => m.status === "conflict").length).toBe(3);
+    expect(draft.mapping.filter((m) => m.status === "mapped").length).toBe(0);
+    // 세 번째 토큰도 복원이 아닌 충돌로 기록된다
+    const c = draft.mapping.find((m) => m.sourceToken === "c" && m.mode === "light");
+    expect(c?.status).toBe("conflict");
+    expect(c?.rationale).toContain("복원 금지");
+  });
+
+  it("타이포그래피 충돌 변수도 이후 동일 값으로 복원되지 않는다 (3-emit 충돌)", () => {
+    const draft = convert({
+      baseTheme: "neutral",
+      modes: {
+        light: {
+          typography: {
+            scale: [
+              { name: "body", size: 16, weight: 400, lineHeight: 1.5 },
+              { name: "Body", size: 14, weight: 400, lineHeight: 1.5 },
+              { name: "body", size: 16, weight: 400, lineHeight: 1.5 },
+            ],
+            baseSize: 16,
+          },
+        },
+      },
+    });
+
+    expect(draft.typography?.["--font-size-body"]).toBeUndefined();
+    const sizeConflicts = draft.mapping.filter(
+      (m) => m.astryxToken === "--font-size-body" && m.status === "conflict",
+    );
+    expect(sizeConflicts.length).toBe(3);
+    // 같은 값인 weight·lineHeight는 충돌 없이 유지된다
+    expect(draft.typography?.["--font-weight-body"]).toBe(400);
+    expect(draft.typography?.["--line-height-body"]).toBe(1.5);
+  });
+
+  it("이름 없는 색상은 INVALID_VALUE 경고와 함께 건너뛴다", () => {
+    const draft = convert({
+      baseTheme: "neutral",
+      modes: {
+        light: {
+          colors: [
+            { name: "", value: "#ffffff", role: "text-primary" },
+            { name: "ink", value: "#1f2937", role: "text-primary" },
+          ],
+        },
+      },
+    });
+
+    expect(draft.light?.["--color-text-primary"]).toBe("#1f2937");
+    expect(draft.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "INVALID_VALUE", sourceToken: "colors[0]" }),
+      ]),
+    );
+    expect(draft.mapping.find((m) => m.sourceToken === "colors[0]")?.status).toBe("unmapped");
   });
 
   it("유효하지 않은 색 값은 INVALID_VALUE 경고 후 생략한다", () => {

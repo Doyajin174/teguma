@@ -77,12 +77,18 @@ interface AstryxThemeDraft {
   typography?: Record<string, string | number>;
   mapping: Array<{
     sourceToken: string;
+    mode?: "light" | "dark"; // POC 확장: 원천 토큰이 속한 모드
     astryxToken?: string;
     status: "mapped" | "unmapped" | "conflict";
     rationale: string;
   }>;
   warnings: Array<{
-    code: "MISSING_ROLE" | "UNSUPPORTED_TOKEN" | "MISSING_DARK_MODE" | "INVALID_VALUE";
+    code:
+      | "MISSING_ROLE"
+      | "UNSUPPORTED_TOKEN"
+      | "MISSING_DARK_MODE"
+      | "MISSING_LIGHT_MODE"
+      | "INVALID_VALUE";
     sourceToken?: string;
     message: string;
   }>;
@@ -91,17 +97,22 @@ interface AstryxThemeDraft {
 
 이 타입은 구현 확정 전의 POC 계약이다. 실제 `defineTheme` 인자·token key는 고정한 Astryx 버전의 공식 CLI/API 출력으로 검증한 뒤에만 확정한다. 변환기는 임의 CSS나 실행 가능한 명령을 반환하지 않고, 안전한 값과 구조화된 보고만 반환한다.
 
+**역할 어휘 정직화 (PR #26 리뷰 H1 반영):** 실제 `get_tokens`의 coarse role(`primary`/`secondary`/`neutral`/`semantic`/`surface`/`text` — `src/compressor.ts`의 `inferColorRole`)은 Astryx 변수 어휘(`text-primary`, `background-surface` 등)와 교집합이 없다. 따라서 실데이터는 override가 없으면 전부 `unmapped` 후보로 남으며, coarse role을 구체적 Astryx 변수로 **추측 매핑하지 않는다**. 사람이 부여한 `roleOverrides`가 두 어휘를 잇는 **유일한 교두보**다.
+
 ### 매핑 규칙
 
 | 원천 | 조건 | 출력 |
 | --- | --- | --- |
 | 색상 | semantic role이 명시됐고 CSS 색 값으로 유효 | 해당 Astryx color override 후보와 `mapped` 기록 |
 | 색상 | role 불명 또는 여러 role 충돌 | override 생략, `MISSING_ROLE` 또는 `conflict` 기록 |
+| 색상 | role이 `get_tokens` coarse role(`primary`/`semantic` 등) | Astryx 변수로 추측하지 않음 — `UNSUPPORTED_TOKEN` + 후보 목록, `roleOverrides`로만 매핑 |
 | 타이포그래피 | family/weight/size 값이 유효 | typography 후보와 출처 기록; 폰트 다운로드·설치는 하지 않음 |
 | spacing | 양수·단조 scale이며 Astryx scale과 대응 가능 | spacing override 후보와 scale 변환 근거 기록 |
 | radius/shadow | 원천에 명시적으로 존재 | 지원 key가 확인된 경우만 후보 생성 |
 | light/dark | 두 모드가 모두 존재 | light/dark 각각을 분리해 출력 |
-| light/dark | 한 모드만 존재 | 존재 모드만 출력하고 `MISSING_DARK_MODE` 경고 |
+| light/dark | 한 모드만 존재 | 존재 모드만 출력, 기준 테마의 다른 모드는 유지하고 `MISSING_DARK_MODE`/`MISSING_LIGHT_MODE` 경고 |
+
+**단일 모드 입력 방침 (H1 반영):** 실제 `get_tokens` 응답에는 light/dark 모드 분리가 없다. 단일 모드 입력이 정상 케이스이며, 변환기는 존재 모드만 출력하고 기준 테마(`baseTheme`)의 다른 모드를 유지한다. 누락된 모드는 `MISSING_DARK_MODE`/`MISSING_LIGHT_MODE`로 보고한다. 두 모드를 나누는 `modes` 래퍼는 POC 확장 계약이다.
 
 ## 에이전트 워크플로
 
@@ -148,17 +159,27 @@ Astryx는 Beta이므로 POC를 시작하기 전에 consumer sandbox의 `@astryxd
 
 | 점검 항목 | 결과 | 반영 |
 | --- | --- | --- |
-| 이슈 #23 완료 시나리오 | Penpot 토큰 조회에서 Astryx 테마 초안·색상/타이포/간격 매핑·누락 보고가 재현 가능해야 한다. | POC 입력, 산출물, `theme build` 성공 기준을 측정 가능하게 명시했다. 실제 POC 코드·테스트는 아직 미완료다. |
+| 이슈 #23 완료 시나리오 | Penpot 토큰 조회에서 Astryx 테마 초안·색상/타이포/간격 매핑·누락 보고가 재현 가능해야 한다. | POC 입력, 산출물, `theme build` 성공 기준을 측정 가능하게 명시했다. 순수 변환 POC·단위 테스트는 PR #26에서 구현·리뷰 반영 완료, 버전 고정과 consumer sandbox 검증은 후속 이슈로 진행한다. |
 | 측정 가능성 | 기존 "POC 방향"은 fixture 내용·예상 파일·명령 성공 조건이 충분히 구체적이지 않았다. | 비식별 fixture, 예상 파일, 고정 버전, stable output, exit code 0/CSS 생성, 전체 회귀를 완료 기준으로 추가했다. |
 | 누락·모순 | 기존 대표 React 화면 조합은 이슈의 토큰 변환 완료 시나리오보다 넓고, `theme build` 실행 주체도 분명하지 않았다. | 화면 조합을 후속 범위로 분리하고, build는 teguma 밖 consumer sandbox의 명시적 검증으로 한정했다. |
 | MCP/CLI 결론 | 이전 조사의 "공식 독립 MCP 미확인"은 현행 저장소·endpoint와 모순됐다. CLI subprocess 채택 보류와도 구분이 필요했다. | 공식 MCP의 존재·두 도구 계약을 반영했다. remote MCP 직접 사용은 허용하되 teguma의 MCP 프록시·CLI subprocess 통합은 계속 비목표로 유지한다. |
+
+### 리뷰 반영 (2026-08-08, PR #26)
+
+| 지적 | 반영 |
+| --- | --- |
+| H1 — 역할 어휘 불일치(교집합 0) | fixture에 실제 coarse role(`semantic`) 케이스 2건 추가, `roleOverrides`가 유일한 교두보임을 코드 주석·이 표에 명시, 단일 모드 입력 방침 기록 |
+| H1 — light/dark 래퍼가 실계약에 없음 | `modes` 래퍼를 POC 확장으로 명시, 단일 모드 입력을 정상 케이스로 규정 |
+| M3 — 충돌 후 동일 값 복원 비일관성 | 충돌로 생략된 변수는 `conflicted`로 추적해 이후 어떤 값으로도 복원 금지 + 3토큰 충돌 테스트 |
+| M1 — AstryxThemeDraft 확장 미반영 | `mapping.mode` 필드·`MISSING_LIGHT_MODE` 코드를 이 명세의 인터페이스에 반영 |
+| L1 — 이름 없는 색상 조용한 스킵 | `INVALID_VALUE` 경고 + unmapped 기록 추가 |
 
 ## 완료 조건
 
 - [x] Astryx 저장소 구조, 토큰/테마, CLI·agent workflow, 공식 MCP 계약, teguma 시너지 조사를 문서화한다.
 - [x] 이 연동 명세에서 목표·비목표·방식 선택·측정 가능한 POC 계획을 확정한다.
 - [ ] POC 시작 시 `@astryxdesign/core`·CLI 고정 버전과 비식별 fixture를 선정·커밋한다.
-- [ ] 순수 토큰 변환 POC와 단위 테스트를 구현한다.
+- [x] 순수 토큰 변환 POC와 단위 테스트를 구현한다. (PR #26)
 - [ ] 고정 Astryx 버전의 `theme build` 및 대표 React sandbox 검증을 기록한다.
 - [ ] POC 결과를 바탕으로 MCP 공개 여부와 코드 생성 범위를 별도 결정한다.
 

@@ -8,6 +8,21 @@
  * assigned to an Astryx variable. Everything else stays in the candidate
  * list (`mapping` entries with status `unmapped`) with structured warnings.
  *
+ * Role vocabulary honesty (PR #26 review H1):
+ * - Real `get_tokens` colors carry coarse roles only (`primary`,
+ *   `secondary`, `neutral`, `semantic`, `surface`, `text` — see
+ *   src/compressor.ts `inferColorRole`). Those coarse roles are NOT
+ *   guessed into Astryx semantic variables: `COLOR_ROLE_REGISTRY` uses
+ *   Astryx's own vocabulary (`text-primary`, `background-surface`, ...),
+ *   and the two vocabularies have no intersection, so real `get_tokens`
+ *   colors stay `unmapped` unless a human `roleOverride` supplies the
+ *   Astryx role. `roleOverrides` is the only bridge between them.
+ * - Real `get_tokens` output has no light/dark mode split; the `modes`
+ *   wrapper is a POC extension. Single-mode input is therefore the normal
+ *   case: the base theme keeps its other mode, only the present mode is
+ *   emitted, and a MISSING_DARK_MODE/MISSING_LIGHT_MODE warning is
+ *   reported.
+ *
  * Scope notes (see docs/specs/015-astryx-integration.md):
  * - Pure function only: no filesystem writes, no package installs, no CLI
  *   subprocess, no MCP registration, no changes to the get_tokens contract.
@@ -29,7 +44,12 @@ import type {
 
 export type AstryxMode = "light" | "dark";
 
-/** One mode's tokens, matching the shape of teguma's `get_tokens` output. */
+/**
+ * One mode's tokens, matching the shape of teguma's `get_tokens` output.
+ * Note: real `get_tokens` output has no mode separation — the `modes`
+ * wrapper is a POC extension so light/dark sources stay distinguishable
+ * (H1 review). Single-mode input is the normal case.
+ */
 export interface AstryxModeTokens {
   colors?: CompressedColor[];
   typography?: CompressedTypography;
@@ -39,7 +59,10 @@ export interface AstryxModeTokens {
 /**
  * Converter input. `modes.light`/`modes.dark` reuse the compressed token
  * shapes from `get_tokens`; `roleOverrides` are explicit human assignments
- * (POC contract extension, never inferred automatically).
+ * (POC contract extension, never inferred automatically). Because real
+ * `get_tokens` coarse roles (`primary`, `semantic`, ...) never match the
+ * Astryx registry vocabulary, roleOverrides is the ONLY bridge from real
+ * data to Astryx variables (H1 review).
  */
 export interface AstryxThemeInput {
   baseTheme: string;
@@ -236,9 +259,25 @@ function processColors(
 ): void {
   if (!colors) return;
   const claimed = new Map<string, { sourceToken: string; value: string }>();
+  // Once a variable is dropped due to a value conflict it must never be
+  // restored by a later token (even one matching the earlier value) — M3.
+  const conflicted = new Set<string>();
 
-  for (const color of colors) {
-    if (!color.name) continue;
+  for (const [index, color] of colors.entries()) {
+    if (!color.name) {
+      mapping.push({
+        sourceToken: `colors[${index}]`,
+        mode,
+        status: "unmapped",
+        rationale: "이름 없는 색상 — 건너뜀",
+      });
+      warnings.push({
+        code: "INVALID_VALUE",
+        sourceToken: `colors[${index}]`,
+        message: `이름 없는 색상 — Astryx 변수에 배정하지 않고 건너뜀 (colors[${index}])`,
+      });
+      continue;
+    }
     // A mode-less override (`*:<token>`) applies to every mode; a mode-scoped
     // override (`<mode>:<token>`) wins over the source role.
     const role =
@@ -296,9 +335,24 @@ function processColors(
       continue;
     }
 
+    // A variable already dropped by a conflict stays dropped: no later
+    // token (whatever its value) may restore it (M3).
+    if (conflicted.has(astryxToken)) {
+      mapping.push({
+        sourceToken: color.name,
+        mode,
+        astryxToken,
+        status: "conflict",
+        rationale: `'${astryxToken}'은(는) 이전 토큰 간 충돌로 생략됨 — 복원 금지`,
+      });
+      continue;
+    }
+
     const previous = claimed.get(astryxToken);
     if (previous && previous.value !== normalized.value) {
       delete record[astryxToken];
+      conflicted.add(astryxToken);
+      claimed.delete(astryxToken);
       markConflict(mapping, astryxToken, mode, previous.sourceToken);
       mapping.push({
         sourceToken: color.name,
@@ -440,11 +494,25 @@ function processTypography(
 ): Record<string, string | number> {
   const record: Record<string, string | number> = {};
   const claimed = new Map<string, { sourceToken: string; value: string | number }>();
+  // Same M3 rule as processColors: a conflicted variable is never restored.
+  const conflicted = new Set<string>();
 
   const emit = (key: string, value: string | number, sourceToken: string): void => {
+    if (conflicted.has(key)) {
+      mapping.push({
+        sourceToken,
+        mode,
+        astryxToken: key,
+        status: "conflict",
+        rationale: `'${key}'은(는) 이전 토큰 간 충돌로 생략됨 — 복원 금지`,
+      });
+      return;
+    }
     const previous = claimed.get(key);
     if (previous && previous.value !== value) {
       delete record[key];
+      conflicted.add(key);
+      claimed.delete(key);
       markConflict(mapping, key, mode, previous.sourceToken);
       mapping.push({
         sourceToken,
