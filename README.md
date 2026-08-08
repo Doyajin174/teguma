@@ -66,6 +66,7 @@ Penpot에서 MCP 키 발급: **계정 → Integrations → MCP Server → 키 �
 | `get_constraints` | Penpot 레이아웃 가드레일 조회 |
 | `get_page_layout` | Penpot 페이지 레이아웃 트리 조회 |
 | `import_figma` | Figma 디자인 시스템을 Penpot으로 변환·가져오기 |
+| `import_open_design` | Open Design handoff 번들(SVG + tokens.css)을 Penpot 페이지로 반입 |
 | `update_element` | Penpot 요소 속성 수정 |
 | `delete_element` | Penpot 요소 삭제 |
 | `check_connection` | Penpot 연결·인증 확인 |
@@ -82,7 +83,7 @@ Penpot에서 MCP 키 발급: **계정 → Integrations → MCP Server → 키 �
 | `load_design_project` | 저장한 프로젝트 envelope 로드 |
 | `list_design_projects` | 저장 프로젝트를 id 순서로 조회 |
 
-총 23개 MCP 도구이며, 위 표의 디자인 엔진 도구는 12개다.
+총 24개 MCP 도구이며, 위 표의 디자인 엔진 도구는 12개다.
 
 ## 디자인 엔진
 
@@ -108,6 +109,75 @@ npm run design:gallery       # 12종 템플릿 PNG·104px 미리보기·리사�
 `jpg` 형식 요청은 알파를 페이지 배경(또는 `backgroundColor`)에 평탄화한 실제 baseline JPEG를 `.jpg` 확장자로 반환한다. 내장 인코더는 의존성을 추가하지 않으며 기본 quality는 85(1–100 지정 가능), 텍스트의 컬러 가장자리를 보존하기 위해 4:4:4 chroma sampling을 쓴다. `pptx`는 슬라이드 자체의 `<p:bg>`에 페이지 배경을 기록하고 텍스트·사각형·이미지를 PowerPoint·Keynote·Google Slides에서 개별 편집할 수 있는 PresentationML 객체로 내보낸다. 복잡한 path·둥근 사각형 반지름·이미지 `cover`/`contain` crop·필터·그라데이션·애니메이션·전환은 아직 지원하지 않는다. GIF는 결정론적 GIF89a이며 문서 페이지가 프레임이 된다. 공용 팔레트는 최대 256색의 가중 median-cut 양자화와 명시적 동률 순서를 사용하고, 기본 지연은 10 centiseconds(100ms)다. Floyd–Steinberg 디더링은 평면 브랜드 패널을 거칠게 만들 수 있어 라이브러리 `exportDocument`의 `gifDither`에서만 선택적으로 켜며 기본은 꺼져 있다. 단일 페이지는 `NETSCAPE2.0` 루프 확장을 쓰지 않고, 여러 페이지는 무한 반복한다. 현재 MCP `export_design_document` 스키마는 `gifFrameDelay`·`gifDither`·`mp4FrameDuration`을 노출하지 않는다. MP4는 같은 페이지 순서를 Motion JPEG intra frame으로 담고 기본 프레임 길이는 100ms이며, 라이브러리 `exportDocument`에서는 `mp4FrameDuration`에 공통 값 또는 페이지별 값을 줄 수 있다. 고정 timestamp라 바이트 결정론적이고 홀수 치수도 된다. 다만 H.264 동등 품질보다 파일이 훨씬 크며 ffmpeg·QuickTime·VLC는 재생하지만 대부분 브라우저는 Motion JPEG MP4를 네이티브 재생하지 않는다. 짧은 인라인 루프에는 GIF, 비디오 파이프라인 전달에는 MP4를 권장한다. [#15](https://github.com/Doyajin174/teguma/issues/15)는 PPTX·GIF·MP4까지 완료되어 해결되었고, 12종 템플릿의 추가 확장은 선택 사항이며 [#16](https://github.com/Doyajin174/teguma/issues/16)에, 웹 에디터 UI는 [#18](https://github.com/Doyajin174/teguma/issues/18)에 남는다.
 
 조사와 명세: [미리캔버스 파리티 조사](docs/research/013-miricanvas-parity.md), [디자인 엔진 명세](docs/specs/013-design-engine.md)
+
+## Open Design → Penpot 핸드오프
+
+Open Design 산출물(SVG 엔트리 + CSS 커스텀 프로퍼티 토큰)을 handoff 번들 계약으로 Penpot 페이지에 반입합니다. 명세: [docs/specs/019-open-design-handoff.md](docs/specs/019-open-design-handoff.md), 실측 근거: [docs/research/019-open-design-export.md](docs/research/019-open-design-export.md).
+
+### 사용 순서 (생성 → 번들 → 반입 → 재조회)
+
+1. **생성** — open-design MCP 도구가 노출된 새 Codex 태스크에서 `collect_brief` → `start_run` → `get_run`으로 비식별 샘플 생성 (SVG 엔트리 1개 + `tokens.css`).
+2. **산출물 획득** — `get_artifact({ project, entry })`로 SVG 엔트리 + 참조 파일 획득, `truncated` 여부 확인.
+3. **번들 구성** — 5장 계약으로 `manifest.json` + 파일 구성 (content hash는 CLI가 검증):
+
+```bash
+mkdir -p my-bundle
+cp hero-section.svg tokens.css my-bundle/
+# manifest.json 작성 — source.mode: user-handoff 또는 MCP 경로 metadata
+```
+
+4. **반입 미리보기** — Penpot 쓰기 없이 변환·loss report·action 확인:
+
+```bash
+teguma import-open-design --bundle ./my-bundle --dry-run
+```
+
+5. **반입** — Penpot 파일에 페이지 생성/교체 (idempotency: `od-handoff-<sourceId12>-<hash12>` 이름 기준):
+
+```bash
+PENPOT_URL=http://192.168.0.183:9001 PENPOT_SESSION_COOKIE=... teguma \
+  import-open-design --bundle ./my-bundle --penpot-file-id <file-id>
+```
+
+6. **재조회** — `get_page_layout`(셰이프 트리)·`get_tokens`(압축 토큰)로 반입 결과 확인. canonical 문서는 `data/imports/open-design/<sourceIdSlug>/tokens.canonical.json`에 저장되어 재조회 검증의 기준이 된다 (POC 한계: `includeCanonical` 왕복은 #30 후속 — 13장).
+7. **idempotency 재현** — 같은 번들 재실행 → `action: "unchanged"`, 번들 수정 후 재실행 → `action: "replaced"`. `--force`는 Penpot 수동 편집 drift 복구용.
+
+### import_open_design 인자·출력
+
+| 인자 | 설명 |
+|------|------|
+| `bundleDir` | handoff 번들 디렉터리 (manifest.json 필수) |
+| `penpotFileId` | 대상 Penpot 파일 (미제공 시 미리보기만) |
+| `dryRun` | 기본 `true` — 쓰기·import 기록 저장 없음 |
+| `force` | 같은 hash여도 삭제·재생성 (기본 `false`) |
+| `semanticRoleOverrides` | canonical 토큰 role override (`{ "--color-primary": "primary" }`) |
+
+출력 예시 (요약):
+
+```json
+{
+  "action": "created",
+  "pageName": "od-handoff-3830495a6aa9-ae9219aad83a",
+  "summary": { "layers": { "source": 10, "imported": 9, "unsupported": 1 } },
+  "lossReport": { "schemaVersion": "0.1.0", "items": [ { "category": "image", "severity": "unsupported", "code": "external-url-asset" } ] },
+  "canonical": { "tokenCount": 8, "mode": "default" }
+}
+```
+
+### 시크릿 경계 (6.1)
+
+- `PENPOT_SESSION_COOKIE`·`PENPOT_TOKEN`은 환경변수로만 주입 (`~/.codex/config.toml` 또는 셸) — 문서·커밋·번들·채팅 노출 금지.
+- Open Design cloud/BYOK 크레덴셜은 MCP 내부 전용 — chat·파일·번들·커밋에 기록 금지.
+- fixture·번들에 개인·회사 시크릿 금지 (외부 URL 이미지는 `example.invalid` 같은 가짜 도메인만).
+
+### live smoke
+
+`scripts/smoke-open-design-handoff.sh` — opt-in, CI 미포함 (13장). 네트워크·시크릿 필요:
+
+```bash
+PENPOT_URL=... PENPOT_SESSION_COOKIE=... PENPOT_FILE_ID=<id> \
+  ./scripts/smoke-open-design-handoff.sh --bundle ./my-bundle
+```
 
 ## 아키텍처
 

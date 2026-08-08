@@ -146,6 +146,27 @@ export class PenpotClient {
     });
   }
 
+  /**
+   * update-file 기반 원자적 쓰기 (명세 019 7.3 — 실측: commit-changes는
+   * 로컬 인스턴스에서 `~:not-found`, update-file만 노출).
+   *
+   * changes 변화 타입: add-obj · del-obj · mod-obj · add-page · mod-page ·
+   * del-page 등. 페이지 생성도 add-page 변화로만 가능하다 (research 6.1).
+   */
+  async updateFile(
+    fileId: string,
+    changes: Array<Record<string, unknown>>,
+    params: { revn?: number; vern?: number } = {},
+  ): Promise<void> {
+    await this.rpc("update-file", {
+      id: fileId,
+      "session-id": crypto.randomUUID(),
+      revn: params.revn ?? 1,
+      vern: params.vern ?? 1,
+      changes,
+    });
+  }
+
   // --- Normalizers (Penpot internal format → teguma types) ---
 
   private normalizeFile(raw: any): PenpotFile {

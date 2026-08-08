@@ -1,0 +1,317 @@
+{
+  "action": "created",
+  "pageId": "71b2deae-8e27-42a9-8682-3ba4356357b3",
+  "pageName": "od-handoff-3830495a6aa9-ae9219aad83a",
+  "pages": [
+    {
+      "pageId": "71b2deae-8e27-42a9-8682-3ba4356357b3",
+      "pageName": "od-handoff-3830495a6aa9-ae9219aad83a",
+      "action": "created"
+    }
+  ],
+  "summary": {
+    "layers": {
+      "source": 10,
+      "imported": 9,
+      "unsupported": 1,
+      "lossy": 0
+    },
+    "text": {
+      "source": 5,
+      "imported": 5,
+      "unsupported": 0,
+      "lossy": 5
+    },
+    "colors": {
+      "source": 11,
+      "imported": 10,
+      "unsupported": 1,
+      "lossy": 0
+    },
+    "frames": {
+      "source": 1,
+      "imported": 1,
+      "unsupported": 0,
+      "lossy": 0
+    },
+    "images": {
+      "source": 1,
+      "imported": 0,
+      "unsupported": 1,
+      "lossy": 0
+    },
+    "fonts": {
+      "source": 3,
+      "imported": 1,
+      "unsupported": 1,
+      "lossy": 1
+    }
+  },
+  "lossReport": {
+    "schemaVersion": "0.1.0",
+    "source": {
+      "id": "handoff:sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+      "hash": "sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+      "createdAt": "2026-08-08T03:00:00Z",
+      "tool": "open-design",
+      "toolVersion": "0.18.1"
+    },
+    "summary": {
+      "layers": {
+        "source": 10,
+        "imported": 9,
+        "unsupported": 1,
+        "lossy": 0
+      },
+      "text": {
+        "source": 5,
+        "imported": 5,
+        "unsupported": 0,
+        "lossy": 5
+      },
+      "colors": {
+        "source": 11,
+        "imported": 10,
+        "unsupported": 1,
+        "lossy": 0
+      },
+      "frames": {
+        "source": 1,
+        "imported": 1,
+        "unsupported": 0,
+        "lossy": 0
+      },
+      "images": {
+        "source": 1,
+        "imported": 0,
+        "unsupported": 1,
+        "lossy": 0
+      },
+      "fonts": {
+        "source": 3,
+        "imported": 1,
+        "unsupported": 1,
+        "lossy": 1
+      }
+    },
+    "items": [
+      {
+        "category": "image",
+        "severity": "unsupported",
+        "code": "external-url-asset",
+        "path": "svg://g[0]/image[0]",
+        "reason": "외부 URL 이미지 미반입 — 라이선스·가용성 사용자 확인 필요",
+        "original": {
+          "href": "https://example.invalid/hero-artwork.png"
+        }
+      },
+      {
+        "category": "color",
+        "severity": "unsupported",
+        "code": "unsupported-category",
+        "path": "svg://g[0]/rect[1]",
+        "reason": "fill \"url(#heroGradient)\" 해석 불가 — v0.1은 hex/rgb/기본 색상 이름만 지원",
+        "original": {
+          "fill": "url(#heroGradient)"
+        }
+      },
+      {
+        "category": "layer",
+        "severity": "unsupported",
+        "code": "unsupported-element",
+        "path": "svg://g[0]/use[0]",
+        "reason": "<use>는 v0.1 지원 요소 밖 — 서브트리 전체 미반입(평탄화 없음)",
+        "original": {
+          "tag": "use"
+        }
+      },
+      {
+        "category": "font",
+        "severity": "unsupported",
+        "code": "font-license-unknown",
+        "path": "svg://text[1]",
+        "reason": "\"Acme Display\" 라이선스 미확인 — 사용자 확인 전 자동 임베드 금지",
+        "original": {
+          "fontFamily": "Acme Display"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://g[0]/text[0]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 35.2px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 210,
+          "fontSize": 44,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 174.8,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://g[0]/text[1]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 14.4px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 260,
+          "fontSize": 18,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 245.6,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "font",
+        "severity": "lossy",
+        "code": "font-not-found",
+        "path": "svg://g[0]/text[1]",
+        "reason": "\"Open Sans\" 미설치 — fallback 'Inter' 렌더",
+        "original": {
+          "fontFamily": "Open Sans"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "text-anchor-converted",
+        "path": "svg://g[0]/text[1]",
+        "reason": "text-anchor \"middle\" → text-align \"center\" 변환",
+        "original": {
+          "textAnchor": "middle"
+        },
+        "converted": {
+          "value": "center"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://g[0]/text[2]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 19.2px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 500,
+          "fontSize": 24,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 480.8,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://g[0]/text[2]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 19.2px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 528,
+          "fontSize": 24,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 508.8,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "layer",
+        "severity": "lossy",
+        "code": "dropped-property",
+        "path": "svg://g[1]",
+        "reason": "transform 속성 미지원 — 좌표 미변환 (원문 좌표 유지)",
+        "original": {
+          "transform": "rotate(15 1000 600)"
+        }
+      },
+      {
+        "category": "layer",
+        "severity": "lossy",
+        "code": "dropped-property",
+        "path": "svg://g[1]/rect[0]",
+        "reason": "이름 없음 — 자동 이름 지정",
+        "original": {
+          "name": "rect[0]"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://text[0]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 16px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 560,
+          "fontSize": 20,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 544,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "nonstandard-unit",
+        "path": "svg://text[0]",
+        "reason": "1.25rem → 20px (rem → px 정규화, 루트 16px 기준)",
+        "original": {
+          "font-size": "1.25rem"
+        },
+        "converted": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      {
+        "category": "text",
+        "severity": "lossy",
+        "code": "baseline-estimated",
+        "path": "svg://text[1]",
+        "reason": "baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = 25.6px 보수 추정)",
+        "original": {
+          "x": 120,
+          "y": 620,
+          "fontSize": 32,
+          "dominantBaseline": "auto"
+        },
+        "converted": {
+          "value": 594.4,
+          "unit": "px"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "sourceId": "handoff:sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+    "sourceHash": "sha256:ae9219aad83a90f72fb76911c9b5176e9f102f38902c4c81d4c0f340327e9d26",
+    "createdAt": "2026-08-08T03:00:00Z",
+    "tool": "open-design",
+    "toolVersion": "0.18.1",
+    "mode": "user-handoff",
+    "truncated": false,
+    "adapterVersion": "0.1.0"
+  },
+  "canonical": {
+    "tokenCount": 8,
+    "mode": "default",
+    "unsupported": 0,
+    "ambiguous": 0,
+    "lossy": 0
+  },
+  "dryRun": true
+}

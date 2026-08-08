@@ -1,6 +1,6 @@
 # Open Design 산출물 → teguma/Penpot 핸드오프 POC 명세
 
-> 상태: Proposed (조사·명세 완료, 구현 대기)
+> 상태: Implemented (구현 PR #34 — live smoke 실행은 사용자 승인 후, 13장)
 >
 > 작성일: 2026-08-08
 >

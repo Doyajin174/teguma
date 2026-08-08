@@ -23,6 +23,7 @@ import { createElementSchema, createElement } from "./tools/create-element.js";
 import { getConstraintsSchema, getConstraints } from "./tools/get-constraints.js";
 import { getPageLayoutSchema, getPageLayout } from "./tools/get-page-layout.js";
 import { importFigmaSchema, importFigma } from "./tools/import-figma.js";
+import { importOpenDesignSchema, importOpenDesignTool } from "./tools/import-open-design.js";
 import { updateElementSchema, updateElement } from "./tools/update-element.js";
 import { deleteElementSchema, deleteElement } from "./tools/delete-element.js";
 import { checkConnection } from "./tools/check-connection.js";
@@ -217,6 +218,24 @@ export function createServer(config: ServerConfig): McpServer {
     async (args) => {
       try {
         const result = await importFigma(client, args);
+        return { content: [{ type: "text" as const, text: result }] };
+      } catch (err) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // --- Tool: import_open_design ---
+  server.tool(
+    "import_open_design",
+    "Import an Open Design handoff bundle (manifest.json + SVG entry + optional tokens.css) into a Penpot file. Converts SVG shapes (rect/circle/ellipse/path/text), extracts CSS custom properties to canonical tokens, and reports a structured loss report. Use dryRun=true first to preview the conversion and loss items before writing.",
+    importOpenDesignSchema,
+    async (args) => {
+      try {
+        const result = await importOpenDesignTool(client, args);
         return { content: [{ type: "text" as const, text: result }] };
       } catch (err) {
         return {
