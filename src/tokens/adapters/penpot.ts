@@ -50,7 +50,7 @@ function resolvedModeValue(raw: JsonValue, value: CanonicalValue): CanonicalMode
 /** Penpot 파일 → canonical token document (명세 5.1). */
 export function transformPenpotFileToCanonical(file: PenpotFile): CanonicalTokenDocument {
   const compressed = compressBrandContext(file);
-  const { colors, typography, spacing } = compressed.tokens;
+  const { spacing } = compressed.tokens;
 
   const tokens: CanonicalToken[] = [];
   const unsupported: CanonicalLossItem[] = [];

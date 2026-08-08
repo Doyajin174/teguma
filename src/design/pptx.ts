@@ -222,7 +222,7 @@ function rectGeometryXml(layer: Extract<DesignLayer, { type: "rect" }>): string 
     : Math.round((Math.min(layer.radius, shorterSide / 2) / (shorterSide / 2)) * 100_000);
   return [
     "<a:prstGeom prst=\"roundRect\"><a:avLst>",
-    `<a:gd name=\"adj\" fmla=\"val ${adjustment}\"/>`,
+    `<a:gd name="adj" fmla="val ${adjustment}"/>`,
     "</a:avLst></a:prstGeom>",
   ].join("");
 }

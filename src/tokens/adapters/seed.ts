@@ -37,7 +37,6 @@ import {
   type CanonicalTokenDocument,
   type CanonicalValue,
   type ColorStruct,
-  type ConversionRecord,
   type JsonValue,
   type ModeValues,
 } from "../schema.js";

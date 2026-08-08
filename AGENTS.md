@@ -127,7 +127,7 @@ gh issue close <issue>   # 또는 PR 머지가 자동 close
 - 핵심 로직(파서, 스크래퍼, 데이터 변환)은 단위 테스트 필수
 - PR에 테스트 없는 feat/fix는 리뷰에서 반려
 - 테스트 프레임워크: 프로젝트 언어에 맞춰 선택, `test/` 또는 `__tests__/` 디렉토리
-- CI에서 테스트 실패 시 머지 불가
+- 게이트(9장)에서 lint·테스트·빌드 실패 시 머지 불가
 
 ---
 
@@ -140,13 +140,17 @@ gh issue close <issue>   # 또는 PR 머지가 자동 close
 
 ---
 
-## 9. CI/CD 파이프라인 (추가)
+## 9. 품질 게이트 — iMac SSH 푸시 게이트 (GitHub Actions 미사용)
 
-- GitHub Actions 기본 워크플로:
-  - PR: lint → test → build
-  - main push: test → changelog 검증 → 릴리스 가능 여부 체크
-  - tag push: 릴리스 노트 생성 → 아티팩트 배포
-- CI 배지 README에 표시
+- **iMac SSH 푸시 게이트** (이슈 #9, 명세 [020](docs/specs/020-lint-gate.md)):
+  - 게이트: `scripts/gate/run.sh` — lint + tsc + test + build (로컬·iMac 공용)
+  - pre-push 훅(`scripts/hooks/pre-push`, 설치: `git config core.hooksPath scripts/hooks`)이
+    GitHub 푸시 전에 iMac bare repo(`imac:~/ci/teguma.git`)로 먼저 푸시
+  - iMac pre-receive(`~/ci/teguma.git/hooks/pre-receive`)가 work 체크아웃
+    (`~/ci/teguma-work`)에서 게이트 실행, 실패 시 iMac 푸시 거부 → GitHub 푸시 차단
+    (post-receive는 게이트 통과 후 work 정식 동기화)
+- **머지**: 웹 UI 머지 금지 — `scripts/gate/merge-gated.sh <PR번호>` (게이트 확인 후 squash 머지)
+- lint 예외 정책: 명세 020 3.1 (조용한 disable 금지 — 예외는 명세 갱신 + 리뷰로만)
 
 ---
 

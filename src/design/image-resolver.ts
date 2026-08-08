@@ -93,7 +93,7 @@ export function createImageResolver(options: ImageResolverOptions): ImageResolve
       // target; an outside target remains rejected with the containment error.
       const [realRoot, realAssetPath] = await Promise.all([realpath(root), realpath(absolutePath)]);
       if (!isContained(realRoot, realAssetPath)) {
-        throw new Error(`Asset real path escapes asset root: ${source}`);
+        throw new Error(`Asset real path escapes asset root: ${source}`, { cause: error });
       }
       handle = await open(realAssetPath, constants.O_RDONLY | constants.O_NOFOLLOW);
     }

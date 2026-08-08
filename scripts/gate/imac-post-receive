@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# iMac bare repo post-receive — 게이트 통과 후 work를 정식 동기화한다
+# (pre-receive의 archive 갱신은 삭제된 파일을 지우지 않으므로 여기서 정리).
+# 게이트 자체는 pre-receive가 담당 (post-receive는 푸시 거부 불가).
+#
+# 설치: scripts/gate/imac-pre-receive 참고.
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+
+WORK="$HOME/ci/teguma-work"
+
+while read -r _old _new ref; do
+  case "$ref" in
+    refs/heads/*)
+      branch="${ref#refs/heads/}"
+      git -C "$WORK" fetch -q origin "$branch"
+      if git -C "$WORK" rev-parse --verify "refs/heads/$branch" >/dev/null 2>&1; then
+        git -C "$WORK" checkout --force "$branch"
+      else
+        git -C "$WORK" checkout --force -b "$branch" "origin/$branch"
+      fi
+      git -C "$WORK" reset --hard -q "origin/$branch"
+      echo "== [post-receive] work synced ($branch) =="
+      ;;
+  esac
+done

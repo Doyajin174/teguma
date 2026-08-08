@@ -8,7 +8,6 @@
 
 import { findBrandViolations, type BrandViolation } from "./brand-kit.js";
 import {
-  contrastRatio,
   hexToRgb,
   relativeLuminanceFromRgb,
   type RgbColor,

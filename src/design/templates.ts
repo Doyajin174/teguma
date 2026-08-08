@@ -71,7 +71,7 @@ interface TextOptions {
 
 function content(input: TemplateInput, name: string): string {
   const value = input[name];
-  if (typeof value !== "string") throw new Error(`Template slot \"${name}\" must be a string`);
+  if (typeof value !== "string") throw new Error(`Template slot "${name}" must be a string`);
   return value.trim();
 }
 
