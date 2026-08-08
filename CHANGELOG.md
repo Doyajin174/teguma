@@ -46,6 +46,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - PPTX가 슬라이드 페이지 배경을 기록하지 않아 변환 시 배경과 텍스트 대비가 손실되던 문제
 - 정책 regex에서 bare `.` 와일드카드가 허용되던 문제를 allowlist 문법 검증으로 수정
 
+## [0.5.0] - 2026-08-09
+- chore: package.json 버전 0.4.0으로 상향
+- docs: 당근 SEED 디자인 시스템 조사 + 연동 명세 (#25)
+- docs: 메타 Astryx 조사 + 연동 명세 (#26)
+- docs: ui-ux-pro-max 스킬 통합 조사 + QA 게이트 명세 (#27)
+- feat: Open Design + Penpot 연동 환경 조성 (#29)
+- docs: 016 QA 게이트 명세 상태를 Implemented로 정정
+- docs: 통합 디자인 토큰 계약 조사 + 명세 (#33)
+- docs: Open Design 핸드오프 조사 + 명세 (#34)
+- fix: Open Design→Penpot 핸드오프 실전 쓰기·읽기 경로 수정 (#32) (#35)
+
 ## [0.4.0] - 2026-08-08
 - chore: npm 퍼블리시 준비 — version 0.3.0, repository/files 필드
 - fix: CLI 버전을 package.json에서 동적 로드
