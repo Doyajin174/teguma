@@ -1,6 +1,8 @@
 # UI/UX Pro Max 기반 디자인 QA 게이트 명세
 
-> 상태: Proposed — POC 미구현
+> 상태: Implemented — POC 완료 (main에 머지됨)
+> 구현: `src/design/uiux-gate.ts` · `src/design/qa.ts`(`inspectDocumentWithUiuxProfile`) · `test/design-uiux-gate.test.ts`
+> 머지: PR #27 (`9dc60a7`)
 > 작성일: 2026-08-08
 > 관련 이슈: [#24](https://github.com/Doyajin174/teguma/issues/24)
 
