@@ -1,6 +1,6 @@
 # DTCG(Design Tokens Community Group) 형식 호환성 조사
 
-> 조사일: 2026-08-08 · 갱신일: 2026-08-08 (2025.10 Final Community Group Report 기준 정정 — 리뷰 반영)
+> 조사일: 2026-08-08 · 갱신일: 2026-08-08 (리뷰 반영 — 2025.10 기준 정정, 2차: `{path}` 채택 잔재 정정)
 >
 > 관련 이슈: [#30](https://github.com/Doyajin174/teguma/issues/30)
 >
@@ -14,7 +14,7 @@ canonical이 DTCG에서 참조하는 부분:
 
 - **값 구조·단위 규칙** — `color` 구조체, `dimension` `{value, unit}`, `fontWeight` 1..1000/alias, `duration` `{value, unit}`.
 - **타입 어휘** — 공식 tokenType 13종과 정렬 (`fontSize`/`lineHeight`/`letterSpacing`/`radius`는 독립 타입이 아님).
-- **별칭 문법** — `{path}` 참조 규율(순환 감지 포함).
+- **별칭 규율** — 참조 해석·순환 감지 규율. canonical은 `{path}`가 아닌 **logical id 참조**(`alias.ref`)로 정규화하며, `{path}` 문법은 DTCG projection(6.4) 전용이다.
 
 채택하지 않는 부분:
 
@@ -121,7 +121,7 @@ number, strokeStyle, border, transition, shadow, gradient, typography
 | --- | --- |
 | 값 구조: `color` `{colorSpace, components, alpha?, hex?}`, `dimension` `{value, unit}`(px·rem), `fontWeight` 1..1000/alias, `duration` `{value, unit}` | 손실 없는 구조화 값. 공식 규격 확정. canonical 값 모델의 참조 |
 | 타입 어휘 정렬: 공식 13종 | canonical 타입은 DTCG 어휘와 정렬하되 내부 IR 전용. fontSize 등은 `dimension`/`number`+`kind`로 표현 |
-| `{path}` 별칭 문법 | SEED `$path` 참조와 1:1 매핑 가능. alias 해석 전·후 값을 canonical 필드(`raw`/`resolvedValue`/`alias`)로 보존 |
+| SEED `$path` → canonical id 참조 정규화 | SEED `$path` 참조를 결정적 **logical id**(`alias.ref`)로 정규화 (명세 4.2). alias 해석 전·후 값은 canonical 필드(`raw`/`resolvedValue`/`alias`)로 보존 |
 | 그룹 계층 | 원본 경로 보존(provenance)에 적합 |
 | 공식 JSON Schema | DTCG exporter 출력 검증에 사용 |
 | JSON 스키마 기반 검증 | 무의존성 원칙(이슈: "새 런타임 의존성이나 특정 라이브러리 채택을 선결 조건으로 두지 않는다")과 일치 |
@@ -131,6 +131,7 @@ number, strokeStyle, border, transition, shadow, gradient, typography
 | 항목 | 사유 |
 | --- | --- |
 | canonical 자체를 DTCG 파일 형식으로 (`$type`/`$value` 규약 채택) | canonical은 mode·alias·role 확실성·loss 등 DTCG에 없는 정보를 담는 **lossless internal IR**. DTCG 형식 호환은 projection 경계로 분리 (명세 3장) |
+| canonical alias 표현의 `{path}` 문법 | canonical alias는 logical id 참조(명세 4.2). `{path}`는 DTCG projection(6.4) 전용 |
 | DTCG mode 관례(그룹 분리·`$extensions`) | 어댑터마다 해석이 달라질 위험. canonical은 `values` 필드로 결정론적으로 표현 |
 | DTCG 런타임 라이브러리(Style Dictionary 등) | 이슈 제약(새 의존성 금지). JSON + zod로 충분 |
 
@@ -151,7 +152,7 @@ number, strokeStyle, border, transition, shadow, gradient, typography
 - canonical은 **DTCG와 독립된 lossless internal IR**이다. DTCG 호환성은 projection(명세 6.4) 경계에서만 정의하며, canonical 자체에 `$type`/`$value` 규약을 적용하지 않는다.
 - 값 형태: `color`는 DTCG color 구조, `dimension`은 `{value, unit}`(px·rem), `fontWeight`는 1..1000/alias, `duration`은 `{value, unit}`(ms·s) — hex 문자열·"16px" 문자열 같은 손실형 표기는 canonical에 쓰지 않는다.
 - `fontSize`/`lineHeight`/`letterSpacing`/`radius`는 독립 타입이 아닌 `dimension`/`number` + `kind`로 표현한다.
-- `{path}` 별칭 문법을 canonical alias 표현에 채택. SEED `$path`는 변환 시 `{...}` 형태로 매핑하거나 canonical id 참조로 정규화.
+- SEED `$path`는 변환 시 **canonical id 참조(`alias.ref` = logical id)로 정규화**한다. `{path}` 별칭 문법은 DTCG projection(6.4) 전용이며 canonical 자체에는 쓰지 않는다 (명세 4.2).
 - rem→px 환산 정보는 `sourceValue`/`resolvedValue`/`conversion`으로 보존한다 (SEED 기존 회귀 금지 요구 — 명세 4.4).
 
 ## 7. 리스크

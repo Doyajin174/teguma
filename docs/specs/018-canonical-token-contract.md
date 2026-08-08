@@ -2,7 +2,7 @@
 
 > 상태: Proposed (조사·명세 완료, 리뷰 반영, 구현 대기)
 >
-> 작성일: 2026-08-08 · 갱신일: 2026-08-08 (리뷰 반영 — 11장)
+> 작성일: 2026-08-08 · 갱신일: 2026-08-08 (2차 리뷰 반영 — 11·12장)
 >
 > 관련 이슈: [#30](https://github.com/Doyajin174/teguma/issues/30) — Refs #22 #23 #28
 
@@ -45,7 +45,7 @@ flowchart LR
 ```
 
 - canonical은 **DTCG 문서가 아니다**. `$type`/`$value` 예약 속성이나 그룹 상속 같은 DTCG 파일 규약을 따르지 않는 Teguma 전용 lossless IR이다. mode·alias·role 확실성·import loss처럼 DTCG에 1급 개념이 없는 정보를 손실 없이 담는 것이 목적이다.
-- **DTCG와의 교환은 전용 projection**으로 수행한다: `canonical → DTCG 2025.10`(exporter, 6.4)와 `DTCG 2025.10 → canonical`(import, 6.4). canonical 자체의 "DTCG 형식 호환" 주장은 하지 않는다.
+- **DTCG와의 교환은 전용 projection**으로 수행한다: `canonical → DTCG 2025.10`(exporter, 6.4)와 `DTCG 2025.10 → canonical`(import, 6.4 — **v0.2 예정**). canonical 자체의 "DTCG 형식 호환" 주장은 하지 않는다.
 - canonical의 값 모델은 DTCG 2025.10 Final Community Group Report의 값 구조·단위·타입 어휘를 참조해 정렬한다(4.5). 자세한 DTCG 사실관계는 `docs/research/018-dtcg-compatibility.md`.
 
 ## 4. canonical token document 스키마 (v0.1.0)
@@ -57,7 +57,7 @@ interface CanonicalTokenDocument {
   schemaVersion: "0.1.0";
   document: {
     id: string;                       // "canonical:<adapter>:<source-id>"
-    sourceAdapter: "penpot" | "seed" | "open-design";
+    sourceAdapter: "penpot" | "seed" | "open-design";  // v0.2: DTCG import 도입 시 "dtcg" 추가 예정
     sourceName: string;
     sourceRevision?: string;          // 원본 버전/리비전이 있을 때만
   };
@@ -77,7 +77,7 @@ interface CanonicalToken {
   name?: string;              // 표시 이름
   path: string;               // 원본 경로 (필수)
   type: CanonicalType;        // 4.5 (필수)
-  kind?: CanonicalKind;       // 4.5 — spacing/radius/font-size 등 하위 구분
+  kind?: CanonicalKind;       // 폐쇄 enum — 아래 선언 (spacing/radius/font-size 등 하위 구분)
   values: {
     default?: CanonicalModeValue;  // 4.3
     light?: CanonicalModeValue;
@@ -85,13 +85,20 @@ interface CanonicalToken {
   };
   semanticRole?: { role: string; confidence: "explicit" | "mapped" | "unknown" };  // 4.7
   provenance: {               // (필수)
-    adapter: "penpot" | "seed" | "open-design";
+    adapter: "penpot" | "seed" | "open-design";  // v0.2: DTCG import 도입 시 "dtcg" 추가 예정
     sourcePath: string;
     sourceId: string;
     collection?: string;      // SEED 등 어댑터별 추가 정보
   };
   description?: string;
 }
+
+type CanonicalKind =
+  | "spacing"
+  | "font-size"
+  | "line-height"
+  | "letter-spacing"
+  | "radius";   // 폐쇄 enum (v0.1) — kind 추가는 계약 변경(schemaVersion bump)
 ```
 
 **logical identity 규칙**
@@ -105,7 +112,7 @@ interface CanonicalToken {
 
 1. 요청 mode의 `values[mode]`가 있으면 그것을 사용한다.
 2. 없으면 `values.default`를 사용한다.
-3. **light↔dark 절대 fallback 없음** — 없으면 "missing mode"로 보고한다 (projection loss `ambiguous`). 예: 요청 dark인데 dark·default 모두 없으면 light로 대체하지 않는다.
+3. **light↔dark 절대 fallback 없음** — 없으면 기본 code **`missing-mode`**로 보고한다 (projection loss `ambiguous`). 예: 요청 dark인데 dark·default 모두 없으면 light로 대체하지 않는다. projection별 세분 code 허용 — Astryx는 `missing-light`/`missing-dark`를 쓴다 (6.3).
 
 **mode 매핑**: Penpot은 mode를 모르므로 `default`에만 값. SEED는 `theme-light→light`, `theme-dark→dark`, global 컬렉션→`default`.
 
@@ -122,13 +129,18 @@ type CanonicalModeValue =
   | {
       status: "unresolved";
       raw: JsonValue;                   // 구조 보존
-      alias: UnresolvedAlias;           // { ref: string; resolved: false; reason: "circular" | "missing" | ... }
+      alias: UnresolvedAlias;
     };
+
+type ResolvedAlias = { ref: string; resolved: true };
+type UnresolvedAlias = { ref: string; resolved: false; reason: UnresolvedReason };
+type UnresolvedReason = "circular" | "missing";  // 폐쇄 union (v0.1) — reason 추가는 계약 변경
 ```
 
 - 구현은 `z.discriminatedUnion("status", [resolvedSchema, unresolvedSchema])`을 **필수**로 사용한다. 임의 optional 필드(`value` 생략 가능 등)가 생기지 않는다.
 - `raw`는 **구조화된 JsonValue**다. SEED rootage 객체·DTCG 값 객체·hex 문자열 등 원문을 그대로 보존하며, JSON 문자열로 stringify해 저장하지 않는다.
 - `resolved` 상태의 `alias`는 해석 완료(참조 대상 값 적용), `unresolved`는 해석 불가(순환·미존재)를 뜻한다.
+- `unresolved.reason`은 폐쇄 union이다 — zod `z.enum(["circular", "missing"])`으로 검증한다. 새 reason 추가는 계약 변경(schemaVersion bump)으로 다룬다.
 
 ### 4.4 정규화 값·단위
 
@@ -146,6 +158,7 @@ interface CanonicalScalar {
 
 type ConversionRecord =
   | { kind: "rem-to-px"; rootFontSizePx: number }
+  | { kind: "percent-to-ratio" }        // lineHeight "150%" → 비율 1.5
   | { kind: "identity" };
 ```
 
@@ -165,7 +178,7 @@ type ConversionRecord =
 ```
 
 - 단위가 바뀌지 않는 값은 `sourceValue === resolvedValue`이고 `conversion`을 생략한다.
-- `dimension`의 공식 단위는 `px | rem`(DTCG 2025.10). 그 외 단위(예: `vw`)는 `sourceValue`에 보존하되 `importLoss.lossy`(code `nonstandard-unit`)로 보고한다. `%`는 비율 의미의 `lineHeight`(`kind: "line-height"`, number)에서 허용한다.
+- `dimension`의 공식 단위는 `px | rem`(DTCG 2025.10). 그 외 단위(예: `vw`)는 `sourceValue`에 보존하되 `importLoss.lossy`(code `nonstandard-unit`)로 보고한다. `%`는 비율 의미의 `lineHeight`(`kind: "line-height"`, number)에서 허용한다 — 이 경우 `resolvedValue`는 비율 number로 정규화하고 `conversion: { kind: "percent-to-ratio" }`를 기록한다.
 
 ### 4.5 토큰 타입 (v0.1.0)
 
@@ -173,7 +186,7 @@ canonical 타입 어휘는 DTCG 2025.10의 공식 tokenType 13종(`color, dimens
 
 | canonical type | 값 형태 (`CanonicalScalar`) | 비고 |
 | --- | --- | --- |
-| `color` | DTCG color 구조 `{ colorSpace, components, alpha?, hex? }` | hex 문자열 입력은 `srgb` 구조로 정규화. Penpot opacity는 `alpha`로 변환하고 `importLoss.lossy` 기록 |
+| `color` | `{ value: { colorSpace, components, alpha?, hex? } }` | DTCG color 구조를 `CanonicalScalar.value`에 래핑. hex 문자열 입력은 `srgb` 구조로 정규화. Penpot opacity는 `alpha`로 변환하고 `importLoss.lossy` 기록 |
 | `dimension` | `{ value: number, unit: "px" \| "rem" }` | spacing·fontSize·letterSpacing·radius·lineHeight(단위 있음)는 `kind`로 구분 |
 | `fontFamily` | `string \| string[]` | |
 | `fontWeight` | 1..1000 정수 또는 DTCG 규정 문자열 alias | alias는 정수로 정규화해 저장 가능, 원문은 `raw` 보존 |
@@ -181,6 +194,8 @@ canonical 타입 어휘는 DTCG 2025.10의 공식 tokenType 13종(`color, dimens
 | `number` | `number` | 단위 없는 값 — lineHeight 비율 등 |
 
 v0.2 후보: `cubicBezier`, `strokeStyle`, `border`, `transition`, `shadow`, `gradient`, `typography` (어휘는 DTCG와 정렬).
+
+- `fontWeight` alias 문자열·`colorSpace` 열거 값의 완전한 목록은 공식 JSON Schema(<https://www.designtokens.org/schemas/2025.10/format.json>)를 참조한다 — 본 문서에서 열거를 생략한다 (zod 구현 시 해당 스키마에서 추출).
 
 **비독립 타입 판정 표**:
 
@@ -210,8 +225,8 @@ interface CanonicalLossItem {
   reason: string;
   raw?: JsonValue;                   // 원문 — 구조 보존 (stringify 금지)
   candidates?: string[];             // ambiguous 전용
-  original?: CanonicalScalar;        // lossy 전용
-  converted?: CanonicalScalar;
+  original?: JsonValue;              // lossy 전용 — 원문 그대로 (구조 보존, stringify 금지)
+  converted?: CanonicalScalar;       // lossy 전용 — canonical 값 형태
 }
 ```
 
@@ -289,7 +304,7 @@ interface ProjectionResult<T> {
 ### 6.2 canonical → BrandKit / DesignDocument projection
 
 - projection 파라미터: `mode` (필수 — `light`/`dark`/`default`), 선택적으로 `kitId`·`kitName`.
-- palette: mode 해석(4.2) 후 일치하는 `color` 토큰만. 요청 mode에 색상 토큰이 없으면(SEED `default` 호출과 동일) `loss.ambiguous` 보고 후 palette 생략 — 기존 정책 유지.
+- palette: mode 해석(4.2) 후 일치하는 `color` 토큰만. 요청 mode·`default` 모두 없으면(SEED `default` 호출과 동일) `loss.ambiguous`(code `missing-mode`) 보고 후 palette 생략 — 기존 정책 유지.
 - fonts: `fontFamily` + `fontWeight` 토큰으로 family별 weight 목록. family↔weight 연관이 없는 경우 `loss.lossy`("합집합 등록 — 기존 POC 한계") 명시.
 - BrandKit이 표현하지 못하는 타입/kind(radius·shadow·gradient·duration 등) → `loss.unsupported`.
 - DesignDocument 생성은 기존 `buildSeedDocument` 로직을 projection의 별도 단계로 일반화 (대표 문서 생성 정책은 v0.2에서 문서화).
@@ -305,10 +320,10 @@ interface ProjectionResult<T> {
   - override는 canonical `id` 기반으로 명시적 role을 부여 → `explicit`로 취급.
 - 충돌(M3 규칙: 한 번 conflict로 내려간 변수는 복원 금지) → `mapping.status: "conflict"` + `loss.ambiguous` 병기.
 - typography/spacing: 현행 규칙 유지(4/8 base unit, 단조 증가·배수 검사 등). 위반은 `unmapped` + 경고.
-- mode 누락(light만 존재 등): `loss.ambiguous`(code `missing-light`/`missing-dark`) 병기 — 기존 `MISSING_DARK_MODE`/`MISSING_LIGHT_MODE` 경고 대체.
+- mode 누락(light만 존재 등): `loss.ambiguous`(code `missing-light`/`missing-dark` — 4.2 규칙 3 기본 code `missing-mode`의 Astryx 세분 code) 병기 — 기존 `MISSING_DARK_MODE`/`MISSING_LIGHT_MODE` 경고 대체.
 - `roleOverrides`는 canonical id 참조로 바뀌므로, 기존 get_tokens 이름 기반 override는 migration 기간 동안 이름→id 역참조 맵으로 지원.
 
-### 6.4 canonical ↔ DTCG 2025.10 (exporter)
+### 6.4 canonical ↔ DTCG 2025.10 (projection)
 
 canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 이 projection에서만 수행한다 (3장).
 
@@ -326,8 +341,9 @@ canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 �
 - alias: `{path}` 참조 문법으로 변환 (logical id → 그룹 경로). `unresolved` alias는 DTCG 문서에 넣지 않고 `loss.unsupported` 보고.
 - 값 선택은 4.2 mode 해석 규칙을 따르고, mode 누락은 `loss.ambiguous`(code `missing-mode`).
 
-**DTCG 2025.10 → canonical (import)**
+**DTCG 2025.10 → canonical (import — v0.2 후속)**
 
+- **v0.1 범위는 exporter만 포함한다** (9.2 DoD). import는 v0.2에서 도입하며, 그때 `sourceAdapter`(4.1)·`provenance.adapter`에 `"dtcg"`를 추가한다.
 - 공식 JSON Schema 검증 후 변환: color 구조·hex, dimension 구조/문자열 파싱, fontWeight alias 정규화(1..1000), 그룹 → `path`, `{path}` → `alias.ref`(logical id로 매핑 — 그룹 경로 기반 결정적 id).
 - DTCG에서 표현할 수 없는 정보(mode 다중 등)는 `importLoss`로 보고.
 
@@ -385,7 +401,7 @@ canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 �
 
 - [x] DTCG 호환성 조사 문서 — `docs/research/018-dtcg-compatibility.md` (2025.10 Final CGR + 공식 JSON Schema 기준)
 - [x] versioned canonical token schema + 예시 JSON 명세 — 본 문서
-- [x] 리뷰 지적 5건 반영 — 11장
+- [x] 리뷰 지적 반영 — 11·12장
 
 ### 9.2 구현 단계 (후속 PR — 이 이슈의 구현 범위)
 
@@ -419,16 +435,16 @@ canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 �
           "status": "resolved",
           "raw": "#ff6600",
           "resolvedValue": {
-            "sourceValue": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" },
-            "resolvedValue": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" }
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } }
           }
         },
         "dark": {
           "status": "resolved",
           "raw": "#e05a00",
           "resolvedValue": {
-            "sourceValue": { "colorSpace": "srgb", "components": [224, 90, 0], "alpha": 1, "hex": "#e05a00" },
-            "resolvedValue": { "colorSpace": "srgb", "components": [224, 90, 0], "alpha": 1, "hex": "#e05a00" }
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [224, 90, 0], "alpha": 1, "hex": "#e05a00" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [224, 90, 0], "alpha": 1, "hex": "#e05a00" } }
           }
         }
       },
@@ -539,8 +555,8 @@ canonical은 DTCG 문서가 아니므로, DTCG 도구·파일과의 교환은 �
           "status": "resolved",
           "raw": "#ff6600",
           "resolvedValue": {
-            "sourceValue": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" },
-            "resolvedValue": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" }
+            "sourceValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } },
+            "resolvedValue": { "value": { "colorSpace": "srgb", "components": [255, 102, 0], "alpha": 1, "hex": "#ff6600" } }
           }
         }
       },
@@ -619,11 +635,28 @@ PR #33 리뷰 지적 5건의 처리 내역:
 | 4 | 정규화 값·단위 모순·unresolved alias | `sourceValue`/`resolvedValue`/`conversion` 분리(4.4). `status` 기준 **Zod discriminated union**으로 resolved/unresolved를 명시(4.3). `raw`는 구조화 `JsonValue` 보존 — stringify 금지 | 4.3, 4.4 |
 | 5 | source loss/projection loss·결정론·category 상호작용 | `importLoss`(문서 귀속)와 projection `loss`(`ProjectionResult<T>`) 분리(4.6·6.1). 결정론 정렬 고정: tokens id 기준, mode `default→light→dark`, loss category→tokenId/path→mode→code(4.8). `includeCanonical`×`category`는 **(b) 선택 category만 반환**으로 명시(8.1) | 4.6, 4.8, 6.1, 8.1 |
 
-## 12. 비범위
+## 12. 재리뷰 반영 (2차) (2026-08-08)
+
+PR #33 재리뷰 P2 5건 + 구현에 영향 주는 P3 처리 내역:
+
+| # | 구분 | 지적 | 반영 내용 | 위치 |
+| --- | --- | --- | --- | --- |
+| 1 | P2 | color 예시가 4.4 `CanonicalScalar`(`{ value, unit? }`) 래퍼를 따르지 않음 | 10.1·10.2 color 예시를 `{ value: ColorStruct }` 래퍼로 정렬하고, 4.5 color 행도 `{ value: { colorSpace, ... } }`로 명시 — **value 래퍼로 통일** | 4.5, 10.1, 10.2 |
+| 2 | P2 | 10.2 lossy 예시 `original`이 문자열인데 4.6은 `CanonicalScalar` | `original`을 **`JsonValue`로 넓히고** 예시 유지 (원문 구조 보존 의미와 일치) | 4.6 |
+| 3 | P2 | `CanonicalKind` 참조만 있고 멤버 선언 없음 | 폐쇄 enum `"spacing" \| "font-size" \| "line-height" \| "letter-spacing" \| "radius"` 선언 — 추가는 계약 변경(schemaVersion bump) | 4.2 |
+| 4 | P2 | 6.4가 DTCG import를 정의하는데 4.1 `sourceAdapter`에 `"dtcg"` 없음 | DoD(9.2)가 exporter만 포함하므로 **import를 v0.2 후속으로 명시** — 3·6.4에 v0.2 표기, 4.1·provenance에 `"dtcg"` 추가 예정 주석, 13장 v0.2 후보 등재 | 3, 4.1, 6.4, 13 |
+| 5 | P2 | 조사 문서의 "`{path}` 별칭 문법 채택"이 4.2(alias.ref = logical id)와 모순 | "SEED `$path` → canonical id 참조로 정규화, `{path}`는 DTCG projection 전용"으로 정정 | 조사 문서 §1·§4·§6 |
+| 6 | P3 | 4.3 `reason` 열린 목록 (zod 구현 불가) | 폐쇄 union `"circular" \| "missing"` 선언 + `z.enum` 검증 명시 | 4.3 |
+| 7 | P3 | lineHeight %→비율 conversion kind 미정의 | `ConversionRecord`에 `percent-to-ratio` 추가, 4.4 prose 보강 | 4.4 |
+| 8 | P3 | fontWeight alias·colorSpace 열거 누락 | 공식 JSON Schema 링크 참조로 명시 (열거 생략 허용) | 4.5 |
+| 9 | P3 | 4.2 `missing-mode` vs 6.3 `missing-light`/`missing-dark` 어휘 충돌 | 4.2·6.1은 기본 code `missing-mode`, 6.3은 그 **세분 code**로 정리 | 4.2, 6.3 |
+| 10 | P3 | 6.2 "요청 mode에 색상 토큰이 없으면" 표현 | "요청 mode·`default` 모두 없으면"으로 정정 | 6.2 |
+
+## 13. 비범위
 
 - 의미가 불명확한 색상을 이름만 보고 primary/error 등으로 자동 확정 (원칙 3)
 - SEED·Astryx React 컴포넌트 런타임 통합
 - Penpot을 유일한 원본 저장소로 강제
 - 토큰 동기화 충돌 자동 해결
-- v0.2 후보: `cubicBezier`/`strokeStyle`/`border`/`transition`/`shadow`/`gradient`/`typography` 복합 타입, radius 다중 값(모서리별), 다중 mode DTCG 문서(그룹 분리 관례), 상대 별칭, `$deprecated`
+- v0.2 후보: `cubicBezier`/`strokeStyle`/`border`/`transition`/`shadow`/`gradient`/`typography` 복합 타입, radius 다중 값(모서리별), DTCG → canonical import(`sourceAdapter: "dtcg"`, 6.4), 다중 mode DTCG 문서(그룹 분리 관례), 상대 별칭, `$deprecated`
 - Open Design 어댑터 구현 (본 문서는 계약만 제공 — 5.3)
