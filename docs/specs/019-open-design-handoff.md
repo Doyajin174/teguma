@@ -10,7 +10,7 @@
 
 ## 1. 목표
 
-Open Design으로 생성한 비식별 샘플 1개를 **공식 산출물 계약** 기준으로 teguma/Penpot에 반입하고, teguma 읽기 도구(`get_page_layout`, `get_tokens`)로 다시 읽어 원본과 비교하는 최소 vertical POC를 정의한다. 처음부터 양방향 동기화나 임의 HTML/CSS 완전 변환을 구현하지 않는다.
+Open Design으로 생성한 비식별 샘플 1개를 **공식 산출물 계약** 기준으로 teguma/Penpot에 반입하고, teguma 읽기 도구(`get-page-layout`, `get-tokens`)로 다시 읽어 원본과 비교하는 최소 vertical POC를 정의한다. 처음부터 양방향 동기화나 임의 HTML/CSS 완전 변환을 구현하지 않는다.
 
 이 명세는 다음 계약을 확정한다:
 
@@ -30,8 +30,8 @@ Open Design으로 생성한 비식별 샘플 1개를 **공식 산출물 계약**
 | --- | --- |
 | Open Design 아티팩트 | Open Design 프로젝트의 산출물 — 파일 트리(HTML/JSX/CSS/JSON/SVG/Markdown)와 링크(`previewUrl`/`studioUrl`) |
 | handoff 번들 | Open Design 산출물(또는 사용자 제공 파일)을 teguma import 입력으로 포장한 결정적 번들 — `manifest.json` + 파일들 (5장) |
-| source id | 산출물의 논리 식별자 — MCP 경로는 `open-design:<runId>:<entryPath>`, 사용자 제공은 `handoff:<bundle-sha256>` |
-| content hash | 번들 정규화 직렬화의 `sha256` — idempotency·무결성 기준 |
+| source id | 산출물의 논리 식별자 — MCP 경로는 `open-design:<runId>:<entryPath>`, 사용자 제공은 `handoff:sha256:<64hex>` (5.3) |
+| content hash | 번들 정규화 직렬화의 `sha256:<64hex>` — idempotency·무결성 기준 |
 | import adapter | 번들 → Penpot 페이지 변환·쓰기·검증을 담당하는 teguma 코드 (7장) |
 | loss report | 원본 대비 반입 결과의 구조화된 손실 보고 (11장) |
 
@@ -45,7 +45,7 @@ flowchart LR
     BUNDLE --> ADAPTER[teguma import adapter<br/>SVG→Penpot 셰이프 + 토큰 추출]
     ADAPTER --> P1[Penpot 파일/페이지]
     ADAPTER --> LOSS[loss report]
-    P1 -->|get_page_layout / get_tokens| READ[재조회 검증]
+    P1 -->|get-page-layout / get-tokens| READ[재조회 검증]
     ADAPTER --> CANON[canonical 토큰 문서 #30<br/>sourceAdapter: open-design]
 ```
 
@@ -89,7 +89,7 @@ flowchart LR
 ```text
 <bundle>/
 ├── manifest.json          # 5.2 — 필수
-├── <entry>.svg            # primary 엔트리 (1개 이상)
+├── <entry>.svg            # primary 엔트리 (1개 이상 — 다중 SVG 규칙: 5.5)
 ├── tokens.css             # 선택 — CSS 커스텀 프로퍼티
 └── (참조 파일)            # 선택 — HTML/CSS/JSON 등 (provenance·검증용)
 ```
@@ -100,7 +100,7 @@ flowchart LR
 {
   "schemaVersion": "0.1.0",
   "source": {
-    "id": "open-design:<runId>:<entryPath>",   // 또는 "handoff:<sha256>"
+    "id": "open-design:<runId>:<entryPath>",   // 또는 "handoff:sha256:<64hex>"
     "hash": "sha256:<64hex>",                   // 번들 정규화 직렬화 해시 (5.3)
     "createdAt": "2026-08-08T03:00:00Z",        // 산출물 생성 시각 (RFC3339)
     "tool": "open-design",
@@ -122,8 +122,8 @@ flowchart LR
 
 - 파일 순서: `path` 오름차순 (locale 무관 바이트 순).
 - 각 파일: `path` + `\n` + 바이트 그대로. manifest는 직렬화 대상에서 제외 (자기참조 방지).
-- `contentHash = sha256(연결된 파일 바이트)`.
-- `source.id` 규칙: MCP 경로 `open-design:<runId>:<entryPath>`, 사용자 제공 `handoff:<contentHash>`.
+- `contentHash = sha256(연결된 파일 바이트)` — 표기는 `sha256:<64hex>` (prefix 포함).
+- `source.id` 규칙: MCP 경로 `open-design:<runId>:<entryPath>`, 사용자 제공 `handoff:sha256:<64hex>` (contentHash 전체).
 
 ### 5.4 생성 주체별 획득 절차
 
@@ -132,6 +132,12 @@ flowchart LR
 | MCP | `get_artifact({ project, entry })` → 파일 엔트리 | 도구가 노출된 태스크에서만 (조사 문서 2장) |
 | 사용자 handoff | 사용자가 파일을 제공 | 같은 번들 계약. CI fixture가 이 경로를 사용 (14장) |
 
+### 5.5 다중 SVG 규칙
+
+- 엔트리 SVG가 2개 이상이면 각 SVG가 **하나의 Penpot 페이지**가 된다 (`manifest.files`의 `path` 오름차순으로 1:1 매핑, 페이지 이름은 12.1 규칙에 엔트리 slug를 결합).
+- 손실 항목의 `path`는 `svg://<entryPath>#<요소경로>` 형태로 페이지를 구분한다 (11장).
+- 엔트리가 0개(SVG 없음)는 번들 검증 실패로 전체 실패 처리한다 (6.2).
+
 ## 6. 책임 경계
 
 | 주체 | 책임 | 비책임 |
@@ -139,7 +145,7 @@ flowchart LR
 | Open Design MCP | 생성·파일 트리 제공·링크 전달 | Penpot 쓰기, 변환, 토큰 해석 |
 | teguma adapter | 번들 검증 → SVG→Penpot 변환 → 쓰기 → 읽기 검증 → loss report | 디자인 판단(라이선스·role), preview 렌더링 |
 | Penpot | 파일·페이지 저장, 셰이프 트리 서빙 | Open Design 산출물 이해 |
-| 사용자 | 외부 자산(이미지·폰트) 라이선스 확인, 명시적 handoff 제공, `mapped` role 확정 | — |
+| 사용자 | 외부 자산(이미지·폰트) 라이선스 확인, 명시적 handoff 제공, `semanticRole` override 확정 (4.7 규칙 — 추측 금지) | — |
 
 ### 6.1 시크릿 경계
 
@@ -167,15 +173,17 @@ flowchart LR
 | 2. SVG 파싱 | 엔트리 SVG → 요소 트리. 지원 요소 enum: `svg`, `g`, `rect`, `circle`, `ellipse`, `path`, `text`, `image`, `defs`(색·그라디언트 참조용) | SVG IR |
 | 3. 셰이프 변환 | SVG IR → Penpot obj 형식 (8장 매핑 규칙) | Penpot 셰이프 트리 |
 | 4. 토큰 추출 | `tokens.css`의 `--*` 커스텀 프로퍼티 → canonical 토큰 문서 (`sourceAdapter: "open-design"`, #30 계약) — 선택적 | canonical 문서 |
-| 5. 쓰기 | idempotency 정책 적용(12장) → Penpot 페이지 생성/교체 → `commit-changes` `add-obj` | 페이지 |
-| 6. 읽기 검증 | `getPage`/`getPageLayout` + `getTokens` 재조회 → 8장 기준 비교 | 검증 수치 |
+| 5. 쓰기 | idempotency 정책 적용(12장) → Penpot 페이지 생성/교체 → 쓰기 RPC `update-file` (변화 `add-obj`/`add-page`/`del-obj`) | 페이지 |
+| 6. 읽기 검증 | `get-page`(Penpot 셰이프 트리) + `get-page-layout`/`get-tokens`(teguma 읽기 도구) 재조회 → 8장 기준 비교 | 검증 수치 |
 | 7. loss report | 11장 스키마로 손실 항목·검증 수치 집계 | loss report |
+
+> **페이지 생성 실측 (2026-08-08, 로컬 Penpot 192.168.0.183:9001)** — 독립 페이지 생성 RPC(`create-page`·`add-page`·`duplicate-page` 등)는 전부 `~:not-found`로 **미노출**이다. 페이지 생성은 `update-file` RPC의 changes 변화 타입 `add-page`(`{ type, id?, name?, page? }`)로만 가능하며, teguma `client.ts`에는 이 경로가 없다. 또한 `client.ts`가 현재 사용하는 `commit-changes` RPC 자체도 이 인스턴스에서 `~:not-found`다 (실측 상세: research 6.1). → 구현 시 `update-file` 기반 쓰기 클라이언트(페이지 생성 포함) 추가가 선행 조건이며, 그 전까지 idempotency는 **기존 파일 내 페이지 교체로 제한**한다 (12장).
 
 ### 7.3 Penpot 쓰기 경로 비교 (구현 시 확정)
 
 | 경로 | 장점 | 단점 |
 | --- | --- | --- |
-| `commit-changes` `add-obj` (기존 createElement 패턴) | 기존 인프라 재사용, 결정적 id 제어 | SVG 파싱·변환을 teguma가 구현해야 함 (현재 svg 타입은 placeholder — 조사 문서 6.1) |
+| `update-file` `add-obj` (createElement 패턴 확장) | 기존 인프라 재사용, 결정적 id 제어 | SVG 파싱·변환을 teguma가 구현해야 함 (현재 svg 타입은 placeholder — 조사 문서 6.1). **실측: client.ts의 `commit-changes`는 로컬 인스턴스에서 `~:not-found` — `update-file` 전환 필요** |
 | Penpot native 파일 import (`import-file` RPC) | 서버측 SVG 파싱 품질, UI 드래그드롭과 동일 | RPC 미검증, 페이지·셰이프 id 제어 불가, idempotency 매핑 별도 관리 |
 
 **기본**: `add-obj` 경로 (결정론·idempotency 정책과 정합). `import-file`은 구현 단계에서 SVG 파싱 품질 비교 후 부가 경로로만 채택 가능 — 채택 시 12장 idempotency 규칙을 유지할 수 있는 매핑 기록을 함께 구현한다.
@@ -187,16 +195,47 @@ flowchart LR
 | **텍스트** | `text` 요소 → Penpot text 셰이프(paragraph-set 구조). `font-family`/`font-size`/`font-weight`/`fill` 보존 | `font-not-found`: 폰트 미설치 → fallback 렌더(`lossy`). `text-as-path`: 텍스트가 경로화돼 편집 불가(`lossy`). `letter-spacing` 미지원(`lossy`, code `dropped-property`) |
 | **색상** | `fill`/`stroke` hex → Penpot fill/stroke. 불투명도는 alpha로 변환 | hex 외 표현(색상 이름·`currentColor`·var())은 해석 시도 후 실패 시 `unsupported`. gradient는 v0.2 후보 → `unsupported`(code `unsupported-category`) |
 | **프레임** | 최상위 `svg`의 `viewBox`/`width`/`height` → Penpot board(frame). 내부 크기는 CSS 변환 규칙(px 기준) 적용 | `rem`/`em`/`%` 크기 → px 정규화(`lossy`, `conversion` 기록). `vw` 등 비표준 단위 → `unsupported`(code `nonstandard-unit`) |
-| **레이어** | `g` → Penpot group, `rect`/`circle`/`ellipse`/`path` → 대응 셰이프, 중첩 보존, `id`/`name` 보존 | 지원 요소 밖(`filter`/`clipPath`/`mask`/`symbol`/`use` 등) → `unsupported`(code `unsupported-element`) + 해당 서브트리 평탄화 여부 명시. 이름 없음 → 자동 이름(`lossy`) |
+| **레이어** | `g` → Penpot group, `rect`/`circle`/`ellipse` → 대응 셰이프, `path` → Penpot path 셰이프 (실측 8.2), 중첩 보존, `id`/`name` 보존 | 지원 요소 밖(`filter`/`clipPath`/`mask`/`symbol`/`use` 등) → `unsupported`(code `unsupported-element`) + 해당 서브트리 평탄화 여부 명시. 이름 없음 → 자동 이름(`lossy`) |
 | **이미지** | `image` 요소의 data URI는 v0.2 후보. 외부 URL은 **미반입** | 외부 URL: `unsupported`(code `external-url-asset`) — URL·라이선스 미확인 기록, 사용자 확인 요구 (6.3). data URI: `unsupported`(code `embedded-image-v0.2`) |
 | **폰트** | `font-family` 목록을 파일 타이포그래피로 기록 | `font-license-unknown`: 라이선스 미확인 — 사용자 확인 전 자동 임베드 금지(`unsupported`). 미설치 폰트 → fallback(`lossy`, code `font-not-found`) |
 
-**보존 최소 기준 (POC 통과선)**: 텍스트 내용·색상 hex·도형 위치/크기·레이어 중첩 구조. 이 기준을 벗어나는 항목은 전부 loss report에 명시한다 — 조용한 탈락 금지.
+**보존 최소 기준 (POC 통과선)**: 텍스트 내용·색상 hex·도형 위치/크기(**path 포함** — 실측 8.2)·레이어 중첩 구조. 이 기준을 벗어나는 항목은 전부 loss report에 명시한다 — 조용한 탈락 금지.
+
+### 8.1 좌표·텍스트 변환 규칙
+
+**viewBox → px 좌표 스케일**
+
+- `<svg viewBox="0 0 VBW VBH" width="W" height="H">`: 내부 요소 좌표는 모두 viewBox 좌표계이므로 px로 스케일한다.
+- `preserveAspectRatio="none"`(또는 명시적 비균일): `sx = W / VBW`, `sy = H / VBH` 독립 스케일 → `px = viewBox × (sx, sy)`.
+- 기본값(`xMidYMid meet`) 및 기타 `meet`: `s = min(W / VBW, H / VBH)`, 중앙 정렬 offset `ox = (W − VBW·s) / 2`, `oy = (H − VBH·s) / 2` → `px = viewBox × s + (ox, oy)`.
+- `slice`: `s = max(W / VBW, H / VBH)` + 중앙 정렬 offset. 넘치는 영역은 크롭되며 `lossy`(code `viewport-cropped`)로 보고한다.
+- `viewBox` 부재 시: `x`/`y`는 0, `width`/`height` 속성값을 그대로 사용한다.
+
+**SVG text baseline → Penpot 텍스트 박스 (상단 기준)**
+
+- Penpot text 셰이프의 위치는 박스 **좌상단** 기준이다. SVG `text`의 `(x, y)`는 **baseline** 기준이므로 보정이 필요하다.
+- `dominant-baseline`(상속 포함)별 보정: `auto`/`alphabetic`(기본) → 박스 상단 `= y − ascent` (ascent ≈ `font-size × 0.8` 보수 추정, `lossy`(code `baseline-estimated`) 기록). `middle` → `y − font-size / 2`. `central` → `y − font-size / 2`. `hanging` → `y` (보정 없음). `text-before-edge` → `y`.
+- 박스 좌측 `x`는 그대로 사용. `text-anchor`(start/middle/end)는 박스 정렬로 변환하고 `lossy`(code `text-anchor-converted`) 기록.
+- 다중 `tspan`·`dy` 오프셋은 각 라인 박스로 분해하고 라인 간격은 `line-height`로 기록한다. 해석 불가 시 `ambiguous`(code `tspan-unresolved`).
+
+### 8.2 path 셰이프 생성 실측
+
+**결과: `add-obj`로 path 셰이프 생성 가능** (2026-08-08 로컬 Penpot 192.168.0.183:9001 실측 — `update-file` changes `add-obj`, `type: "path"`). 생성·재조회 왕복으로 확인했으며, 서버 스키마가 요구하는 필드는 다음과 같다 (research 6.1):
+
+- `content` — path 명령 시퀀스 (`move-to`/`line-to`/`curve-to`/`close-path` 등, 서버에서 `penpot/path-data`로 인코딩) — SVG `d` 파싱으로 생성.
+- `selrect` — `{ x, y, width, height, x1, y1, x2, y2 }` 바운딩 박스.
+- `points` — 4개 점 (`[{x,y} × 4]`).
+- `transform` / `transform-inverse` — identity matrix.
+- `parent-id` / `frame-id` — 부모·프레임 uuid (root는 `00000000-0000-0000-0000-000000000000`).
+
+→ path 요소는 POC 통과선에 포함한다. SVG `d`의 곡선 명령(`C`/`Q`/`A` 등)은 Penpot path 명령으로 매핑하고, 매핑 불가 명령은 `unsupported`(code `unsupported-element`)로 보고한다.
 
 ## 9. 토큰 추출 규칙 (CSS → canonical)
 
 - 입력: `tokens.css`의 커스텀 프로퍼티(`--color-*`, `--font-*`, `--space-*` 등) 또는 SVG 인라인 스타일에서 추출한 값.
-- 출력: #30 canonical 토큰 문서 — `document.sourceAdapter: "open-design"`, `provenance.sourceId` = 번들 source id, 결정론 정렬(4.8) 준수.
+- 출력: [#30 canonical 토큰 문서](../specs/018-canonical-token-contract.md) — `document.sourceAdapter: "open-design"`, `provenance.sourceId` = 번들 source id, 결정론 정렬(4.8) 준수.
+- **산출물 귀착지**: canonical 문서는 `data/imports/open-design/<sourceIdSlug>/tokens.canonical.json`에 저장하고 (10장), import 도구 응답(`ImportResult`)에 canonical 요약(토큰 수·mode·손실 요약)을 포함한다. 재조회 검증은 저장된 canonical 문서와 대조한다 (13.5 한계 참조).
+- **`tokens.css` 부재 시**: 토큰 추출 단계를 생략한다 — canonical 문서를 생산하지 않고, loss report에서 `token` category를 생략한다 (부재 자체를 손실로 보고하지 않음).
 - mode: Open Design 산출물에 light/dark 개념 없음 → `values.default`에만 기록 (Penpot 어댑터와 동일 규칙).
 - 해석 불가(중첩 var 참조 미해결·비표준 단위) → `importLoss.unsupported`/`lossy` (code: `css-var-unresolved`, `nonstandard-unit`).
 - `semanticRole`: 추측 금지 — `unknown` 또는 사용자 override만 (4.7 규칙).
@@ -206,8 +245,8 @@ flowchart LR
 
 반입 결과마다 다음을 보존한다 (번들 manifest 5.2 + import 기록):
 
-- `source.id` (source hash/id) — `open-design:<runId>:<entryPath>` 또는 `handoff:<sha256>`
-- `source.hash` — 번들 content hash
+- `source.id` (source hash/id) — `open-design:<runId>:<entryPath>` 또는 `handoff:sha256:<64hex>` (5.3)
+- `source.hash` — 번들 content hash (`sha256:<64hex>`)
 - `source.createdAt` — 산출물 생성 시각
 - `source.tool` / `source.toolVersion` — `open-design` / 앱 버전 (현재 0.18.1)
 - `source.mode` — cloud / local-codex / byok / user-handoff
@@ -216,9 +255,11 @@ flowchart LR
 
 import 기록은 `data/imports/open-design/<sourceIdSlug>.json`에 저장한다 (시크릿 없음, gitignore 불필요 — data/는 수집 데이터 디렉토리).
 
+**`sourceIdSlug` 정의**: source id의 파일명 안전 슬러그 — `od-<sourceId12>` (sourceId12 = sha256(source id) 앞 12hex — 12.1과 동일 규칙). MCP 경로(`open-design:<runId>:<entryPath>`)는 `od-<sourceId12>-<entryPath 슬러그>` (entryPath의 비알파벳 문자를 `-`로 치환).
+
 ## 11. loss report 구조 (v0.1.0)
 
-canonical `importLoss` 어휘(`unsupported`/`ambiguous`/`lossy`)와 정렬 규칙(4.8)을 준용한다. 손실 항목은 이슈 요구 항목별 category로 구분한다.
+canonical `importLoss` 어휘(`unsupported`/`ambiguous`/`lossy`)와 [#30 4.8 정렬 규칙](../specs/018-canonical-token-contract.md)을 준용한다. 손실 항목은 이슈 요구 항목별 category로 구분한다.
 
 ```jsonc
 {
@@ -240,15 +281,19 @@ canonical `importLoss` 어휘(`unsupported`/`ambiguous`/`lossy`)와 정렬 규�
       "path": "svg://text[2]",       // SVG 트리 경로 (원본 위치)
       "reason": "Open Sans 미설치 — fallback 'Inter' 렌더",
       "original": { "fontFamily": "Open Sans", "fontSize": "1.25rem" },
-      "converted": { "fontFamily": "Inter", "fontSize": 20, "unit": "px" }
+      "converted": { "value": 20, "unit": "px" }
     }
   ]
 }
 ```
 
 - `category` 폐쇄 enum: `text | color | frame | layer | image | font | token`.
-- `severity`·`code` 어휘는 8·9장 표의 값을 사용한다. 새 code 추가는 계약 변경(schemaVersion bump).
-- 항목 정렬: category 고정 순서 → `path` 오름차순 → `code` 오름차순 (결정론).
+- `severity` 폐쇄 enum: `unsupported | ambiguous | lossy` (canonical `importLoss`와 동일 어휘).
+- `code` 폐쇄 enum (8·9장에서 정의된 값): `unsupported-category` · `nonstandard-unit` · `unsupported-element` · `external-url-asset` · `embedded-image-v0.2` · `font-license-unknown` · `font-not-found` · `text-as-path` · `dropped-property` · `css-var-unresolved` · `baseline-estimated` · `text-anchor-converted` · `tspan-unresolved` · `viewport-cropped` · `partial-artifact`. 새 code 추가는 계약 변경(schemaVersion bump).
+- **`original` / `converted` 필드 정의** (#30 `CanonicalLossItem` 정합 — `original`은 lossy 전용, `converted`는 canonical 스칼라 형태):
+  - `original` — 원문 그대로 (구조 보존, stringify 금지). 예: `{ "fontSize": "1.25rem" }`.
+  - `converted` — canonical 값 형태 (`CanonicalScalar` = `{ value, unit? }` — #30 4.3, 4.5). 예: `{ "value": 20, "unit": "px" }`. 단위·타입은 #30 canonical 스칼라 어휘를 사용하며 손실 항목 외 새 표현 금지.
+- **항목 정렬 (#30 4.8 명시적 정합)**: severity 그룹 순서 `unsupported` → `ambiguous` → `lossy` → 항목 내 `path` 오름차순 → `code` 오름차순. 동률이면 `original` 직렬화 문자열 오름차순 → `reason` 오름차순 (입력 순서 의존 제거). #30 4.8의 `tokenId`/`mode` 차원은 token category 항목에만 적용한다 (`tokenId` 없으면 `path`, `mode`는 `default`→`light`→`dark`, 없으면 생략).
 - **truncated 번들**: `source.truncated: true`면 loss report 최상단에 `partial-artifact` 항목을 추가한다 (부분 산출물임을 명시 — 조사 문서 5장).
 - 검증 수치(원본 vs 반입 레이어 수·텍스트·색상·타이포·크기)는 `summary`에, 항목별 상세는 `items`에 담는다.
 
@@ -256,8 +301,8 @@ canonical `importLoss` 어휘(`unsupported`/`ambiguous`/`lossy`)와 정렬 규�
 
 ### 12.1 식별자
 
-- **source id**: `open-design:<runId>:<entryPath>` 또는 `handoff:<sha256>` — 산출물의 논리 identity.
-- **content hash**: 번들 정규화 직렬화 `sha256` (5.3) — 내용 변경 감지.
+- **source id**: `open-design:<runId>:<entryPath>` 또는 `handoff:sha256:<64hex>` (5.3) — 산출물의 논리 identity.
+- **content hash**: 번들 정규화 직렬화 `sha256:<64hex>` (5.3) — 내용 변경 감지.
 - **Penpot 페이지 이름**: `od-handoff-<sourceId12>-<hash12>` (`sourceId12` = sha256(source id) 앞 12hex, `hash12` = content hash 앞 12hex) — 이름 기반 탐지로 매핑 유지.
 
 ### 12.2 실행 규칙
@@ -276,7 +321,12 @@ canonical `importLoss` 어휘(`unsupported`/`ambiguous`/`lossy`)와 정렬 규�
 
 ### 12.4 실패 시 복구
 
-overwrite 중 쓰기 실패 → 기존 페이지 삭제 전 **백업 pageId 기록**(이전 페이지는 삭제 직전에 이름을 `od-handoff-<sourceId12>-<hash12>-backup-<epochMs>`로 변경) 후 실패 보고. 성공 시 백업 페이지 삭제.
+overwrite 중 쓰기 실패 → 기존 페이지 삭제 전 **백업 pageId 기록**(이전 페이지는 삭제 직전에 이름을 `od-handoff-<sourceId12>-<hash12>-backup-<epochMs>`로 변경) 후 실패 보고. 백업 pageId·변경 시각은 **import 기록(`data/imports/open-design/<sourceIdSlug>.json`, 10장)에 남긴다** (복구 시 조회 가능). 성공 시 백업 페이지 삭제.
+
+### 12.5 runId 의존 한계
+
+- source id가 `runId`에 의존하므로, **같은 디자인을 다시 생성하면 새 runId → 새 source id → 기존 페이지와 무관한 신규 페이지**가 생긴다 (12.2 "다른 source id → `created`"). 내용이 같아 content hash가 같아도 source id가 다르면 dedup되지 않는다.
+- 중복 페이지 정리(같은 이름 계열 페이지 일괄 삭제 명령 등)와 runId 독립 식별(예: 브리프 기준 id)은 v0.2 후보로 분리한다. POC에서는 "디자인 재생성 = 새 페이지"임을 명시적으로 보고한다.
 
 ## 13. live smoke 절차 (구현 단계, CI 제외)
 
@@ -286,10 +336,10 @@ overwrite 중 쓰기 실패 → 기존 페이지 삭제 전 **백업 pageId 기�
 2. **산출물 획득** — `get_artifact({ project, entry })`로 SVG 엔트리 + 참조 파일 획득, `truncated` 확인.
 3. **번들 생성** — 5장 계약으로 `manifest.json` + 파일 구성, content hash 계산. `data/imports/open-design/<sourceIdSlug>/`에 저장.
 4. **반입** — import adapter 실행 (7장): Penpot 페이지 생성/교체, canonical 토큰 생산.
-5. **재조회** — `get_page_layout`(페이지 셰이프 트리), `get_tokens`(colors/typography)로 반입 결과 조회.
+5. **재조회** — `get-page-layout`(페이지 셰이프 트리), `get-tokens`(colors/typography)로 반입 결과 조회. **한계: `get-tokens`는 압축 토큰 기준이다 — canonical 왕복 재조회(`includeCanonical`)는 #30 v0.1 후속이므로 POC에서는 압축 토큰 비교로 대체하고, canonical 문서 자체는 9장 귀착지(`data/imports/.../tokens.canonical.json`) 산출물로 검증한다.**
 6. **비교·통과 판정** — 8장 보존 최소 기준 + loss report `summary` 기준. 통과 조건: 레이어 수·텍스트·색상이 loss report 범위 내에서 일치, `unsupported` 항목이 명시 보고됨.
 7. **idempotency 재현** — 같은 번들로 재실행 → `action: "unchanged"` 확인. 번들 수정 후 재실행 → `action: "replaced"` 확인.
-8. **정리** — 스모크 결과 요약을 `docs/releases`가 아닌 이슈 코멘트·PR에 기록 (산출물·링크·loss report 요약). 샘플에 시크릿 없음 확인.
+8. **정리** — 스모크 결과 요약을 이슈 코멘트·PR에 기록 (산출물·링크·loss report 요약; 릴리스 리포트 문서가 아니므로 `docs/releases`에는 작성하지 않음). 샘플에 시크릿 없음 확인.
 
 ## 14. CI fixture 분리
 
@@ -299,7 +349,7 @@ overwrite 중 쓰기 실패 → 기존 페이지 삭제 전 **백업 pageId 기�
 data/fixtures/open-design-handoff/
 ├── hero-section.svg          # 비식별 샘플 (텍스트·색상·도형 포함, 외부 URL 이미지 1개 — 손실 항목 재현용)
 ├── tokens.css                # 커스텀 프로퍼티 6~8개
-├── manifest.json             # source.id = handoff:<sha256>, mode: user-handoff
+├── manifest.json             # source.id = handoff:sha256:<64hex>, mode: user-handoff
 └── expected-import.json      # 결정론 기대값 — 셰이프 수·토큰 수·loss report (정렬 규칙 적용)
 ```
 
@@ -356,3 +406,27 @@ data/fixtures/open-design-handoff/
 - Open Design ↔ Penpot 양방향 동기화
 - DTCG import projection (#30 v0.2)
 - 임의 HTML/CSS 전체 변환
+
+## 19. 리뷰 반영 (PR #34 — Jason 리뷰, 2026-08-08)
+
+이 문서와 [research 019](../research/019-open-design-export.md)에 반영한 지적 사항:
+
+| 지적 | 반영 |
+| --- | --- |
+| H1 — Penpot 페이지 생성 RPC 실측 | 7.2 실측 노트·7.3·12장 — 독립 페이지 생성 RPC 미노출(`~:not-found`), `update-file` changes `add-page`로만 생성 가능, `client.ts`에 경로 없음 → 구현 전까지 idempotency는 기존 파일 내 페이지 교체로 제한 (research 6.1) |
+| H2 — SVG path의 Penpot 표현 | 8.2 — `add-obj` `type: "path"` 생성 가능 실측(요구 필드 포함), path는 POC 통과선에 포함 |
+| H3 — viewBox→px·text baseline→박스 변환 규칙 | 8.1 — 좌표 스케일·preserveAspectRatio·dominant-baseline 보정 규칙 추가 |
+| M1 — loss report items 스키마·정렬 | 11장 — `original`/`converted` 정의(#30 `CanonicalLossItem` 정합), 정렬을 #30 4.8(severity 그룹·mode·동률)과 명시적 정합 |
+| M2 — 깨진 참조 | research 8장 "(명세 6.4)" → "(명세 6.3)" 정정 |
+| M3 — canonical 저장·반환 경로 | 9장 — `data/imports/.../tokens.canonical.json` 저장 + 도구 응답 포함, 13.5 — `includeCanonical`은 #30 후속, POC는 압축 토큰 비교로 대체 |
+| M4 — source id runId 의존성 한계 | 12.5 — 재생성 시 새 runId → 새 source id → 중복 페이지 한계 명시 |
+| M5 — 도구명 통일 | 1·3·7.2·13장 — 실코드 기준 `get-page-layout`/`get-tokens`로 통일 |
+| L1 — hash 표기 통일 | 2·5.2·5.3·10·12·14장 — `sha256:` prefix(`handoff:sha256:<64hex>`) 통일 |
+| L2 — 다중 SVG 규칙 | 5.5 — SVG 1개당 Penpot 페이지 1개 매핑, 손실 path 구분 |
+| L3 — mapped→override 표현 정정 | 6장 — `semanticRole` override 확정 (4.7 규칙) |
+| L4 — 백업 페이지 기록 위치 | 12.4 — import 기록(`data/imports/open-design/<sourceIdSlug>.json`)에 백업 pageId 명시 |
+| L5 — sourceIdSlug 정의 | 10장 — `od-<sourceId12>` 규칙 정의 |
+| L6 — tokens.css 부재 시 생략 | 9장 — 토큰 추출 생략·token category 미보고 |
+| L7 — #30 참조 명시 | 9·11장 — canonical 문서 링크·4.8 정렬 규칙 참조 명시 |
+| L8 — 13.8 표현 정리 | 13장 8단계 — "릴리스 리포트가 아님"으로 정리 |
+| L9 — loss code 폐쇄 enum 목록 | 11장 — severity/code 폐쇄 enum 목록 명시 |

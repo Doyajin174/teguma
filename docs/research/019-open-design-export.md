@@ -4,7 +4,7 @@
 >
 > 관련 이슈: [#32](https://github.com/Doyajin174/teguma/issues/32) — Refs #19 #29 #30
 >
-> 상태: 확정 — MCP 등록 상태·데몬 청크·공식 스킬 문서·teguma 코드 기준 실측
+> 상태: 확정 — MCP 등록 상태·데몬 청크·공식 스킬 문서·teguma 코드·로컬 Penpot RPC 기준 실측 (리뷰 반영: 2026-08-08, PR #34)
 
 ## 1. 결론
 
@@ -22,6 +22,8 @@ Open Design은 "디자인 문서"를 내보내는 도구가 아니라 **웹 아�
 | 공식 사용 절차 | 플러그인 번들 `open-design/0.5.2/skills/open-design-mode/SKILL.md` | 실행 모드 3종(cloud/local-codex/BYOK), 브리프→런→폴링→전달 게이트, `get_artifact` 용도(소스 컨텍스트 전용) 확인 |
 | 공식 웹 문서 | open-design.ai (/)·(/download) HTML 조회 | 마케팅·다운로드 페이지. export/download API 문서 없음 |
 | Penpot 수용 경로 | `src/penpot/client.ts`, `src/tools/create-element.ts`, `src/figma/converter.ts`, 읽기 도구 | `add-obj` RPC 기반 생성(rectangle/ellipse/text/board/svg), 단 svg 타입은 placeholder (아래 6장) |
+| Penpot 페이지 생성 RPC | 로컬 Penpot(192.168.0.183:9001) `/api/rpc/command/` 직접 호출 (2026-08-08) | `create-page`·`add-page`·`duplicate-page`·`rename-page`·`delete-page` 전부 `~:not-found` (미노출) — 페이지 생성은 `update-file` changes의 `add-page` 변화 타입으로만 가능 (아래 6.1) |
+| Penpot path 셰이프 생성 | 로컬 Penpot `update-file` `add-obj` 실측 (2026-08-08) | `type: "path"` 생성 **성공** — `content`·`selrect`·`points`(4)·`transform`/`transform-inverse`·`parent-id`/`frame-id` 요구, 생성→재조회 왕복 확인 (아래 6.1) |
 
 > **세션 한계**: 이 태스크에서는 open-design MCP 도구가 로드되지 않아 실제 생성(run)을 실행할 수 없었다. 이는 공식 스킬 문서의 안내("현재 Codex 태스크가 새 MCP 스냅샷을 hot-load하지 못하면 새 태스크 시작")와 일치하는 환경 제약이며, live smoke는 구현 단계의 새 태스크에서 수행한다 (명세 13장).
 
@@ -103,10 +105,23 @@ Open Design은 "디자인 문서"를 내보내는 도구가 아니라 **웹 아�
 
 | 경로 | 상태 | 내용 |
 | --- | --- | --- |
-| `create_element` (type: rectangle/ellipse/text/board/svg) | 운영 중 | `commit-changes` RPC `add-obj`. 텍스트는 paragraph-set 구조, 보드는 frame |
+| `create_element` (type: rectangle/ellipse/text/board/svg) | 운영 중 (단, RPC 실측 주의 — 아래) | `commit-changes` RPC `add-obj`. 텍스트는 paragraph-set 구조, 보드는 frame. **로컬 인스턴스 실측에서 `commit-changes`는 미노출 — `update-file` 전환 필요 (아래 실측 블록)** |
 | `create_element` (type: **svg**) | **placeholder** | 주석: "full SVG parsing would require server-side SVG → Penpot path conversion. For now, store as a rectangle placeholder with metadata" — **실제 SVG 파싱·셰이프 변환 미구현** |
 | `import-figma` | 운영 중 | Figma 파일 → Penpot 컨버터 패턴 (`src/figma/converter.ts`) — adapter 구조의 선례 |
 | Penpot native SVG import (UI 드래그드롭/파일 import) | Penpot 측 기능 | 서버측 SVG 파싱 → 셰이프 트리. teguma RPC 경로에는 미연결 — 구현 시 `import-file` RPC 비교 검토 (명세 7.3) |
+
+**로컬 Penpot RPC 실측 (2026-08-08, 192.168.0.183:9001)** — teguma가 사용하는 `/api/rpc/command/` 표면을 직접 호출해 확인:
+
+| RPC | 실측 결과 | 비고 |
+| --- | --- | --- |
+| `commit-changes` | **`~:not-found` (미노출)** | `client.ts`의 현재 쓰기 경로와 **불일치** — 이 인스턴스에서는 호출 불가 |
+| `update-file` | **존재 — 실제 쓰기 경로** | `{ id, session-id, revn, vern, changes[] }`. changes 변화 타입: `add-obj`·`del-obj`·`mod-obj`·`add-page`·`mod-page`·`mov-page`·`mov-objects`·`reorder-children`·`set-guide` 등 |
+| `add-page` (변화 타입) | **페이지 생성 경로** | `{ type: "add-page", id?, name?, page? }` — 독립 RPC 없이 이 변화 타입으로만 페이지 생성 가능 |
+| `create-page` 계열 | `~:not-found` | `create-page`/`add-page`/`duplicate-page`/`rename-page`/`delete-page` 전부 미노출 |
+| `get-files` | `~:not-found` (미노출) | `client.ts listFiles`의 이 경로도 이 인스턴스에서 동작하지 않음 (`get-projects`→`get-project`로 파일 조회) |
+| **path 셰이프 `add-obj`** | **생성 성공 (왕복 확인)** | `type: "path"` 유효. 서버 스키마 요구 필드: `content`(path 명령, `penpot/path-data`로 인코딩), `selrect`(x/y/width/height/x1/y1/x2/y2), `points`(4점), `transform`/`transform-inverse`(identity), `parent-id`/`frame-id` |
+
+→ **명세 영향**: (1) 쓰기 클라이언트는 `update-file` 기반으로 전환 필요 — 페이지 생성(`add-page`), 셰이프 생성(`add-obj`), 삭제(`del-obj`) 모두 이 RPC의 변화 타입으로 구현한다 (명세 7.2-5·7.3). (2) path 요소는 `add-obj`로 생성 가능하므로 POC 통과선에 포함한다 (명세 8.2). (3) 구현 전까지 idempotency는 기존 파일 내 페이지 교체로 제한 (명세 12장).
 
 ### 6.2 읽기 경로 (재조회)
 
@@ -136,6 +151,8 @@ Open Design은 "디자인 문서"를 내보내는 도구가 아니라 **웹 아�
 | --- | --- |
 | MCP 도구가 현재 태스크에 미노출 | 새 태스크에서 스냅샷 로드 (SKILL.md 안내). live smoke는 구현 단계 새 태스크에서 수행 |
 | 텍스트 1.5MB·200파일 cap | 대형 프로젝트 `truncated` 명시, 손실 보고. POC는 작은 샘플 1개 |
-| 바이너리 자산 미획득 | 외부 URL·라이선스는 사람 확인 항목으로 명시 (명세 6.4) |
+| 바이너리 자산 미획득 | 외부 URL·라이선스는 사람 확인 항목으로 명시 (명세 6.3) |
 | `create_element` svg placeholder | adapter가 SVG→Penpot 셰이프 변환을 구현 (명세 7장). Penpot native import 경로도 병행 검토 |
 | Open Design 버전 변경으로 도구 표면 변화 | 도구 이름·필드 실측 시점(2026-08-08, 앱 0.18.1, 플러그인 0.5.2) 고정, 번들 계약으로 격리 |
+
+> **리뷰 반영 (PR #34, Jason 리뷰 — 2026-08-08)**: H1 페이지 생성 RPC 실측(6.1), H2 path 셰이프 실측(6.1) 추가, M2 8장 참조 "(명세 6.4)"→"(명세 6.3)" 정정. 명세 측 반영 내역은 [명세 19장](../specs/019-open-design-handoff.md).
