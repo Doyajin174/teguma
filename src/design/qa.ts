@@ -16,6 +16,22 @@ import {
 import type { DesignDocument, DesignLayer, Frame } from "./document.js";
 import { evaluatePolicy, type PolicyViolation } from "./policy.js";
 import { measureTextBlock } from "./text-metrics.js";
+import {
+  runUiuxGateChecks,
+  type UiuxProfile,
+  type UiuxRoleExpectation,
+} from "./uiux-gate.js";
+
+export {
+  MICRO_SAAS_KOREAN_PROFILE,
+  type UiuxPaletteRole,
+  type UiuxPaletteRoleKey,
+  type UiuxProfile,
+  type UiuxRole,
+  type UiuxRoleExpectation,
+  type UiuxSurfaceRole,
+  type UiuxTextRole,
+} from "./uiux-gate.js";
 
 export interface QaCheck {
   name: string;
@@ -35,6 +51,38 @@ export interface QaReport {
 }
 
 export { contrastRatio } from "./color.js";
+
+/**
+ * POC profile-gate input (issue #24). The profile is a fixed constant copied
+ * from the ui-ux-pro-max skill DB, and the role expectations are the POC's
+ * private stand-in for schema-level role metadata, which is a later,
+ * separately approved decision. This surface is intentionally not re-exported
+ * from `src/design/index.ts`, so the public API and MCP tools are unchanged.
+ */
+export interface UiuxGateInput {
+  profile: UiuxProfile;
+  roles: UiuxRoleExpectation[];
+}
+
+/**
+ * POC QA gate: run the existing inspection and append the UI/UX Pro Max
+ * profile checks for a profile-enabled document. Plain `inspectDocument`
+ * callers keep the historic report shape; the new checks are appended in a
+ * fixed order and the existing contrast check stays the contrast authority.
+ */
+export function inspectDocumentWithUiuxProfile(
+  document: DesignDocument,
+  input: UiuxGateInput,
+): QaReport {
+  const base = inspectDocument(document);
+  const uiuxChecks = runUiuxGateChecks(document, base, input.profile, input.roles);
+  const checks = [...base.checks, ...uiuxChecks];
+  return {
+    ...base,
+    checks,
+    passed: checks.every((check) => check.pass),
+  };
+}
 
 function insideCanvas(frame: Frame, width: number, height: number): boolean {
   return frame.x >= 0
