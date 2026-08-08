@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - PPTX가 슬라이드 페이지 배경을 기록하지 않아 변환 시 배경과 텍스트 대비가 손실되던 문제
 - 정책 regex에서 bare `.` 와일드카드가 허용되던 문제를 allowlist 문법 검증으로 수정
 
+## [0.6.0] - 2026-08-09
+- feat: lint 게이트 구축 + iMac SSH 푸시 게이트 (#9) (#36)
+
 ## [0.5.0] - 2026-08-09
 - chore: package.json 버전 0.4.0으로 상향
 - docs: 당근 SEED 디자인 시스템 조사 + 연동 명세 (#25)

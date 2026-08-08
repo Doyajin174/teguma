@@ -1,6 +1,6 @@
 {
   "name": "teguma",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "AI-native design bridge — Penpot MCP + brand context engine",
   "type": "module",
   "main": "dist/index.js",
