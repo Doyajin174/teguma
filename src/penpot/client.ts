@@ -29,7 +29,10 @@ export class PenpotClient {
 
   constructor(config: PenpotClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, "");
-    this.headers = { "Content-Type": "application/json" };
+    // Penpot negotiates its response format. Without an explicit JSON `Accept` it
+    // answers in transit+json, whose keyword keys (`~:id`) do not match the plain
+    // field names this client reads, so every lookup silently came back empty.
+    this.headers = { "Content-Type": "application/json", "Accept": "application/json" };
 
     if (config.token) {
       this.headers["Authorization"] = `Bearer ${config.token}`;
@@ -103,10 +106,16 @@ export class PenpotClient {
   /** Get file pages (metadata only) */
   async getFilePages(fileId: string): Promise<Array<{ id: string; name: string }>> {
     const file = await this.rpc<any>("get-file", { id: fileId });
-    return (file?.data?.pages ?? []).map((p: any) => ({
-      id: p.id,
-      name: p.name,
-    }));
+    // 실측 (live smoke 2026-08-08): data.pages는 페이지 id 배열이고, 페이지
+    // 이름·객체는 data.pagesIndex[id]에 있다 — pagesIndex 기준으로 읽는다.
+    const fromIndex = filePagesFromIndex(file?.data?.pagesIndex);
+    if (fromIndex.length > 0) return fromIndex;
+    // 레거시 인스턴스 회귀 방지: data.pages가 {id, name} 객체 배열인 경우.
+    const legacy = file?.data?.pages;
+    if (Array.isArray(legacy) && legacy.length > 0 && typeof legacy[0] === "object") {
+      return legacy.map((p: any) => ({ id: p?.id ?? "", name: p?.name ?? "" }));
+    }
+    return [];
   }
 
   /** Get a specific page with full shape tree */
@@ -195,16 +204,35 @@ export class PenpotClient {
     return {
       id: raw?.id ?? data?.id ?? "",
       name: raw?.name ?? data?.name ?? "Untitled",
-      pages: (data?.pages ?? []).map((p: any) => this.normalizePage(p)),
+      pages: this.filePages(data),
       components: Object.values(data?.components ?? {}).map((c: any) => this.normalizeComponent(c)),
       colors: Object.values(data?.colors ?? {}).map((c: any) => this.normalizeColor(c)),
       typographies: Object.values(data?.typographies ?? {}).map((t: any) => this.normalizeTypography(t)),
     };
   }
 
+  /** data.pagesIndex(우선) 또는 레거시 data.pages 객체 배열로 페이지를 구성한다. */
+  private filePages(data: any): PenpotPage[] {
+    const index = data?.pagesIndex;
+    if (index !== undefined && Object.keys(index).length > 0) {
+      return Object.values(index).map((page) => this.normalizePage(page));
+    }
+    const legacy = data?.pages ?? [];
+    if (Array.isArray(legacy) && legacy.length > 0 && typeof legacy[0] === "object") {
+      return legacy.map((page) => this.normalizePage(page));
+    }
+    return [];
+  }
+
   private normalizePage(raw: any): PenpotPage {
     const objects = raw?.objects ?? {};
-    const rootId = raw?.id ?? "root";
+    const rootId = resolvePageRootId(objects, raw?.id);
+    if (objects[rootId] === undefined) {
+      console.warn(
+        `[penpot] page ${raw?.id ?? "(unknown)"}: 루트 객체(${rootId})를 찾지 못함 — ` +
+        `objects ${Object.keys(objects).length}개 중 매칭 없음`,
+      );
+    }
     const children = this.extractChildren(objects, rootId);
 
     return {
@@ -290,4 +318,27 @@ export class PenpotApiError extends Error {
     super(`Penpot API error [${status}] on ${method}: ${body.slice(0, 200)}`);
     this.name = "PenpotApiError";
   }
+}
+
+/**
+ * get-file의 data.pagesIndex → {id, name} 목록 (실측 2026-08-08:
+ * data.pages는 id 배열이고 이름·객체는 pagesIndex[id]에 있다).
+ * 순수 함수 — CI에서 단위 테스트한다 (14.2·리뷰 M5).
+ */
+export function filePagesFromIndex(index: unknown): Array<{ id: string; name: string }> {
+  if (index === undefined || index === null || typeof index !== "object") return [];
+  return Object.entries(index as Record<string, unknown>).map(([id, page]) => ({
+    id,
+    name: (page as { name?: string })?.name ?? "",
+  }));
+}
+
+/**
+ * 페이지 루트 객체 id 결정 (실측 2026-08-08 — 이 인스턴스는 페이지 id가
+ * 객체 키가 아니고 고정 root UUID `00000000-…`가 루트다).
+ * 순수 함수 — CI에서 단위 테스트한다 (14.2·리뷰 M5).
+ */
+export function resolvePageRootId(objects: Record<string, unknown>, pageId?: string): string {
+  if (pageId !== undefined && pageId in objects) return pageId;
+  return "00000000-0000-0000-0000-000000000000";
 }

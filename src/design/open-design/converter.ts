@@ -34,8 +34,14 @@ export interface PenpotSelrect {
 
 export type PenpotShapeObj = {
   id: string;
-  type: "frame" | "group" | "rect" | "circle" | "ellipse" | "path" | "text";
+  // ellipse는 Penpot 스키마에 없는 타입 — convertEllipse가 circle로 매핑한다
+  // (live smoke 실측 2026-08-08). 유니온에 ellipse를 두지 않는다.
+  type: "frame" | "group" | "rect" | "circle" | "path" | "text";
   name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   selrect: PenpotSelrect;
   points: Array<{ x: number; y: number }>;
   transform: PenpotMatrix;
@@ -111,6 +117,10 @@ export function convertSvgDocument(doc: SvgDocument, options: ConvertOptions): C
     id: frameId,
     type: "frame",
     name: frameName,
+    x: 0,
+    y: 0,
+    width: doc.frameWidth,
+    height: doc.frameHeight,
     selrect: selrectFor(0, 0, doc.frameWidth, doc.frameHeight),
     points: pointsFor(0, 0, doc.frameWidth, doc.frameHeight),
     transform: IDENTITY_MATRIX,
@@ -256,6 +266,10 @@ function convertGroup(element: SvgElement, ctx: ConvertContext, env: ElementEnv)
     id: deterministicUuid(`${ctx.options.sourceId12}:${element.path}`),
     type: "group",
     name,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
     selrect: selrectFor(0, 0, 0, 0),
     points: pointsFor(0, 0, 0, 0),
     transform: IDENTITY_MATRIX,
@@ -311,7 +325,9 @@ function convertEllipse(element: SvgElement, ctx: ConvertContext, env: ElementEn
   const ry = resolveLengthPx(element, ctx, "ry", "y") ?? 0;
   const cx = resolveLengthPx(element, ctx, "cx", "x") ?? 0;
   const cy = resolveLengthPx(element, ctx, "cy", "y") ?? 0;
-  const shape: PenpotShapeObj = baseShape(ctx, element, "ellipse", env, {
+  // Penpot 셰이프 스키마에는 ellipse 타입이 없다 — circle로 매핑 (rx/ry는
+  // selrect 크기로 표현. 실측: 서버 type 디스패치가 circle만 수용).
+  const shape: PenpotShapeObj = baseShape(ctx, element, "circle", env, {
     x: cx - rx, y: cy - ry, width: rx * 2, height: ry * 2,
   });
   applyPaint(element, ctx, shape);
@@ -339,7 +355,9 @@ function convertPath(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
   }
   // 8.1 — path bbox도 viewBox 좌표계 → px 스케일 (rect와 동일 규칙).
   const shape = baseShape(ctx, element, "path", env, rectToPx(ctx.viewport, bbox));
-  shape.content = commands;
+  // 실측 (live smoke 2026-08-08): 서버는 path content를 명령 배열이 아니라
+  // 정규화된 path 문자열로 저장한다 — 원본 d를 그대로 전달 (서버가 정규화).
+  shape.content = d;
   applyPaint(element, ctx, shape);
   env.shapes.push(shape);
   addToSummary(ctx.summary, "layers", { imported: 1 });
@@ -429,6 +447,10 @@ function convertText(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
       id: deterministicUuid(`${ctx.options.sourceId12}:${element.path}:line-${index}`),
       type: "text",
       name: lines.length === 1 ? name : `${name}-line-${index + 1}`,
+      x: round4(pos.x),
+      y: round4(top),
+      width: 0,
+      height: round4(fontSizePx),
       selrect: selrectFor(pos.x, top, 0, fontSizePx),
       points: pointsFor(pos.x, top, 0, fontSizePx),
       transform: IDENTITY_MATRIX,
@@ -617,7 +639,9 @@ function textContentTree(text: string): unknown {
       type: "paragraph-set",
       children: [{
         type: "paragraph",
-        children: [{ type: "text", value: text }],
+        // 실측 (live smoke 2026-08-08): Penpot text 리프 노드는 `value`가
+        // 아니라 `text` 키다 (`[:text :string]` — malli missing-key 실측).
+        children: [{ type: "text", text }],
       }],
     }],
   };
@@ -999,6 +1023,10 @@ function baseShape(
     id: deterministicUuid(`${ctx.options.sourceId12}:${element.path}`),
     type,
     name: elementName(element, ctx, element.path, type === "text" ? "text" : "layer"),
+    x: round4(rect.x),
+    y: round4(rect.y),
+    width: round4(rect.width),
+    height: round4(rect.height),
     selrect: selrectFor(rect.x, rect.y, rect.width, rect.height),
     points: pointsFor(rect.x, rect.y, rect.width, rect.height),
     transform: IDENTITY_MATRIX,
