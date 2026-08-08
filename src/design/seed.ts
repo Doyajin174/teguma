@@ -310,6 +310,8 @@ export interface SeedTokenDef {
   path: string;
   collection: string;
   values: Record<string, YamlValue>;
+  /** 토큰 설명(원문 유지, 선택). canonical 어댑터가 보존한다. */
+  description?: string;
 }
 
 export interface SeedRootageFile {
@@ -368,6 +370,7 @@ export function parseRootageYaml(source: string): SeedRootageFile {
       path,
       collection: collectionForPath(path, data.collection),
       values: rawDef.values,
+      ...(typeof rawDef.description === "string" ? { description: rawDef.description } : {}),
     });
   }
 
