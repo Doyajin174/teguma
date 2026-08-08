@@ -16,7 +16,9 @@
  * 지원 범주: color, font-family, font-weight, font-size, line-height,
  * letter-spacing, dimension. 그 외(radius/shadow/gradient/duration/scale/
  * component schema 등)는 조용히 버리지 않고 manifest.unsupported에 남긴다.
- * 지원 단위는 px와 rem(입력 root font-size 기준 환산)뿐이며, 다른 단위는 오류다.
+ * 지원 단위는 px와 rem(입력 root font-size 기준 환산)뿐이며, 그 외 단위
+ * (em·pt 등)와 단위 없는 길이 값은 변환을 중단하지 않고 manifest.unsupported로
+ * 보고한다.
  *
  * 의존성 정책: 새 의존성을 추가하지 않는다. YAML은 아래의 최소 블록 스타일
  * 서브셋 파서(주석·따옴표·블록 맵·블록 시퀀스·스칼라)로 읽는다. 플로우 컬렉션,
@@ -469,6 +471,11 @@ export const DEFAULT_ROOT_FONT_SIZE_PX = 16;
 const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/;
 const LENGTH_RE = /^(-?\d+(?:\.\d+)?)(px|rem)$/;
 const UNIT_SUFFIX_RE = /^(-?\d+(?:\.\d+)?)([a-z%]+)$/i;
+const UNITLESS_RE = /^-?\d+(?:\.\d+)?$/;
+
+type LengthNormalization =
+  | { status: "ok"; value: number; unit: "px" | "rem"; conversion?: { from: "rem"; rootFontSizePx: number } }
+  | { status: "unsupported"; reason: string };
 
 /**
  * 토큰별 실제 해석 mode. 색상은 호출 mode(테마), global foundation 토큰은
@@ -540,12 +547,12 @@ function normalizeLength(
   raw: YamlScalar,
   path: string,
   rootFontSizePx: number,
-): { value: number; unit: "px" | "rem"; conversion?: { from: "rem"; rootFontSizePx: number } } {
+): LengthNormalization {
   if (typeof raw === "number") {
     if (!Number.isFinite(raw) || raw < 0) {
       throw new SeedError(`invalid length ${raw} for ${path}: must be a finite non-negative number`, path);
     }
-    return { value: raw, unit: "px" };
+    return { status: "ok", value: raw, unit: "px" };
   }
   if (typeof raw !== "string") {
     throw new SeedError(`invalid length value ${JSON.stringify(raw)} for ${path}`, path);
@@ -560,49 +567,72 @@ function normalizeLength(
     }
     if (match[2] === "rem") {
       return {
+        status: "ok",
         value: numeric * rootFontSizePx,
         unit: "rem",
         conversion: { from: "rem", rootFontSizePx },
       };
     }
-    return { value: numeric, unit: "px" };
+    return { status: "ok", value: numeric, unit: "px" };
   }
 
   const unitMatch = UNIT_SUFFIX_RE.exec(length);
   if (unitMatch !== null) {
-    throw new SeedError(`unsupported unit ${JSON.stringify(unitMatch[2])} for ${path}; only px and rem are supported`, path);
+    return {
+      status: "unsupported",
+      reason: `unsupported unit "${unitMatch[2]}"; only px and rem are supported`,
+    };
+  }
+  if (UNITLESS_RE.test(length)) {
+    return {
+      status: "unsupported",
+      reason: "unit-less length; only px and rem are supported",
+    };
   }
   throw new SeedError(`invalid length value ${JSON.stringify(raw)} for ${path}: expected a px/rem length`, path);
 }
 
+type EntryNormalization =
+  | { status: "ok"; entry: SeedTokenEntry }
+  | { status: "unsupported"; entry: SeedUnsupportedEntry };
+
 function normalizeEntry(
-  base: { path: string; collection: string; mode: SeedMode; raw: YamlScalar },
+  base: { path: string; collection: string; mode: SeedMode; raw: YamlScalar; values: Record<string, YamlValue> },
   resolved: YamlScalar,
   category: SeedCategory,
   rootFontSizePx: number,
-): SeedTokenEntry {
-  const { path, collection, mode, raw } = base;
+): EntryNormalization {
+  const { path, collection, mode, raw, values } = base;
   switch (category) {
     case "color":
-      return { path, collection, mode, raw, value: normalizeColor(resolved, path), category };
+      return { status: "ok", entry: { path, collection, mode, raw, value: normalizeColor(resolved, path), category } };
     case "font-family":
-      return { path, collection, mode, raw, value: normalizeFontFamily(resolved, path), category };
+      return { status: "ok", entry: { path, collection, mode, raw, value: normalizeFontFamily(resolved, path), category } };
     case "font-weight":
-      return { path, collection, mode, raw, value: normalizeFontWeight(resolved, path), category };
+      return { status: "ok", entry: { path, collection, mode, raw, value: normalizeFontWeight(resolved, path), category } };
     case "font-size":
     case "line-height":
     case "letter-spacing":
     case "dimension": {
       const length = normalizeLength(resolved, path, rootFontSizePx);
+      if (length.status === "unsupported") {
+        return {
+          status: "unsupported",
+          entry: { path, collection, reason: length.reason, raw: stringifyRaw(values) },
+        };
+      }
       return {
-        path,
-        collection,
-        mode,
-        raw,
-        value: length.value,
-        category,
-        unit: length.unit,
-        ...(length.conversion !== undefined ? { conversion: length.conversion } : {}),
+        status: "ok",
+        entry: {
+          path,
+          collection,
+          mode,
+          raw,
+          value: length.value,
+          category,
+          unit: length.unit,
+          ...(length.conversion !== undefined ? { conversion: length.conversion } : {}),
+        },
       };
     }
   }
@@ -625,6 +655,9 @@ function buildBrandKit(
   const weights = entries.filter((entry) => entry.category === "font-weight");
   if (colors.length === 0 || families.length === 0 || weights.length === 0) return null;
 
+  // POC 한계: rootage는 family와 weight를 독립 토큰으로 분리해 두어 family↔weight
+  // 연관 관계를 알 수 없다. 따라서 모든 family에 전체 weight 합집합을 등록한다.
+  // family별 실제 weight 세트가 필요해지면 별도 매핑 입력/조사로 확장한다.
   return {
     id: `seed-${mode.replace(/^theme-/, "")}`,
     name: `SEED Rootage (${mode})`,
@@ -793,12 +826,17 @@ export function transformSeedRootage(
       throw new SeedError(`token ${def.path} resolves to a structured value; only scalar tokens are supported`, def.path);
     }
     const raw = resolveScalar(byPath, def.path, tokenMode, []);
-    tokens.push(normalizeEntry(
-      { path: def.path, collection: def.collection, mode: tokenMode, raw: direct },
+    const normalized = normalizeEntry(
+      { path: def.path, collection: def.collection, mode: tokenMode, raw: direct, values: def.values },
       raw,
       category,
       rootFontSizePx,
-    ));
+    );
+    if (normalized.status === "ok") {
+      tokens.push(normalized.entry);
+    } else {
+      unsupported.push(normalized.entry);
+    }
   }
 
   const typography = tokens.filter(

@@ -4,7 +4,8 @@
  * 이슈 #22 완료 조건을 고정 fixture(test/fixtures/seed-rootage.yaml)로 재현한다:
  * mode 선택(theme-light/theme-dark/default), "$" 참조 순환 해석, rem/px 정규화,
  * BrandKit/DesignDocument 스키마 통과, inspectDocument QA 통과, 결정론, 그리고
- * 오류 케이스(mode 부재·없는 참조·순환 참조·미지원 단위)와 unsupported 보고를 단언한다.
+ * 오류 케이스(mode 부재·없는 참조·순환 참조·잘못된 값)와 미지원 단위·범주의
+ * unsupported 보고를 단언한다.
  */
 
 import { readFileSync } from "node:fs";
@@ -264,15 +265,6 @@ describe("오류 케이스", () => {
       .toThrow(/circular token reference: \$dimension\.a -> \$dimension\.b -> \$dimension\.a/);
   });
 
-  it("알 수 없는 단위는 실패한다", () => {
-    const rootage = inlineRootage("global", `    $dimension.a:
-      values:
-        default: 12pt
-`);
-    expect(() => transformSeedRootage(rootage, { mode: "default" }))
-      .toThrow(/unsupported unit "pt"/);
-  });
-
   it("잘못된 색상 값은 실패한다", () => {
     const rootage = inlineRootage("color", `    $color.palette.bad:
       values:
@@ -386,6 +378,32 @@ describe("unsupported 보고", () => {
     expect(unsupportedOf(result, "$scale.s98")).toMatchObject({
       collection: "motion",
       reason: expect.stringContaining("scale"),
+    });
+    expect(result.manifest.tokens).toEqual([]);
+    expect(result.brandKit).toBeNull();
+  });
+
+  it("미지원 단위(em·pt 등)와 단위 없는 값은 변환을 중단하지 않고 unsupported로 보고한다", () => {
+    const rootage = inlineRootage("global", `    $dimension.a:
+      values:
+        default: 12pt
+    $dimension.b:
+      values:
+        default: 1.5em
+    $line-height.c:
+      values:
+        default: "1.5"
+`);
+    const result = transformSeedRootage(rootage, { mode: "default" });
+    expect(unsupportedOf(result, "$dimension.a")).toMatchObject({
+      collection: "global",
+      reason: expect.stringContaining('unsupported unit "pt"'),
+    });
+    expect(unsupportedOf(result, "$dimension.b")).toMatchObject({
+      reason: expect.stringContaining('unsupported unit "em"'),
+    });
+    expect(unsupportedOf(result, "$line-height.c")).toMatchObject({
+      reason: expect.stringContaining("unit-less"),
     });
     expect(result.manifest.tokens).toEqual([]);
     expect(result.brandKit).toBeNull();

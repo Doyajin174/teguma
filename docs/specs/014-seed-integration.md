@@ -40,14 +40,14 @@ SEED rootage YAML 또는 확정 생성 vars 스냅샷
 - px 길이는 유한한 양수 또는 0의 수치로 변환한다. `rem`은 POC가 입력에 명시한 root font-size를 기준으로 px로 환산한다.
 - 글꼴 굵기는 100–900 정수만 허용한다. 글꼴 family가 없는 토큰은 등록하지 않는다.
 - 원본 token path, collection, mode, 해석 전 값과 해석 후 값, 단위 변환 기준은 manifest에 남긴다. manifest는 QA가 소비하는 `DesignDocument`와 분리해 기존 스키마를 바꾸지 않는다.
-- radius, shadow, gradient, duration, recipe, component schema 및 지원하지 않는 단위는 `unsupported` 목록에 기록한다. 이 항목들은 조용히 버리거나 근사하지 않는다.
+- radius, shadow, gradient, duration, recipe, component schema, 지원하지 않는 단위(em·pt 등)와 단위 없는 길이 값은 변환을 중단하지 않고 `unsupported` 목록에 기록한다. 이 항목들은 조용히 버리거나 근사하지 않는다.
 
 ## 브랜드 키트 매핑
 
 | SEED 토큰 범주 | 변환 결과 | 현재 teguma 사용처 | POC 판정 |
 | --- | --- | --- | --- |
 | `$color.*` | `BrandKit.palette[]`의 `{ id, name, value }` | 색상 정규화, `brand-kit-respected`, 정책 색상 검사 | 지원 |
-| font family + `$font-weight.*` | `BrandKit.fonts[]`의 `{ family, weights }` | 텍스트 폰트·굵기 정규화와 위반 검출 | 지원; 글꼴 파일은 별도 제공 |
+| font family + `$font-weight.*` | `BrandKit.fonts[]`의 `{ family, weights }` | 텍스트 폰트·굵기 정규화와 위반 검출 | 지원; 글꼴 파일은 별도 제공. POC 한계: family↔weight 연관 부재 — 모든 family에 전체 weight 합집합 등록 |
 | `$font-size.*`, `$line-height.*`, letter spacing | typography scale 입력 | `TextLayer.fontSize`, `lineHeight`, `letterSpacing` 생성 | 지원; `BrandKit`에는 저장하지 않음 |
 | `$dimension.*`, `$dimension.spacing-*` | spacing scale 입력 | 템플릿 frame, gap, safe margin 계산 | 지원; 값만 적용 |
 | 아이콘/로고 자산 | 없음 | `BrandKit.logos[]` | POC 제외; 별도 승인 후 다룸 |
@@ -66,12 +66,12 @@ SEED Figma MCP의 REST API(PAT)와 플러그인/WebSocket 경로는 POC에서 �
 
 ## POC 완료 조건
 
-- [ ] 작은 rootage YAML fixture에서 `theme-light` 색상, 기본 타이포그래피, dimension 참조를 해석한다.
-- [ ] 해석 결과가 `BrandKitSchema`과 `DesignDocumentSchema`을 통과하고, 대표 문서의 `inspectDocument` 브랜드 키트 검사가 통과한다.
-- [ ] mode 부재, 없는 참조, 순환 참조, 지원하지 않는 값/단위의 실패 또는 `unsupported` 보고를 테스트한다.
-- [ ] 같은 fixture와 mode에서 동일한 manifest·BrandKit·문서 입력을 생성하는 회귀 테스트를 둔다.
-- [ ] Figma MCP를 사용할 경우 비밀 값 미기록과 read-only 동작을 수동 점검한다. PAT가 없으면 이 항목은 WebSocket 또는 fixture 기반 검증으로 대체하며, POC 자체의 차단 사유가 아니다.
-- [ ] POC 결과(지원 토큰 수, 미지원 종류, 대표 산출물)를 이 이슈 또는 후속 PR에 기록한다.
+- [x] 작은 rootage YAML fixture에서 `theme-light` 색상, 기본 타이포그래피, dimension 참조를 해석한다.
+- [x] 해석 결과가 `BrandKitSchema`과 `DesignDocumentSchema`을 통과하고, 대표 문서의 `inspectDocument` 브랜드 키트 검사가 통과한다.
+- [x] mode 부재, 없는 참조, 순환 참조, 지원하지 않는 값/단위의 실패 또는 `unsupported` 보고를 테스트한다.
+- [x] 같은 fixture와 mode에서 동일한 manifest·BrandKit·문서 입력을 생성하는 회귀 테스트를 둔다.
+- [x] Figma MCP를 사용할 경우 비밀 값 미기록과 read-only 동작을 수동 점검한다. PAT가 없으면 이 항목은 WebSocket 또는 fixture 기반 검증으로 대체하며, POC 자체의 차단 사유가 아니다. (POC는 Figma MCP 미사용 — fixture 기반 검증으로 대체)
+- [x] POC 결과(지원 토큰 수, 미지원 종류, 대표 산출물)를 이 이슈 또는 후속 PR에 기록한다. (PR #25에 기록)
 
 ## POC 계획
 
