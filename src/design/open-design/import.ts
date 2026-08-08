@@ -6,8 +6,10 @@
  *
  * - 쓰기 경로는 update-file 기반 (7.3 실측: commit-changes 미노출).
  *   PenpotWriter 인터페이스로 격리 — CI는 mock 경계 (14.2).
- * - 부분 성공 금지 (6.2): 검증·파싱 실패는 전체 실패. 쓰기 실패 시 이전
- *   페이지는 이름 변경 전이므로 원상 유지 (12.4 백업 규칙과 정합).
+ * - 부분 성공 금지 (6.2): 검증·파싱 실패는 전체 실패. update-file은 원자적 —
+ *   쓰기 실패 시 백업 이름 변경·페이지 생성·삭제 어느 것도 적용되지 않으므로
+ *   이전 페이지는 원상 유지 (12.4 백업 규칙과 정합). 실패 사실·계획된 백업
+ *   매핑은 status: "failed" import 기록으로 남긴다 (M5).
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
@@ -229,15 +231,25 @@ export async function importOpenDesign(options: ImportOpenDesignOptions): Promis
     writes.push({ type: "del-page", id: backup.pageId });
   }
 
-  const importing = !dryRun && fileId !== undefined && options.writer !== undefined;
-  if (importing && writes.length > 0 && options.writer !== undefined) {
-    await options.writer.updateFile(fileId, writes);
-  }
-
   // 7단계 — loss report + 저장 (canonical 문서·import 기록, 9·10장).
   const sourceSlug = sourceIdSlug(source.id);
   const importRoot = options.importRoot ?? join(process.cwd(), "data/imports", "open-design");
+  const importedAt = new Date().toISOString();
   let canonicalPath: string | undefined;
+
+  const importing = !dryRun && fileId !== undefined && options.writer !== undefined;
+  let writeError: unknown = null;
+  if (importing && writes.length > 0 && options.writer !== undefined) {
+    try {
+      await options.writer.updateFile(fileId, writes);
+    } catch (error) {
+      // M5 — update-file 실패 = 아무 변경도 적용되지 않음 (원자성). 실패 사실과
+      // 계획된 변경(백업 매핑 포함)을 status: "failed" 기록으로 남긴 뒤
+      // 원본 오류를 다시 던진다 — 사후 복구·조사 경로를 보장한다.
+      writeError = error;
+    }
+  }
+
   if (importing && canonical !== null) {
     const dir = join(importRoot, sourceSlug);
     await mkdir(dir, { recursive: true });
@@ -247,8 +259,10 @@ export async function importOpenDesign(options: ImportOpenDesignOptions): Promis
   if (importing) {
     const record = {
       schemaVersion: "0.1.0",
+      status: writeError === null ? "ok" : "failed",
+      ...(writeError !== null ? { error: errorMessage(writeError) } : {}),
       source,
-      importedAt: new Date().toISOString(),
+      importedAt,
       adapterVersion: IMPORT_ADAPTER_VERSION,
       fileId,
       entries: entries.map((entry) => ({
@@ -267,6 +281,7 @@ export async function importOpenDesign(options: ImportOpenDesignOptions): Promis
     await mkdir(importRoot, { recursive: true });
     await writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
   }
+  if (writeError !== null) throw writeError;
 
   const lossReport = buildLossReport({
     source: {
@@ -326,4 +341,8 @@ function mergeSummary(target: LossSummary, source: LossSummary): void {
       lossy: source[category].lossy,
     });
   }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

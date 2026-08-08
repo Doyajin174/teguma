@@ -158,13 +158,34 @@ export class PenpotClient {
     changes: Array<Record<string, unknown>>,
     params: { revn?: number; vern?: number } = {},
   ): Promise<void> {
+    // M3 — revn/vern 미지정 시 get-file에서 현재 리비전을 읽어 전송한다.
+    // 하드코딩 1은 stale revision으로 변경 충돌·유실 위험이 있다.
+    const revisions = await this.resolveRevisions(fileId, params.revn, params.vern);
     await this.rpc("update-file", {
       id: fileId,
       "session-id": crypto.randomUUID(),
-      revn: params.revn ?? 1,
-      vern: params.vern ?? 1,
+      revn: revisions.revn ?? 1,
+      vern: revisions.vern ?? 1,
       changes,
     });
+  }
+
+  /**
+   * get-file 응답에서 현재 revn/vern을 읽는다 (M3). 필드가 노출되지 않는
+   * 인스턴스 대비 1로 폴백한다 — 명시적 params가 있으면 그 값이 우선.
+   */
+  private async resolveRevisions(
+    fileId: string,
+    revn?: number,
+    vern?: number,
+  ): Promise<{ revn?: number; vern?: number }> {
+    if (revn !== undefined && vern !== undefined) return { revn, vern };
+    const raw = await this.rpc<any>("get-file", { id: fileId });
+    const data = raw?.data ?? raw ?? {};
+    return {
+      revn: revn ?? data.revn ?? raw?.revn ?? 1,
+      vern: vern ?? data.vern ?? raw?.vern ?? 1,
+    };
   }
 
   // --- Normalizers (Penpot internal format → teguma types) ---

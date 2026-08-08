@@ -184,7 +184,12 @@ export function resolveViewport(root: SvgElement, xml: XmlNode): SvgViewport {
   }
 
   const vb = viewBox;
-  if (par.mode === "none" || vb.width === 0 || vb.height === 0) {
+  // L4 — 0 이하 viewBox 크기는 스케일 분모가 0이 되어 NaN/Infinity 좌표를
+  // 만들 수 있다. 크기 해석 불가로 전체 실패 (width/height 규칙과 동일).
+  if (vb.width <= 0 || vb.height <= 0) {
+    throw new Error(`SVG 크기 해석 불가: viewBox="0 0 ${vb.width} ${vb.height}"`);
+  }
+  if (par.mode === "none") {
     return {
       mode: "none",
       hasViewBox: true,
@@ -310,46 +315,4 @@ export function rectToPx(viewport: SvgViewport, rect: RawRect): { x: number; y: 
   const p1 = toPx(viewport, rect.x, rect.y);
   const p2 = toPx(viewport, rect.x + rect.width, rect.y + rect.height);
   return { x: p1.x, y: p1.y, width: p2.x - p1.x, height: p2.y - p1.y };
-}
-
-/** 속성 사각형(x/y/width/height, 단위 허용) → px. 단위 손실은 lengthLosses에 기록. */
-export function pxRectFor(
-  attrs: Record<string, string>,
-  viewport: SvgViewport,
-  path: string,
-  losses: LengthLoss[],
-): { x: number; y: number; width: number; height: number } {
-  const x = resolveLength(attrs["x"], viewport, "x", path, losses);
-  const y = resolveLength(attrs["y"], viewport, "y", path, losses);
-  const width = resolveLength(attrs["width"], viewport, "x", path, losses);
-  const height = resolveLength(attrs["height"], viewport, "y", path, losses);
-  return { x: x ?? 0, y: y ?? 0, width: width ?? 0, height: height ?? 0 };
-}
-
-function resolveLength(
-  raw: string | undefined,
-  viewport: SvgViewport,
-  axis: "x" | "y",
-  path: string,
-  losses: LengthLoss[],
-): number | null {
-  const base = axis === "x" ? viewport.viewBox.width : viewport.viewBox.height;
-  const parsed = parseLengthToPx(raw, base, axis);
-  if (parsed === null) return null;
-  if (parsed.unit === null || parsed.unit === "px") return parsed.value;
-  if (Number.isNaN(parsed.value)) {
-    losses.push({ path, raw: raw as string, kind: "unsupported", unit: parsed.unit });
-    return null;
-  }
-  losses.push({ path, raw: raw as string, kind: "converted", px: parsed.value, unit: parsed.unit });
-  return parsed.value;
-}
-
-/** dominant-baseline 상속 해석 (기본 auto). */
-export function inheritedBaseline(node: SvgElement): string {
-  return node.effective["dominant-baseline"] ?? "auto";
-}
-
-export function inheritedAttr(node: SvgElement, name: string): string | undefined {
-  return node.effective[name];
 }

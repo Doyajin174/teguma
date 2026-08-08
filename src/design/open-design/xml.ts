@@ -24,15 +24,22 @@ export interface XmlNode {
   text: string;
 }
 
-function decodeEntities(input: string): string {
-  return input.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, body: string) => {
+function decodeEntities(input: string, offset = 0): string {
+  return input.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, body: string, matchOffset: number) => {
+    const at = offset + matchOffset;
     if (body.startsWith("#x") || body.startsWith("#X")) {
       const code = Number.parseInt(body.slice(2), 16);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+      if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) {
+        throw new XmlParseError(`코드포인트 범위 초과: ${match}`, at);
+      }
+      return String.fromCodePoint(code);
     }
     if (body.startsWith("#")) {
       const code = Number.parseInt(body.slice(1), 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+      if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) {
+        throw new XmlParseError(`코드포인트 범위 초과: ${match}`, at);
+      }
+      return String.fromCodePoint(code);
     }
     switch (body) {
       case "amp": return "&";
@@ -57,18 +64,19 @@ export function parseXml(source: string): XmlNode {
   const stack: OpenElement[] = [{ node: root }];
   let offset = 0;
 
-  const appendText = (text: string): void => {
+  // H2 — 텍스트 노드도 속성 값과 동일한 엔티티 디코딩을 적용한다.
+  const appendText = (text: string, textOffset: number): void => {
     if (text === "") return;
-    stack[stack.length - 1].node.text += text;
+    stack[stack.length - 1].node.text += decodeEntities(text, textOffset);
   };
 
   while (offset < source.length) {
     const open = source.indexOf("<", offset);
     if (open === -1) {
-      appendText(source.slice(offset));
+      appendText(source.slice(offset), offset);
       break;
     }
-    appendText(source.slice(offset, open));
+    appendText(source.slice(offset, open), offset);
 
     // 주석
     if (source.startsWith("<!--", open)) {
@@ -87,8 +95,15 @@ export function parseXml(source: string): XmlNode {
     }
     // DOCTYPE — 내부 DTD는 건너뛴다 (외부 엔티티 로딩 금지).
     if (/^<!DOCTYPE/i.test(source.slice(open))) {
-      const end = source.indexOf(">", open);
+      let end = source.indexOf(">", open);
       if (end === -1) throw new XmlParseError("DOCTYPE 종료 없음", open);
+      // 내부 서브셋(<!DOCTYPE svg [ ... ]>) — 첫 '>'가 서브셋 안에 있을 수 있다.
+      const subsetStart = source.indexOf("[", open);
+      if (subsetStart !== -1 && subsetStart < end) {
+        const subsetEnd = source.indexOf("]>", subsetStart);
+        if (subsetEnd === -1) throw new XmlParseError("DOCTYPE 내부 서브셋 종료(]) 없음", open);
+        end = subsetEnd + 1;
+      }
       offset = end + 1;
       continue;
     }
@@ -183,7 +198,7 @@ function parseOpenTag(source: string, open: number): ParsedOpenTag {
     const valueStart = cursor + 1;
     const valueEnd = source.indexOf(quote, valueStart);
     if (valueEnd === -1) throw new XmlParseError(`속성 값 종료 없음: ${attrName}`, open + cursor);
-    attrs[attrName] = decodeEntities(source.slice(valueStart, valueEnd));
+    attrs[attrName] = decodeEntities(source.slice(valueStart, valueEnd), open + valueStart);
     cursor = valueEnd + 1;
   }
 }

@@ -13,6 +13,7 @@ import { parseSvgColor, parseOpacity, clampAlpha } from "./color.js";
 import {
   parseLengthToPx,
   rectToPx,
+  toPx,
   type SvgDocument,
   type SvgElement,
   type SvgViewport,
@@ -336,7 +337,8 @@ function convertPath(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
     reportUnsupportedPath(element, ctx, "path d에서 좌표를 해석할 수 없음", d);
     return;
   }
-  const shape = baseShape(ctx, element, "path", env, bbox);
+  // 8.1 — path bbox도 viewBox 좌표계 → px 스케일 (rect와 동일 규칙).
+  const shape = baseShape(ctx, element, "path", env, rectToPx(ctx.viewport, bbox));
   shape.content = commands;
   applyPaint(element, ctx, shape);
   env.shapes.push(shape);
@@ -399,16 +401,24 @@ function convertText(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
   const lines = resolveTextLines(element, ctx);
   const lineShapes: PenpotShapeObj[] = [];
   let elementLossy = false;
+  // H1 — viewBox 좌표계 → px 스케일 (8.1, rect/circle/ellipse/path와 동일 규칙).
+  // fontSize·line-height는 세로 계열 길이이므로 sy를 적용한다.
+  const fontSizePx = fontSize * ctx.viewport.scale.sy;
 
   lines.forEach((line, index) => {
-    const top = baselineTopY(line.y, baseline, fontSize);
+    const pos = toPx(ctx.viewport, line.x, line.y);
+    const lineHeightPx = line.lineHeight === undefined
+      ? undefined
+      : line.lineHeight * ctx.viewport.scale.sy;
+    // baseline·line-height 보정은 스케일 적용 후 계산한다 (H1).
+    const top = baselineTopY(pos.y, baseline, fontSizePx);
     const baselineExact = baseline === "middle" || baseline === "central"
       || baseline === "hanging" || baseline === "text-before-edge";
     if (!baselineExact) {
       ctx.losses.push(buildLossItem({
         category: "text", severity: "lossy", code: "baseline-estimated",
         path: pathOf(ctx, element.path),
-        reason: `baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = ${round4(fontSize * 0.8)}px 보수 추정)`,
+        reason: `baseline → 박스 상단 보정 (ascent ≈ font-size × 0.8 = ${round4(fontSizePx * 0.8)}px 보수 추정)`,
         original: { x: round4(line.x), y: round4(line.y), fontSize: round4(fontSize), dominantBaseline: baseline },
         converted: { value: round4(top), unit: "px" },
       }));
@@ -419,8 +429,8 @@ function convertText(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
       id: deterministicUuid(`${ctx.options.sourceId12}:${element.path}:line-${index}`),
       type: "text",
       name: lines.length === 1 ? name : `${name}-line-${index + 1}`,
-      selrect: selrectFor(line.x, top, 0, fontSize),
-      points: pointsFor(line.x, top, 0, fontSize),
+      selrect: selrectFor(pos.x, top, 0, fontSizePx),
+      points: pointsFor(pos.x, top, 0, fontSizePx),
       transform: IDENTITY_MATRIX,
       "transform-inverse": IDENTITY_MATRIX,
       "parent-id": env.parentId,
@@ -428,10 +438,10 @@ function convertText(element: SvgElement, ctx: ConvertContext, env: ElementEnv):
       content: textContentTree(line.text),
     };
     if (family !== undefined) shape["font-family"] = family;
-    shape["font-size"] = round4(fontSize);
+    shape["font-size"] = round4(fontSizePx);
     const weight = element.effective["font-weight"];
     if (weight !== undefined) shape["font-weight"] = weight;
-    if (line.lineHeight !== undefined) shape["line-height"] = round4(line.lineHeight);
+    if (lineHeightPx !== undefined) shape["line-height"] = round4(lineHeightPx);
     if (anchor !== "start") {
       shape["text-align"] = anchor === "middle" ? "center" : "right";
       ctx.losses.push(buildLossItem({
@@ -793,13 +803,27 @@ export function parsePathData(d: string): PathCommand[] | null {
   return commands;
 }
 
-/** on-curve + 컨트롤 포인트 포함 바운딩 박스 (결정적·보수적 — 8.2). */
+/**
+ * path 바운딩 박스 (8.2 — 결정적·보수적).
+ *
+ * - on-curve + 컨트롤 포인트 포함 (베지어는 컨벡스 헐 내부 — 보수적).
+ * - S/T 반사 제어점은 parsePathData와 동일 규칙으로 재구성해 포함 (M2).
+ * - arc는 endpoint→중심 파라미터화(SVG F.6.5)로 타원 극값 각도를 계산하고,
+ *   해당 각도가 호에 포함될 때만 흡수 — endpoint±(rx,ry) 근사 제거 (M1).
+ */
 function pathBBox(commands: PathCommand[]): { x: number; y: number; width: number; height: number } | null {
   let minX = Number.POSITIVE_INFINITY;
   let minY = Number.POSITIVE_INFINITY;
   let maxX = Number.NEGATIVE_INFINITY;
   let maxY = Number.NEGATIVE_INFINITY;
   let hasPoint = false;
+  // 커서 상태 — S/T 반사 제어점·arc 시작점 계산용 (parsePathData와 동일 규칙).
+  let x = 0;
+  let y = 0;
+  let subpathStartX = 0;
+  let subpathStartY = 0;
+  let lastCubicControl: { x: number; y: number } | null = null;
+  let lastQuadControl: { x: number; y: number } | null = null;
   const absorb = (px: number, py: number): void => {
     if (!Number.isFinite(px) || !Number.isFinite(py)) return;
     hasPoint = true;
@@ -809,29 +833,155 @@ function pathBBox(commands: PathCommand[]): { x: number; y: number; width: numbe
     maxY = Math.max(maxY, py);
   };
   for (const command of commands) {
-    const params = command.params;
-    if (command.command === "move-to" || command.command === "line-to") {
-      absorb(params[0], params[1]);
-    } else if (command.command === "curve-to") {
-      absorb(params[0], params[1]);
-      absorb(params[2], params[3]);
-      absorb(params[4], params[5]);
-    } else if (command.command === "smooth-curve-to") {
-      absorb(params[0], params[1]);
-      absorb(params[2], params[3]);
-    } else if (command.command === "quadratic-bezier-curve-to") {
-      absorb(params[0], params[1]);
-      absorb(params[2], params[3]);
-    } else if (command.command === "smooth-quadratic-bezier-curve-to") {
-      absorb(params[0], params[1]);
-    } else if (command.command === "arc") {
-      absorb(params[5], params[6]);
-      absorb(params[5] - params[0], params[6] - params[1]);
-      absorb(params[5] + params[0], params[6] + params[1]);
+    const p = command.params;
+    switch (command.command) {
+      case "move-to":
+        absorb(p[0], p[1]);
+        x = p[0];
+        y = p[1];
+        subpathStartX = x;
+        subpathStartY = y;
+        lastCubicControl = null;
+        lastQuadControl = null;
+        break;
+      case "line-to":
+        absorb(p[0], p[1]);
+        x = p[0];
+        y = p[1];
+        break;
+      case "curve-to":
+        absorb(p[0], p[1]);
+        absorb(p[2], p[3]);
+        absorb(p[4], p[5]);
+        lastCubicControl = { x: p[2], y: p[3] };
+        x = p[4];
+        y = p[5];
+        break;
+      case "smooth-curve-to": {
+        const reflected: { x: number; y: number } = lastCubicControl === null
+          ? { x, y }
+          : { x: 2 * x - lastCubicControl.x, y: 2 * y - lastCubicControl.y };
+        absorb(reflected.x, reflected.y);
+        absorb(p[0], p[1]);
+        absorb(p[2], p[3]);
+        lastCubicControl = { x: p[0], y: p[1] };
+        x = p[2];
+        y = p[3];
+        break;
+      }
+      case "quadratic-bezier-curve-to":
+        absorb(p[0], p[1]);
+        absorb(p[2], p[3]);
+        lastQuadControl = { x: p[0], y: p[1] };
+        x = p[2];
+        y = p[3];
+        break;
+      case "smooth-quadratic-bezier-curve-to": {
+        const reflected: { x: number; y: number } = lastQuadControl === null
+          ? { x, y }
+          : { x: 2 * x - lastQuadControl.x, y: 2 * y - lastQuadControl.y };
+        absorb(reflected.x, reflected.y);
+        absorb(p[0], p[1]);
+        lastQuadControl = reflected;
+        x = p[0];
+        y = p[1];
+        break;
+      }
+      case "arc": {
+        absorbArc(absorb, x, y, p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
+        x = p[5];
+        y = p[6];
+        lastCubicControl = null;
+        lastQuadControl = null;
+        break;
+      }
+      case "close-path":
+        x = subpathStartX;
+        y = subpathStartY;
+        lastCubicControl = null;
+        lastQuadControl = null;
+        break;
     }
   }
   if (!hasPoint) return null;
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+const TWO_PI = Math.PI * 2;
+
+/**
+ * arc 참값 bbox — endpoint→중심 파라미터화 (SVG F.6.5) 후 타원 극값 각도
+ * (dx/dθ=0·dy/dθ=0)가 호의 각도 스팬에 포함되는지 판정한다.
+ * rx=0/ry=0(직선, F.6.6.3)·비유한수 입력은 endpoint만 흡수한다.
+ */
+function absorbArc(
+  absorb: (px: number, py: number) => void,
+  x1: number,
+  y1: number,
+  rx: number,
+  ry: number,
+  phiDeg: number,
+  largeArc: number,
+  sweep: number,
+  x2: number,
+  y2: number,
+): void {
+  absorb(x1, y1);
+  absorb(x2, y2);
+  if (rx === 0 || ry === 0) return;
+  if (![rx, ry, phiDeg, largeArc, sweep, x1, y1, x2, y2].every(Number.isFinite)) return;
+
+  const phi = (phiDeg * Math.PI) / 180;
+  const cosPhi = Math.cos(phi);
+  const sinPhi = Math.sin(phi);
+  const dx2 = (x1 - x2) / 2;
+  const dy2 = (y1 - y2) / 2;
+  const x1p = cosPhi * dx2 + sinPhi * dy2;
+  const y1p = -sinPhi * dx2 + cosPhi * dy2;
+  let rxAbs = Math.abs(rx);
+  let ryAbs = Math.abs(ry);
+  // F.6.6.2 — 반지름 확대 보정 (lambda > 1이면 rx·ry를 비례 확대).
+  const lambda = (x1p * x1p) / (rxAbs * rxAbs) + (y1p * y1p) / (ryAbs * ryAbs);
+  if (lambda > 1) {
+    const s = Math.sqrt(lambda);
+    rxAbs *= s;
+    ryAbs *= s;
+  }
+  const denom = rxAbs * rxAbs * y1p * y1p + ryAbs * ryAbs * x1p * x1p;
+  const coef = denom === 0 ? 0 : Math.sqrt(Math.max(0, (rxAbs * rxAbs * ryAbs * ryAbs - denom) / denom));
+  const sign = largeArc === sweep ? -1 : 1;
+  const cxp = sign * coef * ((rxAbs * y1p) / ryAbs);
+  const cyp = sign * coef * ((-ryAbs * x1p) / rxAbs);
+  const cx = cosPhi * cxp - sinPhi * cyp + (x1 + x2) / 2;
+  const cy = sinPhi * cxp + cosPhi * cyp + (y1 + y2) / 2;
+
+  const theta1 = Math.atan2((y1p - cyp) / ryAbs, (x1p - cxp) / rxAbs);
+  const theta2 = Math.atan2((-y1p - cyp) / ryAbs, (-x1p - cxp) / rxAbs);
+  // F.6.5.5 — 부호 있는 각도 스팬 (sweep=1: 양의 방향, sweep=0: 음의 방향).
+  const delta = sweep === 1
+    ? ((theta2 - theta1) % TWO_PI + TWO_PI) % TWO_PI
+    : -(((theta1 - theta2) % TWO_PI + TWO_PI) % TWO_PI);
+  const onArc = (theta: number): boolean => {
+    const t = ((theta - theta1) % TWO_PI + TWO_PI) % TWO_PI;
+    return delta >= 0 ? t <= delta : t >= TWO_PI + delta;
+  };
+  const pointAt = (theta: number): { x: number; y: number } => ({
+    x: cx + rxAbs * Math.cos(theta) * cosPhi - ryAbs * Math.sin(theta) * sinPhi,
+    y: cy + rxAbs * Math.cos(theta) * sinPhi + ryAbs * Math.sin(theta) * cosPhi,
+  });
+  // 극값 후보 각도 (θ, θ+π) — dx/dθ=0·dy/dθ=0.
+  const candidates = [
+    Math.atan2(-ryAbs * sinPhi, rxAbs * cosPhi),
+    Math.atan2(ryAbs * cosPhi, rxAbs * sinPhi),
+  ];
+  for (const theta of candidates) {
+    for (const candidate of [theta, theta + Math.PI]) {
+      if (onArc(candidate)) {
+        const point = pointAt(candidate);
+        absorb(point.x, point.y);
+      }
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
