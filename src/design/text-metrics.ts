@@ -252,8 +252,6 @@ export function wrapText(text: string, options: WrapTextOptions): WrappedText {
       if (tokenWidth > maxWidth) {
         if (line.length > 0) {
           lines.push(line.trimEnd());
-          line = "";
-          lineWidth = 0;
         }
         const fragments = splitLongToken(token, maxWidth, fontSize, letterSpacing, metrics);
         lines.push(...fragments.slice(0, -1));

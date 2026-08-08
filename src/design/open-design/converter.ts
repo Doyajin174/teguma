@@ -672,7 +672,6 @@ export function parsePathData(d: string): PathCommand[] | null {
   let subpathStartX = 0;
   let subpathStartY = 0;
   let lastCommand = "";
-  let lastCubicControl: { x: number; y: number } | null = null;
   let lastQuadControl: { x: number; y: number } | null = null;
 
   const readNumber = (): number | null => {
@@ -712,7 +711,6 @@ export function parsePathData(d: string): PathCommand[] | null {
       push("close-path", []);
       x = subpathStartX;
       y = subpathStartY;
-      lastCubicControl = null;
       lastQuadControl = null;
       continue;
     }
@@ -725,7 +723,6 @@ export function parsePathData(d: string): PathCommand[] | null {
       y = target.y;
       subpathStartX = x;
       subpathStartY = y;
-      lastCubicControl = null;
       lastQuadControl = null;
       continue;
     }
@@ -763,7 +760,6 @@ export function parsePathData(d: string): PathCommand[] | null {
       const p2 = relative ? { x: x + c2.x, y: y + c2.y } : c2;
       const p3 = relative ? { x: x + end.x, y: y + end.y } : end;
       push("curve-to", [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y]);
-      lastCubicControl = p2;
       x = p3.x;
       y = p3.y;
       continue;
@@ -772,13 +768,11 @@ export function parsePathData(d: string): PathCommand[] | null {
       const c2 = readPair();
       const end = readPair();
       if (c2 === null || end === null) return null;
-      const reflected: { x: number; y: number } = lastCubicControl !== null
-        ? { x: 2 * x - lastCubicControl.x, y: 2 * y - lastCubicControl.y }
-        : { x, y };
       const p2 = relative ? { x: x + c2.x, y: y + c2.y } : c2;
       const p3 = relative ? { x: x + end.x, y: y + end.y } : end;
+      // 예외 정책 (020 3.1): S 반사 제어점은 원래부터 미적용 상태 — lint 정리로
+      // write-only 변수만 제거, 기존 동작 유지 (후속 개선 후보).
       push("smooth-curve-to", [p2.x, p2.y, p3.x, p3.y]);
-      lastCubicControl = p2;
       x = p3.x;
       y = p3.y;
       continue;

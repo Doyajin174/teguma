@@ -63,7 +63,6 @@ export function resolveImportAction(
   slug?: string,
 ): ResolvedImportAction {
   const id12 = sourceId12(sourceId);
-  const hash12 = hash12Of(contentHash);
   const pageName = handoffPageName(sourceId, contentHash, slug);
 
   const pattern = slug === undefined

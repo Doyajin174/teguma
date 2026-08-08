@@ -326,7 +326,7 @@ export function validateFontFiles(fontFiles: readonly string[]): string[] {
         throw error;
       }
       const detail = error instanceof Error && error.message ? `: ${error.message}` : "";
-      throw new Error(`Font file is not readable: ${fontFile}${detail}`);
+      throw new Error(`Font file is not readable: ${fontFile}${detail}`, { cause: error });
     } finally {
       if (descriptor !== undefined) closeSync(descriptor);
     }

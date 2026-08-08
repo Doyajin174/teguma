@@ -187,6 +187,7 @@ export async function loadProject(store: DesignProjectStore, id: string): Promis
   } catch (error) {
     throw new Error(
       `Design project "${id}" contains invalid JSON and may be truncated or corrupt: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 
@@ -194,7 +195,7 @@ export async function loadProject(store: DesignProjectStore, id: string): Promis
     return parseStoredProject(value, id);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(`Design project "${id}" fails schema validation: ${error.message}`);
+      throw new Error(`Design project "${id}" fails schema validation: ${error.message}`, { cause: error });
     }
     throw error;
   }

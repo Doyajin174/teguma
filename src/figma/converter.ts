@@ -5,7 +5,7 @@
  * data structures that can be committed via Penpot's RPC API.
  */
 
-import type { FigmaFile, FigmaNode, FigmaPaint, FigmaStyle, FigmaComponent } from "./client.js";
+import type { FigmaFile, FigmaNode, FigmaStyle, FigmaComponent } from "./client.js";
 import type { PenpotColor, PenpotTypography, PenpotComponent } from "../penpot/types.js";
 
 export interface ConversionResult {

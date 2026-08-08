@@ -159,7 +159,7 @@ function parseViewBox(value: string | undefined): RawRect | null {
   return { x: parts[0], y: parts[1], width: parts[2], height: parts[3] };
 }
 
-export function resolveViewport(root: SvgElement, xml: XmlNode): SvgViewport {
+export function resolveViewport(root: SvgElement, _xml: XmlNode): SvgViewport {
   const rawWidth = root.attrs["width"];
   const rawHeight = root.attrs["height"];
   const viewBox = parseViewBox(root.attrs["viewBox"]);
@@ -267,7 +267,7 @@ const LENGTH_RE = /^([+-]?(?:\d+\.?\d*|\.\d+))(px|rem|em|%|vw|vh|vmin|vmax|cm|mm
 export function parseLengthToPx(
   raw: string | undefined,
   base: number,
-  axis: "x" | "y",
+  _axis: "x" | "y",
 ): { value: number; unit: string | null; lossy: boolean } | null {
   if (raw === undefined) return null;
   const text = raw.trim();
@@ -286,7 +286,7 @@ export function parseLengthToPx(
 }
 
 /** width/height 속성 — %는 viewport 기준이 아니라 값 자체로 해석이 애매하므로 px/단위 없음만 지원하고 %는 viewBox 우선. */
-function parsePositiveLength(raw: string | undefined, viewBoxFallback: number | null, name: string): number {
+function parsePositiveLength(raw: string | undefined, viewBoxFallback: number | null, _name: string): number {
   if (raw === undefined) {
     if (viewBoxFallback !== null) return viewBoxFallback;
     return NaN;

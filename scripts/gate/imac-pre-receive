@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# iMac bare repo pre-receive (명세 020 4.2) — 푸시되는 커밋으로 work 파일을
+# 갱신하고 게이트를 실행한다. 실패 시 exit 1 → ref 업데이트 전에 푸시 거부.
+# (post-receive는 푸시를 거부할 수 없으므로 게이트는 pre-receive가 담당)
+#
+# 설치 (iMac, 1회):
+#   cp scripts/gate/imac-pre-receive ~/ci/teguma.git/hooks/pre-receive
+#   cp scripts/gate/imac-post-receive ~/ci/teguma.git/hooks/post-receive
+#   chmod +x ~/ci/teguma.git/hooks/pre-receive ~/ci/teguma.git/hooks/post-receive
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+
+BARE="$HOME/ci/teguma.git"
+WORK="$HOME/ci/teguma-work"
+GATE_FAILED=0
+
+while read -r _old new ref; do
+  case "$ref" in
+    refs/heads/*)
+      branch="${ref#refs/heads/}"
+      # 브랜치 삭제 푸시(new = 전부 0)는 게이트 대상이 아니다.
+      if [[ "$new" =~ ^0+$ ]]; then
+        echo "== [pre-receive] branch delete: $branch (게이트 생략) =="
+        continue
+      fi
+      echo "== [pre-receive] gate: $branch @ ${new:0:12} =="
+      # 푸시된 트리로 work를 정확히 동기화 (삭제·리네임 포함, 리뷰 M1):
+      # 임시 ref로 fetch → reset --hard → clean (node_modules는 유지).
+      TMPREF="refs/gate/${branch}-${new:0:12}"
+      git --git-dir="$BARE" update-ref "$TMPREF" "$new"
+      git -C "$WORK" fetch -q origin "+$TMPREF:$TMPREF"
+      git -C "$WORK" reset --hard -q "$TMPREF"
+      git -C "$WORK" clean -fdx -q -e node_modules
+      git --git-dir="$BARE" update-ref -d "$TMPREF"
+      if (cd "$WORK" && scripts/gate/run.sh); then
+        echo "== [pre-receive] gate OK ($branch) =="
+      else
+        echo "== [pre-receive] GATE FAILED ($branch) — 푸시 거부 ==" >&2
+        GATE_FAILED=1
+      fi
+      ;;
+  esac
+done
+
+if [[ "$GATE_FAILED" -ne 0 ]]; then
+  exit 1
+fi

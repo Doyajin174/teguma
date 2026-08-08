@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# GitHub 푸시 전 iMac SSH 게이트 (이슈 #9 — GitHub Actions 대체).
+#
+# iMac bare repo(~/ci/teguma.git)의 post-receive가 lint·tsc·test·build를
+# 실행하고, 실패하면 iMac 푸시가 거부되어 GitHub 푸시도 차단된다.
+#
+# 설치: git config core.hooksPath scripts/hooks
+# 원격: git remote add imac imac:~/ci/teguma.git
+set -euo pipefail
+
+REMOTE_URL="${2:-}"
+# iMac 원격으로 가는 푸시는 게이트 대상이 아니다 (재귀 방지 — 원격명 기준, 리뷰 NIT).
+if [[ "$1" == "imac" ]]; then
+  exit 0
+fi
+
+if ! git remote get-url imac >/dev/null 2>&1; then
+  echo "오류: 'imac' 원격이 없습니다 — 'git remote add imac imac:~/ci/teguma.git' 후 재시도" >&2
+  exit 1
+fi
+
+# 실제 푸시되는 ref 각각을 게이트한다 (리뷰 M2 — stdin refs 기준).
+# stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue # 로컬 삭제 푸시는 게이트 대상 아님
+  fi
+  refspec="${local_ref:+$local_ref:}$remote_ref"
+  echo "== [pre-push] iMac 게이트: $remote_ref =="
+  git push --force-with-lease imac "$refspec" || {
+    echo "== [pre-push] iMac 게이트 실패 — GitHub 푸시 차단 ==" >&2
+    exit 1
+  }
+  echo "== [pre-push] iMac 게이트 통과: $remote_ref =="
+done

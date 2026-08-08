@@ -124,6 +124,8 @@ function flattenPng(pngBuffer: Buffer, backgroundColor: string): Buffer {
  * Control bytes are octal escaped so they cannot change PDF tokenization.
  */
 function pdfEscape(value: string): string {
+  // 의도된 제어문자 이스케이프 (PDF 토큰화 보호) — 예외 정책 020 3.1.
+  // eslint-disable-next-line no-control-regex
   return value.replace(/[\\()\u0000-\u001F\u007F]/g, (character) => {
     if (character === "\\" || character === "(" || character === ")") {
       return `\\${character}`;
