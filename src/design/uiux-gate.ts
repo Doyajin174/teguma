@@ -42,8 +42,6 @@ export interface UiuxProfile {
   bodyMinFontSize: number;
   /** Body line-height range (ux-guidelines.csv No. 72). */
   bodyLineHeight: readonly [number, number];
-  /** Normal-text contrast floor (ux-guidelines.csv No. 36). */
-  contrastThreshold: number;
 }
 
 /**
@@ -56,7 +54,10 @@ export interface UiuxProfile {
  *   (On Accent #FFFFFF is the accent role pair per the POC spec).
  * - typography.csv `Korean Modern`: Heading Font/Body Font = Noto Sans KR.
  * - ux-guidelines.csv No. 36 (4.5:1 contrast), No. 72 (line height
- *   1.5-1.75), No. 74 (type scale 12/14/16/18/24/32).
+ *   1.5-1.75), No. 74 (type scale 12/14/16/18/24/32). The 4.5:1 floor has no
+ *   field here on purpose: it stays with the existing
+ *   `text-contrast-at-least-4.5` check, which this gate references instead
+ *   of re-computing ratios.
  */
 export const MICRO_SAAS_KOREAN_PROFILE: UiuxProfile = {
   name: "micro-saas-korean",
@@ -76,7 +77,6 @@ export const MICRO_SAAS_KOREAN_PROFILE: UiuxProfile = {
   typeScale: [12, 14, 16, 18, 24, 32],
   bodyMinFontSize: 16,
   bodyLineHeight: [1.5, 1.75],
-  contrastThreshold: 4.5,
 };
 
 export type UiuxTextRole = "heading" | "body" | "on-primary" | "on-accent";
@@ -139,7 +139,11 @@ function isTextRole(role: UiuxRole): role is UiuxTextRole {
 /**
  * Allowed color list. A brand kit takes precedence over the profile as the
  * permitted list; the profile is a recommendation and never overrides the
- * customer's brand (POC contract 5).
+ * customer's brand (POC contract 5). The brand kit only decides which colors
+ * are *allowed*; role expectations still compare against the profile's role
+ * colors because brand-kit swatches carry no role semantics (id/name/value
+ * only). A layer can therefore be inside the kit yet reported as a role
+ * mismatch — that mixed scenario is intentional and covered by a test.
  */
 function allowedColors(document: DesignDocument, profile: UiuxProfile): string[] {
   const brandKit = document.brandKit;

@@ -356,4 +356,286 @@ describe("ui-ux-pro-max QA gate POC", () => {
     expect(check(report, "brand-kit-respected")).toMatchObject({ pass: true });
     expect(report.passed).toBe(true);
   });
+
+  it("fails font pairing for a heading outside the profile pairing", () => {
+    const document = parseDesignDocument({
+      id: "uiux-font-violation",
+      title: "font violation",
+      canvas: { width: 1080, height: 1080 },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [{
+          id: "heading-off",
+          type: "text",
+          frame: { x: 40, y: 40, width: 1000, height: 100 },
+          text: "Heading",
+          fontFamily: "Arial",
+          fontSize: 24,
+          lineHeight: 1.5,
+          color: "#1E1B4B",
+        }],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [{ pageId: "p1", layerId: "heading-off", role: "heading" }],
+    });
+
+    expect(check(report, "uiux-font-pairing")).toEqual({
+      name: "uiux-font-pairing",
+      pass: false,
+      detail:
+        'p1/heading-off (heading: font family "Arial" not in micro-saas-korean pairing [Noto Sans KR])',
+    });
+    expect(check(report, "uiux-palette-role-consistency")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-type-scale")).toMatchObject({ pass: true });
+  });
+
+  it("fails type scale for a body line height outside 1.5-1.75", () => {
+    const document = parseDesignDocument({
+      id: "uiux-line-height-violation",
+      title: "line height violation",
+      canvas: { width: 1080, height: 1080 },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [{
+          id: "body-tight",
+          type: "text",
+          frame: { x: 40, y: 40, width: 1000, height: 80 },
+          text: "Body 16",
+          fontFamily: "Noto Sans KR",
+          fontSize: 16,
+          lineHeight: 1.3,
+          color: "#1E1B4B",
+        }],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [{ pageId: "p1", layerId: "body-tight", role: "body" }],
+    });
+
+    expect(check(report, "uiux-type-scale")).toEqual({
+      name: "uiux-type-scale",
+      pass: false,
+      detail: "p1/body-tight (body): line height 1.3 outside 1.5-1.75",
+    });
+    expect(check(report, "uiux-font-pairing")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-guideline-violations")).toEqual({
+      name: "uiux-guideline-violations",
+      pass: false,
+      detail: "color contrast: 0, typography: 1",
+    });
+  });
+
+  it("checks heading roles against the fixed scale", () => {
+    const document = parseDesignDocument({
+      id: "uiux-heading-roles",
+      title: "heading roles",
+      canvas: { width: 1080, height: 1080 },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [
+          {
+            id: "heading-ok",
+            type: "text",
+            frame: { x: 40, y: 40, width: 1000, height: 100 },
+            text: "Heading 24",
+            fontFamily: "Noto Sans KR",
+            fontSize: 24,
+            lineHeight: 1.5,
+            color: "#1E1B4B",
+          },
+          {
+            id: "heading-off-scale",
+            type: "text",
+            frame: { x: 40, y: 200, width: 1000, height: 80 },
+            text: "Heading 13",
+            fontFamily: "Noto Sans KR",
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: "#1E1B4B",
+          },
+        ],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [
+        { pageId: "p1", layerId: "heading-ok", role: "heading" },
+        { pageId: "p1", layerId: "heading-off-scale", role: "heading" },
+      ],
+    });
+
+    expect(check(report, "uiux-palette-role-consistency")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-font-pairing")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-type-scale")).toEqual({
+      name: "uiux-type-scale",
+      pass: false,
+      detail: "p1/heading-off-scale (heading): font size 13px not in scale 12/14/16/18/24/32",
+    });
+  });
+
+  it("reports role expectations that point at a missing layer in every role check", () => {
+    const document = parseDesignDocument({
+      id: "uiux-missing-layer",
+      title: "missing layer",
+      canvas: { width: 200, height: 200 },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [{ pageId: "p1", layerId: "ghost", role: "body" }],
+    });
+
+    const missing = "p1/ghost (role body: no such layer)";
+    expect(check(report, "uiux-palette-role-consistency")).toEqual({
+      name: "uiux-palette-role-consistency",
+      pass: false,
+      detail: missing,
+    });
+    expect(check(report, "uiux-font-pairing")).toEqual({
+      name: "uiux-font-pairing",
+      pass: false,
+      detail: missing,
+    });
+    expect(check(report, "uiux-type-scale")).toEqual({
+      name: "uiux-type-scale",
+      pass: false,
+      detail: missing,
+    });
+  });
+
+  it("reports text/surface role expectations on the wrong layer type", () => {
+    const document = parseDesignDocument({
+      id: "uiux-type-mismatch",
+      title: "type mismatch",
+      canvas: { width: 1080, height: 1080 },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [
+          {
+            id: "square",
+            type: "rect",
+            frame: { x: 40, y: 40, width: 400, height: 120 },
+            fill: "#6366F1",
+          },
+          {
+            id: "words",
+            type: "text",
+            frame: { x: 40, y: 700, width: 1000, height: 80 },
+            text: "Body 16",
+            fontFamily: "Noto Sans KR",
+            fontSize: 16,
+            lineHeight: 1.6,
+            color: "#1E1B4B",
+          },
+        ],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [
+        { pageId: "p1", layerId: "square", role: "heading" },
+        { pageId: "p1", layerId: "words", role: "primary-surface" },
+      ],
+    });
+
+    expect(check(report, "uiux-palette-role-consistency")).toEqual({
+      name: "uiux-palette-role-consistency",
+      pass: false,
+      detail:
+        "p1/square (role heading: expected a text layer, found rect), "
+        + "p1/words (role primary-surface: expected a rect layer, found text)",
+    });
+    expect(check(report, "uiux-font-pairing")).toEqual({
+      name: "uiux-font-pairing",
+      pass: false,
+      detail: "p1/square (role heading: expected a text layer, found rect)",
+    });
+    expect(check(report, "uiux-type-scale")).toEqual({
+      name: "uiux-type-scale",
+      pass: false,
+      detail: "p1/square (role heading: expected a text layer, found rect)",
+    });
+  });
+
+  it("reports a role mismatch for a brand kit color that is allowed but not the profile role color", () => {
+    const document = parseDesignDocument({
+      id: "uiux-brand-role-conflict",
+      title: "brand role conflict",
+      canvas: { width: 1080, height: 1080 },
+      brandKit: {
+        id: "kit",
+        name: "Kit",
+        palette: [
+          { id: "paper", name: "Paper", value: "#F5F3FF" },
+          { id: "ink", name: "Ink", value: "#1E1B4B" },
+          { id: "brand-red", name: "Brand red", value: "#DC2626" },
+        ],
+        fonts: [{ family: "Noto Sans KR", weights: [400, 700] }],
+      },
+      pages: [{
+        id: "p1",
+        name: "P1",
+        background: "#F5F3FF",
+        layers: [
+          {
+            id: "red-band",
+            type: "rect",
+            frame: { x: 40, y: 40, width: 400, height: 120 },
+            fill: "#DC2626",
+          },
+          {
+            id: "copy",
+            type: "text",
+            frame: { x: 40, y: 700, width: 1000, height: 80 },
+            text: "Body 16",
+            fontFamily: "Noto Sans KR",
+            fontSize: 16,
+            lineHeight: 1.6,
+            color: "#1E1B4B",
+          },
+        ],
+      }],
+    });
+
+    const report = inspectDocumentWithUiuxProfile(document, {
+      profile: MICRO_SAAS_KOREAN_PROFILE,
+      roles: [
+        { pageId: "p1", layerId: "red-band", role: "primary-surface" },
+        { pageId: "p1", layerId: "copy", role: "body" },
+      ],
+    });
+
+    // #DC2626 is inside the brand kit (allowed) but differs from the profile's
+    // primary #6366F1: the mixed scenario is "inside the kit, role mismatch".
+    const palette = check(report, "uiux-palette-role-consistency");
+    expect(palette).toMatchObject({ pass: false });
+    expect(palette?.detail).toBe(
+      "p1/red-band (rect fill #DC2626: expected primary-surface #6366F1 from micro-saas-korean)",
+    );
+    expect(palette?.detail).not.toContain("not in");
+    expect(check(report, "brand-kit-respected")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-font-pairing")).toMatchObject({ pass: true });
+    expect(check(report, "uiux-type-scale")).toMatchObject({ pass: true });
+  });
 });

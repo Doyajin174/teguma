@@ -29,7 +29,7 @@ POC는 `src/design/qa.ts`와 현재 선언형 `DesignDocument`만 대상으로 �
 |---|---|---|---|
 | `colors.csv`의 `Background`/`Foreground`, `Primary`/`On Primary`, `Accent`/`On Accent`, `Card`/`Card Foreground`, `Destructive`/`On Destructive` | `page.background`, `rect.fill`, `text.color`; 텍스트의 아래 rect 또는 페이지 배경 | 기존 대비 알고리즘으로 각 실제 전경/배경 조합의 최악 대비를 판정. 4.5:1 미만 대상은 실패 | 기존 `text-contrast-at-least-4.5` |
 | 같은 팔레트의 역할 색상 | 위 색상 필드와 활성 브랜드 키트 | 프로필/브랜드 키트에 선언되지 않은 색상은 대상별로 보고. 수치 색상 거리나 임의의 조화 점수는 사용하지 않음 | `uiux-palette-role-consistency` |
-| `typography.csv`의 `Heading Font`, `Body Font` | 텍스트의 `fontFamily`, `fontWeight` | 헤딩/본문으로 지정된 레이어가 허용 글꼴·굵기를 쓰는지 검사. 역할 판별 메타데이터가 아직 없으므로 POC는 문서/템플릿이 명시한 역할만 검사하고, 역할이 없으면 `not-applicable`로 보고 | `uiux-font-pairing` |
+| `typography.csv`의 `Heading Font`, `Body Font` | 텍스트의 `fontFamily` | 헤딩/본문으로 지정된 레이어가 허용 글꼴을 쓰는지 검사. 굵기(`fontWeight`) 비교는 POC 범위 밖이다(고정 프로필에 굵기 데이터가 없고, 브랜드 키트가 있으면 기존 `brand-kit-respected`가 굵기를 담당). 역할 판별 메타데이터가 아직 없으므로 POC는 문서/템플릿이 명시한 역할만 검사하고, 역할이 없으면 `not-applicable`로 보고 | `uiux-font-pairing` |
 | `quick-reference.md`의 예시 스케일 `12/14/16/18/24/32`, 본문 16px, 행간 1.5–1.75 | 텍스트의 `fontSize`, `lineHeight` | 역할이 `body`인 레이어는 16px 이상·행간 범위인지, 모든 역할 지정 텍스트는 선택 스케일 중 하나인지 검사 | `uiux-type-scale` |
 | `ux-guidelines.csv`의 `Color Contrast`, `Contrast Readability`, `Typography` 규칙 | 위 판정 결과 | POC에서 구현한 UX 규칙의 실패 개수를 집계. 레이어 모델에 없는 키보드/ARIA/상태 규칙은 검사하지 않음 | `uiux-guideline-violations` |
 
@@ -42,6 +42,8 @@ POC는 `src/design/qa.ts`와 현재 선언형 `DesignDocument`만 대상으로 �
 POC는 한 프로필만 사용한다. 이름은 `micro-saas-korean`으로 고정하고, [조사 문서](../research/016-uiux-pro-max-integration.md#검증-보강)에 인용한 `colors.csv`의 `Micro SaaS` 행, `typography.csv`의 `Korean Modern` 행, `ux-guidelines.csv` No. 36·72·74를 출처로 한다. 즉 팔레트는 `#F5F3FF/#1E1B4B`, `#6366F1/#FFFFFF`, `#059669/#FFFFFF` 역할 쌍을, 글꼴은 헤딩·본문 모두 `Noto Sans KR`을, 타입 스케일은 `12/14/16/18/24/32`와 본문 16px 이상·행간 1.5–1.75를 사용한다.
 
 현재 `DesignDocument`의 텍스트 레이어에는 heading/body 역할 필드가 없고 `inspectDocument(document, policy?)`의 두 번째 인수는 workspace policy다. 따라서 이 POC는 공개 스키마·MCP API를 바꾸지 않는다. 후속 구현 이슈에서 승인된 방식으로 역할을 전달하기 전까지, POC의 역할 기대값은 테스트 fixture와 `qa.ts` 내부의 비공개 고정 프로필 입력으로만 둔다. 역할 없는 일반 문서는 새 검사 결과를 추가하지 않아 기존 `QaReport` 모양과 통과 여부를 보존한다.
+
+참고: 고정 프로필의 `Primary #6366F1`과 `On Primary #FFFFFF` 조합은 대비 4.47:1로 4.5:1 미만이다. 즉 프로필의 역할 쌍은 디자인 추천이지 WCAG AA 보장이 아니며, 이 조합을 텍스트에 쓰면 기존 대비 검사가 실패로 보고한다(프로필 선택 결함, 4.5:1 판정원과 별개).
 
 ### 구현 단계
 
@@ -86,7 +88,7 @@ POC는 한 프로필만 사용한다. 이름은 `micro-saas-korean`으로 고정
 2. `inspectDocument`는 프로필 없는 기존 호출자의 보고서 모양과 통과 여부를 보존한다. 이 POC에서는 프로필 없는 경우 새 검사를 보고서에 넣지 않으며, 그 동작을 회귀 테스트로 고정한다.
 3. 프로필이 선택된 경우 모든 새 위반은 `pageId/layerId`, 규칙/역할, 실제 값, 기대 값 또는 임계값을 포함한다. 세부 정보는 사람이 수정할 수 있는 문장으로 만든다.
 4. 기존 대비 체크와 새 집계 체크가 같은 실패를 두 번 출고 실패로 세지 않는다. 기존 대비는 판정원, UX 집계는 그 결과를 참조하는 요약이다.
-5. 활성 브랜드 키트와 선택 프로필이 충돌하면 `brand-kit-respected` 실패를 유지하고, 프로필은 자동 변경하지 않는다.
+5. 활성 브랜드 키트와 선택 프로필이 충돌하면 `brand-kit-respected` 실패를 유지하고, 프로필은 자동 변경하지 않는다. 브랜드 키트는 색상·폰트의 **허용 목록**만 결정하고, 역할 기대값은 프로필 역할 색상을 기준으로 비교한다(키트 스와치는 `id`/`name`/`value`만 있고 역할 의미를 갖지 않으므로). 따라서 키트에 있는 색상이라도 프로필 역할 색상과 다르면 "키트 밖은 아니지만 역할 불일치" 혼합 시나리오로 `uiux-palette-role-consistency`가 보고한다. 이 동작은 코드 주석과 충돌 테스트로 고정한다.
 
 ## 최소 재현 시나리오
 
